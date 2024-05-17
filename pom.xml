@@ -76,7 +76,17 @@
 			<artifactId>java-jwt</artifactId>
 			<version>4.2.2</version>
 		</dependency>
+		<!-- Send OTP -->
+	<!-- https://mvnrepository.com/artifact/com.twilio.sdk/twilio -->
+<dependency>
+    <groupId>com.twilio.sdk</groupId>
+    <artifactId>twilio</artifactId>
+    <version>10.1.5</version>
+</dependency>
+	
 	</dependencies>
+
+
 
 	<build>
 		<plugins>
