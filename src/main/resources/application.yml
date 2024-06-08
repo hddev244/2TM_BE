@@ -7,9 +7,9 @@ spring:
   application:
     name: jpa-b1
   datasource:
-    url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/STORE_TEST
-    username: 2zgSHt1FxfMnZVN.root
-    password: p98eOXMEDmKam2qJ
+    url: jdbc:mysql://mysql.2tm.store/2tm_dev
+    username: 2tm_dev
+    password: H9D%L5mdgtKEP@sN
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   servlet:
@@ -25,3 +25,10 @@ jwt:
   signerKey: 3331QGQ7lwcpqMeuVGSCjPkwkMKk/92td+suEztit4FWXPXwLjjxmnHY0Knj796r
   valid-duration: 3600 # in second
   refreshable-duration: 86400
+open:
+  api:
+    title: 2TM API Documentation 
+    description: this is a test api documentation for 2TM project 
+    version: 1.0.0
+    serverUrl: http://localhost:8080
+    serverName: server test

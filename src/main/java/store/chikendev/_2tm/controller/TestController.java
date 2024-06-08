@@ -16,7 +16,7 @@ import store.chikendev._2tm.service.AccountService;
 import store.chikendev._2tm.service.AuthenticationService;
 
 @RestController
-@RequestMapping
+@RequestMapping("/test")
 public class TestController {
 
     @Autowired
