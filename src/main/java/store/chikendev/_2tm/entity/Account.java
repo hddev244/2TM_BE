@@ -66,4 +66,7 @@ public class Account {
     @OneToMany(mappedBy = "account")
     private List<RoleAccount> roles;
 
+    @OneToMany(mappedBy = "account")
+    private List<Address> addresses;
+
 }

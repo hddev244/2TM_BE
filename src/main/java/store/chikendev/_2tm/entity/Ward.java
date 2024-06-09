@@ -34,5 +34,5 @@ public class Ward {
     private District district;
 
     @OneToMany(mappedBy = "ward")
-    private List<Account> accounts;
+    private List<Address> addresses;
 }
