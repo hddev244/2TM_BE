@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -46,6 +47,8 @@ public class Account {
     @Column(length = 100)
     private String email;
 
+    private Integer violationPoints;
+
     @CreationTimestamp
     @Temporal(TemporalType.DATE)
     @Column(updatable = false)
@@ -68,5 +71,29 @@ public class Account {
 
     @OneToMany(mappedBy = "account")
     private List<Address> addresses;
+
+    @OneToOne(mappedBy = "account")
+    private Otp otp;
+
+    @OneToMany(mappedBy = "account")
+    private AccountStore store;
+
+    @OneToMany(mappedBy = "account")
+    private List<Product> products;
+
+    @OneToMany(mappedBy = "paymentClerk")
+    private List<Disbursements> disbursements;
+
+    @OneToMany(mappedBy = "account")
+    private List<Order> orders;
+
+    @OneToMany(mappedBy = "deliveryPerson")
+    private List<BillOfLading> deliveryPersons;
+
+    @OneToMany(mappedBy = "createBy")
+    private List<BillOfLading> createBys;
+
+    @OneToMany(mappedBy = "account")
+    private List<ViolationRecord> violationRecords;
 
 }

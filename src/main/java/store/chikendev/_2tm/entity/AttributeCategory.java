@@ -16,19 +16,18 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Builder
-public class Address {
+public class AttributeCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String streetAddress;
 
     @ManyToOne
-    @JoinColumn(name = "accountId")
-    private Account account;
+    @JoinColumn(name = "categoryId")
+    private Category category;
 
     @ManyToOne
-    @JoinColumn(name = "wardId")
-    private Ward ward;
+    @JoinColumn(name = "attributeId")
+    private ProductAttributes attribute;
 
 }

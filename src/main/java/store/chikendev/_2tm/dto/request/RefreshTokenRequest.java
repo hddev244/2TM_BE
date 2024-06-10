@@ -1,4 +1,4 @@
-package store.chikendev._2tm.repository;
+package store.chikendev._2tm.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

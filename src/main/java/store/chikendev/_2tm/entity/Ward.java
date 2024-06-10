@@ -35,4 +35,10 @@ public class Ward {
 
     @OneToMany(mappedBy = "ward")
     private List<Address> addresses;
+
+    @OneToMany(mappedBy = "ward")
+    private List<Store> stores;
+
+    @OneToMany(mappedBy = "ward")
+    private List<Order> orders;
 }

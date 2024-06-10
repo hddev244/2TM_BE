@@ -31,4 +31,16 @@ public class Image {
 
     @OneToMany(mappedBy = "image")
     private List<Account> accounts;
+
+    @OneToMany(mappedBy = "image")
+    private List<Store> stores;
+
+    @OneToMany(mappedBy = "image")
+    private List<Category> categories;
+
+    @OneToMany(mappedBy = "image")
+    private List<ProductImages> products;
+
+    @OneToMany(mappedBy = "image")
+    private List<BillOfLading> billOfLadings;
 }
