@@ -192,13 +192,6 @@
 					<trimStackTrace>false</trimStackTrace>
 				</configuration>
 			</plugin>
-			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <finalName>dev</finalName>
-                </configuration>
-            </plugin>
 		</plugins>
 	</build>
 	<repositories>
