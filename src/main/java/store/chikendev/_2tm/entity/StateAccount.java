@@ -4,6 +4,8 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -16,15 +18,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "roles")
+@Table(name = "statesAccount")
 @Builder
-public class Role {
+public class StateAccount {
+
     @Id
-    @Column(length = 20)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(length = 50)
     private String name;
 
-    @OneToMany(mappedBy = "role")
-    private List<Role> roles;
+    @OneToMany(mappedBy = "state")
+    private List<Account> accounts;
 
 }
