@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "roles")
 @Builder
 public class Role {
+
     @Id
     @Column(length = 20)
     private String id;
