@@ -1,6 +1,6 @@
 package store.chikendev._2tm.entity;
 
-import org.apache.poi.hpsf.Date;
+import java.util.Date;
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
@@ -33,11 +33,10 @@ public class Otp {
     @Column(updatable = false)
     private Date createdAt;
 
-    @Column(length = 10, unique = true)
+    @Column(length = 10, unique = true, name = "phone_number")
     private String phoneNumber;
 
     @OneToOne
-    @JoinColumn(name = "phoneNumber", referencedColumnName = "phoneNumber", unique = true, insertable = false, updatable = false)
+    @JoinColumn(name = "account_phone_number", referencedColumnName = "phoneNumber", unique = true, insertable = false, updatable = false)
     private Account account;
-
 }

@@ -75,7 +75,7 @@ public class Account {
     @OneToOne(mappedBy = "account")
     private Otp otp;
 
-    @OneToMany(mappedBy = "account")
+    @OneToOne(mappedBy = "account")
     private AccountStore store;
 
     @OneToMany(mappedBy = "account")
