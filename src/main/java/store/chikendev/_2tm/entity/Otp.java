@@ -33,7 +33,7 @@ public class Otp {
     @Column(updatable = false)
     private Date createdAt;
 
-    @Column(length = 10, unique = true, name = "phone_number")
+    @Column(length = 10, unique = true, name = "phoneNumber")
     private String phoneNumber;
 
     @OneToOne
