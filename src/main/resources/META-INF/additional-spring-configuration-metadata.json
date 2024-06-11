@@ -13,5 +13,30 @@
     "name": "jwt.refreshable-duration",
     "type": "java.lang.String",
     "description": "A description for 'jwt.refreshable-duration'"
+  },
+  {
+    "name": "open.api.title",
+    "type": "java.lang.String",
+    "description": "A description for 'open.api.title'"
+  },
+  {
+    "name": "open.api.description",
+    "type": "java.lang.String",
+    "description": "A description for 'open.api.description'"
+  },
+  {
+    "name": "open.api.version",
+    "type": "java.lang.String",
+    "description": "A description for 'open.api.version'"
+  },
+  {
+    "name": "open.api.serverUrl",
+    "type": "java.lang.String",
+    "description": "A description for 'open.api.serverUrl'"
+  },
+  {
+    "name": "open.api.serverName",
+    "type": "java.lang.String",
+    "description": "A description for 'open.api.serverName'"
   }
 ]}

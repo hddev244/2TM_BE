@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 public class Role {
 
     @Id
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String id;
     private String name;
 
