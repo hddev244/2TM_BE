@@ -19,12 +19,13 @@ import lombok.NoArgsConstructor;
 @Table(name = "roles")
 @Builder
 public class Role {
+
     @Id
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String id;
     private String name;
 
     @OneToMany(mappedBy = "role")
-    private List<Role> roles;
+    private List<RoleAccount> roles;
 
 }

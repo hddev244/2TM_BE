@@ -27,6 +27,7 @@ import com.nimbusds.jwt.SignedJWT;
 import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.LogoutRequest;
+import store.chikendev._2tm.dto.request.RefreshTokenRequest;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.InvaLidatedToken;
@@ -34,7 +35,6 @@ import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.InvaLidatedTokenRepository;
-import store.chikendev._2tm.repository.RefreshTokenRequest;
 
 @Service
 public class AuthenticationService {

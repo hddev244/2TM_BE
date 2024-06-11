@@ -11,40 +11,43 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "accounts", indexes = {
+        @Index(name = "idx_phone_number", columnList = "phoneNumber")
+})
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-@Entity
 @Builder
-@Table(name = "accounts", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "username", "email", "phoneNumber" })
-})
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    @Column(length = 50)
+    @Column(length = 50, unique = true)
     private String username;
     @Column(length = 300)
     private String password;
     @Column(length = 50)
     private String fullName;
-    @Column(length = 10)
+    @Column(length = 10, unique = true)
     private String phoneNumber;
-    @Column(length = 100)
+    @Column(length = 100, unique = true)
     private String email;
+
+    private Integer violationPoints;
 
     @CreationTimestamp
     @Temporal(TemporalType.DATE)
@@ -68,5 +71,29 @@ public class Account {
 
     @OneToMany(mappedBy = "account")
     private List<Address> addresses;
+
+    @OneToOne(mappedBy = "account")
+    private Otp otp;
+
+    @OneToOne(mappedBy = "account")
+    private AccountStore store;
+
+    @OneToMany(mappedBy = "account")
+    private List<Product> products;
+
+    @OneToMany(mappedBy = "paymentClerk")
+    private List<Disbursements> disbursements;
+
+    @OneToMany(mappedBy = "account")
+    private List<Order> orders;
+
+    @OneToMany(mappedBy = "deliveryPerson")
+    private List<BillOfLading> deliveryPersons;
+
+    @OneToMany(mappedBy = "createBy")
+    private List<BillOfLading> createBys;
+
+    @OneToMany(mappedBy = "account")
+    private List<ViolationRecord> violationRecords;
 
 }
