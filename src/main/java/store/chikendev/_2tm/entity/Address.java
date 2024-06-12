@@ -1,3 +1,4 @@
+
 package store.chikendev._2tm.entity;
 
 import jakarta.persistence.Entity;
