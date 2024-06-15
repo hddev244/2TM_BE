@@ -38,5 +38,20 @@
     "name": "open.api.serverName",
     "type": "java.lang.String",
     "description": "A description for 'open.api.serverName'"
+  },
+  {
+    "name": "infobip.api-key",
+    "type": "java.lang.String",
+    "description": "A description for 'infobip.api-key'"
+  },
+  {
+    "name": "infobip.senderPhoneNumber",
+    "type": "java.lang.String",
+    "description": "A description for 'infobip.senderPhoneNumber'"
+  },
+  {
+    "name": "infobip.baseUrl",
+    "type": "java.lang.String",
+    "description": "A description for 'infobip.baseUrl'"
   }
 ]}

@@ -19,7 +19,7 @@ spring:
       max-request-size: 50MB
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
 jwt:
   signerKey: 3331QGQ7lwcpqMeuVGSCjPkwkMKk/92td+suEztit4FWXPXwLjjxmnHY0Knj796r
@@ -32,3 +32,7 @@ open:
     version: 1.0.0
     serverUrl: http://localhost:8080
     serverName: server test
+infobip:
+  apiKey: 4417fd3b84080411b22ef1229ac29ee6-1e8c5e94-631c-401c-aa79-b75f5a2e2cff
+  baseUrl: https://e1nzd1.api.infobip.com
+  senderPhoneNumber: 84337619959
