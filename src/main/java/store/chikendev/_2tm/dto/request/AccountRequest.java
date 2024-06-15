@@ -21,4 +21,6 @@ public class AccountRequest {
     @NotBlank(message = "Không bỏ trống email")
     @Email(message = "Định dạng email không chính xác")
     private String email;
+
+    
 }
