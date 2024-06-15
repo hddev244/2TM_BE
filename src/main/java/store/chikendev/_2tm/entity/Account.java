@@ -40,14 +40,13 @@ public class Account {
     private String username;
     @Column(length = 300)
     private String password;
-    @Column(length = 50)
+    @Column(length = 100)
     private String fullName;
+    private Integer violationPoints;
     @Column(length = 10, unique = true)
     private String phoneNumber;
     @Column(length = 100, unique = true)
     private String email;
-
-    private Integer violationPoints;
 
     @CreationTimestamp
     @Temporal(TemporalType.DATE)
@@ -66,6 +65,10 @@ public class Account {
     @JoinColumn(name = "state_id")
     private StateAccount state;
 
+    @ManyToOne
+    @JoinColumn(name = "primaryAddress")
+    private Address address;
+
     @OneToMany(mappedBy = "account")
     private List<RoleAccount> roles;
 
@@ -81,6 +84,9 @@ public class Account {
     @OneToMany(mappedBy = "account")
     private List<Product> products;
 
+    @OneToMany(mappedBy = "ownerId")
+    private List<Product> products_owner;
+
     @OneToMany(mappedBy = "paymentClerk")
     private List<Disbursements> disbursements;
 
@@ -95,5 +101,14 @@ public class Account {
 
     @OneToMany(mappedBy = "account")
     private List<ViolationRecord> violationRecords;
+
+    @OneToMany(mappedBy = "ordererId")
+    private List<ConsignmentOrders> ordererConsignmentOrders;
+
+    @OneToMany(mappedBy = "deliveryPerson")
+    private List<ConsignmentOrders> deliveryPersonConsignmentOrders;
+
+    @OneToMany(mappedBy = "account")
+    private List<CartItems> CartItems;
 
 }
