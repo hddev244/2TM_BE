@@ -52,7 +52,7 @@ public class FilesHelp {
                 String fileIdReal = item.getFileName().toString().substring(0, 36);
                 ResponseDocumentDto responseDocumentDto = ResponseDocumentDto.builder()
                         .fileName(fileNameReal)
-                        .fileDownloadUri(item.toString())
+                        .fileDownloadUri(type.getDir()+ entityId + "/" + item.getFileName().toString())
                         .fileType(Files.probeContentType(item))
                         .fileId(fileIdReal)
                         .size(Files.size(item))
