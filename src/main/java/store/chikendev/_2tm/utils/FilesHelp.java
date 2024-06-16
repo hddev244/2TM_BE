@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.checkerframework.checker.units.qual.t;
 import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
@@ -31,6 +32,10 @@ public class FilesHelp {
             File directoryFile = new File(dir);
             if (!directoryFile.exists()) {
                 directoryFile.mkdirs();
+            } else if (!type.isMultiple()) {
+                for (Path item : Files.list(Paths.get(dir)).collect(Collectors.toList())) {
+                    item.toFile().delete();
+                }
             }
             Files.copy(file.getInputStream(),
                     Paths.get(dir + "/" + getUniqueFileName(file.getOriginalFilename())),

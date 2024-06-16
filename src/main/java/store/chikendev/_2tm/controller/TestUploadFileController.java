@@ -1,11 +1,6 @@
 package store.chikendev._2tm.controller;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,16 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 @RequestMapping("/api/uploadfile")
 public class TestUploadFileController {
-    class FileUpload {
-        private String fileName;
-        private String fileDownloadUri;
-        private String fileType;
-        private long size;
-    }
-
-    private FileUpload getFileUpload() {
-        return new FileUpload();
-    }
 
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(
@@ -50,7 +35,7 @@ public class TestUploadFileController {
             @RequestParam("entityId") String entityId
             ) {
         for (MultipartFile file : files) {
-            FilesHelp.saveFile(file, entityId, EntityFileType.PRODUCT);
+            FilesHelp.saveFile(file, entityId, EntityFileType.STORE_LOGO);
         }
         return "Upload file successfully";
     }

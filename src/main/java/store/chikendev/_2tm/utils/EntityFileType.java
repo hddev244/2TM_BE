@@ -6,14 +6,17 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum EntityFileType {
-    PRODUCT("files_dev/products/product-"),
-    PROFILE("files_dev/profiles/profile-"),
-    CATEGORY("files_dev/categories/category-"),
-    BRAND("files_dev/brands/brand-"),
-    SLIDER("files_dev/sliders/slider-"),
-    BANNER("files_dev/banners/banner-"),
-    ORDER("files_dev/orders/order-"),
-    REVIEW("files_dev/reviews/review-"),
-    COMMENT("files_dev/comments/comment-");
+    USER_AVATAR(false,"files_dev/users/user-"),
+    STORE_LOGO(false,"files_dev/stores/store-"),
+   
+    PRODUCT(true,"files_dev/products/product-"),
+    CATEGORY(true,"files_dev/categories/category-"),
+    BRAND(true,"files_dev/brands/brand-"),
+    SLIDER(true,"files_dev/sliders/slider-"),
+    BANNER(true,"files_dev/banners/banner-"),
+    ORDER(true,"files_dev/orders/order-"),
+    REVIEW(true,"files_dev/reviews/review-"),
+    COMMENT(true,"files_dev/comments/comment-");
+    private boolean multiple;
     private String dir;
 }
