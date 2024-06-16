@@ -48,6 +48,12 @@ public class Product {
     @Temporal(TemporalType.DATE)
     private Date updatedAt;
 
+    private Boolean type;
+
+    @ManyToOne
+    @JoinColumn(name = "ownerId")
+    private Account ownerId;
+
     @ManyToOne
     @JoinColumn(name = "accountId")
     private Account account;
@@ -69,5 +75,11 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private List<ProductImages> images;
+
+    @OneToMany(mappedBy = "product")
+    private List<ConsignmentOrders> consignmentOrders;
+
+    @OneToMany(mappedBy = "product")
+    private List<CartItems> cartItems;
 
 }

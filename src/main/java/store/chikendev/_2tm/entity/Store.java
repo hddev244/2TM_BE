@@ -67,4 +67,7 @@ public class Store {
     @OneToMany(mappedBy = "store")
     private List<Product> products;
 
+    @OneToMany(mappedBy = "store")
+    private List<ConsignmentOrders> consignmentOrders;
+
 }

@@ -1,14 +1,11 @@
 package store.chikendev._2tm.entity;
 
-import java.util.List;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,22 +16,17 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Builder
-public class Address {
-
+public class CartItems {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String streetAddress;
+    private Integer quantity;
 
     @ManyToOne
-    @JoinColumn(name = "accountId")
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id")
     private Account account;
-
-    @ManyToOne
-    @JoinColumn(name = "wardId")
-    private Ward ward;
-
-    @OneToMany(mappedBy = "address")
-    private List<Account> accounts;
-
 }
