@@ -18,7 +18,8 @@ public enum ErrorCode {
     OTP_ERROR(400, "Không thể gửi OTP", HttpStatus.BAD_REQUEST),
     LOGIN_FAIL(400, "Đăng nhập không chính xác", HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR(500, "Lỗi máy chủ", HttpStatus.INTERNAL_SERVER_ERROR),
-    UNAUTHORIZED(401, "Thông tin xác nhận không hợp lệ", HttpStatus.UNAUTHORIZED);
+    UNAUTHORIZED(401, "Thông tin xác nhận không hợp lệ", HttpStatus.UNAUTHORIZED),
+    FILE_UPLOAD_ERROR(400, "Lỗi khi tải file lên", HttpStatus.BAD_REQUEST);
 
     private int code;
     private String message;
