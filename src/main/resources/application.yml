@@ -30,7 +30,7 @@ open:
     title: 2TM API Documentation 
     description: this is a test api documentation for 2TM project 
     version: 1.0.0
-    serverUrl: http://localhost:8080
+    serverUrl: https://api.2tm.store/
     serverName: server test
 infobip:
   apiKey: 4417fd3b84080411b22ef1229ac29ee6-1e8c5e94-631c-401c-aa79-b75f5a2e2cff
