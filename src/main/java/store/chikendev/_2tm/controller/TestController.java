@@ -27,8 +27,8 @@ public class TestController {
     @Autowired
     private AccountService accountService;
 
-    @Autowired
-    private OtpService otpService;
+    // @Autowired
+    // private OtpService otpService;
 
     @GetMapping
     public String test() {
@@ -45,10 +45,10 @@ public class TestController {
         return new ApiResponse<AccountResponse>(200, null, accountService.register(request));
     }
 
-    @PostMapping("otp")
-    public ApiResponse<String> otp(@RequestParam String number) {
-        return new ApiResponse<>(200, null, otpService.sendOtp(number));
+    // @PostMapping("otp")
+    // public ApiResponse<String> otp(@RequestParam String number) {
+    // return new ApiResponse<>(200, null, otpService.sendOtp(number));
 
-    }
+    // }
 
 }

@@ -11,7 +11,6 @@ import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 
 import java.io.IOException;
-import java.util.Random;
 
 @Component
 public class SendOtp {
@@ -27,15 +26,8 @@ public class SendOtp {
 
     private final OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-    public String generateOtp() {
-        Random random = new Random();
-        int otp = 100000 + random.nextInt(900000);
-        return String.valueOf(otp);
-    }
-
     @SuppressWarnings("deprecation")
-    public String sendOtp(String phoneNumber) {
-        String otp = generateOtp();
+    public String sendOtp(String phoneNumber, String otp) {
         String messageContent = "Mã OTP của bạn là: " + otp;
 
         String json = String.format(
@@ -54,7 +46,7 @@ public class SendOtp {
 
         try (Response response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                return otp;
+                return "SMS đã được gửi vui lòng đợi trong giây lát";
             }
         } catch (IOException e) {
             e.printStackTrace();

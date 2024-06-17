@@ -13,9 +13,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AccountResponse {
     private String id;
+    private String username;
     private String fullName;
+    private Integer violationPoints;
+    private String phoneNumber;
     private String email;
     private Date createdAt;
     private Date updatedAt;
-    private boolean status;
+    private String stateName;
+    private ResponseDocumentDto urlImage;
 }

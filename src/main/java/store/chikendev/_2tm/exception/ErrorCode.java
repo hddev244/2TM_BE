@@ -10,7 +10,8 @@ import lombok.Getter;
 @Getter
 // ma loi
 public enum ErrorCode {
-    USER_EXISTED(400, "Email hoặc số điện thoại đã tồn tại", HttpStatus.BAD_REQUEST),
+    EMAIL_PHONE_EXISTED(400, "Email hoặc số điện thoại đã tồn tại", HttpStatus.BAD_REQUEST),
+    USER_EXISTED(400, "Username đã tồn tại", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(400, "Không tìm thấy tài khoản", HttpStatus.BAD_REQUEST),
     EXCEL_IMPORT_ERROR(400, "Nhập file excel lỗi", HttpStatus.BAD_REQUEST),
     EXCEL_EXPORT_ERROR(400, "Xuất file excel lỗi", HttpStatus.BAD_REQUEST),

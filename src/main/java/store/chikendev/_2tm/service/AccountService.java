@@ -10,9 +10,15 @@ import org.springframework.stereotype.Service;
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.Role;
+import store.chikendev._2tm.entity.RoleAccount;
+import store.chikendev._2tm.entity.StateAccount;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
+import store.chikendev._2tm.repository.RoleAccountRepository;
+import store.chikendev._2tm.repository.RoleRepository;
+import store.chikendev._2tm.repository.StateAccountRepository;
 
 @Service
 public class AccountService {
@@ -21,20 +27,47 @@ public class AccountService {
     private AccountRepository accountRepository;
 
     @Autowired
+    private StateAccountRepository stateAccountRepository;
+
+    @Autowired
+    private RoleAccountRepository roleAccountRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private ModelMapper mapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     public AccountResponse register(AccountRequest request) {
-        Optional<Account> validate = accountRepository.findByEmail(request.getEmail());
-        if (validate.isPresent()) {
+        Optional<Account> email = accountRepository.findByEmail(request.getEmail());
+        Optional<Account> phone = accountRepository.findByPhoneNumber(request.getPhoneNumber());
+        if (email.isPresent() || phone.isPresent()) {
+            throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
+        }
+        Optional<Account> username = accountRepository.findByUsername(request.getUsername());
+        if (username.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
+        Role role = roleRepository.findById("KH").get();
+        StateAccount state = stateAccountRepository.findById(Long.valueOf(2)).get();
         Account account = mapper.map(request, Account.class);
         account.setPassword(passwordEncoder.encode(request.getPassword()));
+        account.setViolationPoints(100);
+        account.setState(state);
 
-        return mapper.map(accountRepository.save(account), AccountResponse.class);
+        Account save = accountRepository.save(account);
+
+        RoleAccount roleAccount = RoleAccount.builder()
+                .account(save)
+                .role(role)
+                .build();
+        roleAccountRepository.save(roleAccount);
+        AccountResponse response = mapper.map(account, AccountResponse.class);
+        response.setStateName(save.getState().getName());
+        return response;
     }
 
     public List<AccountResponse> getAll() {
