@@ -64,8 +64,9 @@ public class AuthenticationService {
 
     // đăng nhập
     public AuthenticationResponse auth(LoginRequest request) {
-        Account user = accountRepository.findByEmail(request.getEmail())
+        Account user = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated) {
@@ -75,6 +76,7 @@ public class AuthenticationService {
 
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
+                .idUser(user.getId())
                 .token(token)
                 .build();
     }

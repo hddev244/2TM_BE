@@ -12,16 +12,12 @@ import store.chikendev._2tm.dto.responce.WardResponse;
 import store.chikendev._2tm.entity.District;
 import store.chikendev._2tm.entity.ProvinceCity;
 import store.chikendev._2tm.entity.Ward;
-import store.chikendev._2tm.repository.AddressRepository;
 import store.chikendev._2tm.repository.DistrictRepository;
 import store.chikendev._2tm.repository.ProvinceCityRepository;
 import store.chikendev._2tm.repository.WardRepository;
 
-
 @Service
 public class AddressService {
-    @Autowired
-    private AddressRepository addressRepository;
 
     @Autowired
     private ModelMapper mapper;
@@ -42,23 +38,20 @@ public class AddressService {
 
     public ProvinceCityResponse getByIdProvince(Long id) {
         ProvinceCity province = provinceCity.findById(id)
-        .orElseThrow(() -> new RuntimeException("Could not find ProvinceCity"));
-    return mapper.map(province, ProvinceCityResponse.class);
+                .orElseThrow(() -> new RuntimeException("Could not find ProvinceCity"));
+        return mapper.map(province, ProvinceCityResponse.class);
     }
 
-    public List<DistrictResponse> findDistrictByProvinceId(Long id) { 
+    public List<DistrictResponse> findDistrictByProvinceId(Long id) {
         System.out.println(id);
         List<District> districts = districtRepository.getDistrictByProvinceId(id);
         return districts.stream().map(district -> mapper.map(district, DistrictResponse.class)).toList();
     }
 
-    public List<WardResponse> findByDistrictId(Long id) { 
+    public List<WardResponse> findByDistrictId(Long id) {
         System.out.println(id);
         List<Ward> wards = wardRepository.getByDistrictId(id);
         return wards.stream().map(ward -> mapper.map(ward, WardResponse.class)).toList();
     }
 
-    
-    
-    
 }

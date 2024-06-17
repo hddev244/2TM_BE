@@ -132,7 +132,7 @@ public class OtpService {
     }
 
     public Otp create(Account account, String otp) {
-        if (account.getState().getId() != 2) {
+        if (account.getState().getId() != 4) {
             throw new RuntimeException("Tài khoản đã được kích hoạt");
         }
         List<Otp> validate = otpRepository.findByAccount(account);

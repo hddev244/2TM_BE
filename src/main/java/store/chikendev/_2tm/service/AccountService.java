@@ -52,7 +52,7 @@ public class AccountService {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         Role role = roleRepository.findById("KH").get();
-        StateAccount state = stateAccountRepository.findById(Long.valueOf(2)).get();
+        StateAccount state = stateAccountRepository.findById(Long.valueOf(4)).get();
         Account account = mapper.map(request, Account.class);
         account.setPassword(passwordEncoder.encode(request.getPassword()));
         account.setViolationPoints(100);
