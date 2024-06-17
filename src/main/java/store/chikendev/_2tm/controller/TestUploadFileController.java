@@ -23,7 +23,7 @@ public class TestUploadFileController {
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(
             @RequestParam("entityId") String entityId) {
-        return new ApiResponse<>(200, null, FilesHelp.getDocuments(entityId, EntityFileType.PRODUCT));
+        return new ApiResponse<>(200, null, FilesHelp.getDocuments(entityId, EntityFileType.STORE_LOGO));
     }
 
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
@@ -40,7 +40,7 @@ public class TestUploadFileController {
     public String deleteFile(
             @PathVariable("entityId") String entityId,
             @PathVariable("fileId") String fileId) {
-        FilesHelp.deleteFile(entityId, fileId, EntityFileType.PRODUCT);
+        FilesHelp.deleteFile(entityId, fileId, EntityFileType.STORE_LOGO);
         return "Delete file successfully";
     }
 }
