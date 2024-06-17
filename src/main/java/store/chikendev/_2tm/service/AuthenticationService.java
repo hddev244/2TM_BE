@@ -66,6 +66,9 @@ public class AuthenticationService {
     public AuthenticationResponse auth(LoginRequest request) {
         Account user = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (user.getState().getId() == 5) {
+            throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
+        }
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
