@@ -16,24 +16,20 @@ import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
 @RestController
 @RequestMapping("/api/uploadfile")
 public class TestUploadFileController {
 
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(
-            @RequestParam("entityId") String entityId
-            ) {
-        return new ApiResponse<>(200, null, FilesHelp.getDocuments(entityId, EntityFileType.PRODUCT));
+            @RequestParam("entityId") String entityId) {
+        return new ApiResponse<>(200, null, FilesHelp.getDocuments(entityId, EntityFileType.STORE_LOGO));
     }
-    
 
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public String uploadFile(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam("entityId") String entityId
-            ) {
+            @RequestParam("entityId") String entityId) {
         for (MultipartFile file : files) {
             FilesHelp.saveFile(file, entityId, EntityFileType.STORE_LOGO);
         }
@@ -42,10 +38,9 @@ public class TestUploadFileController {
 
     @DeleteMapping(value = "/delete/{entityId}/{fileId}")
     public String deleteFile(
-           @PathVariable("entityId") String entityId,
-            @PathVariable("fileId") String fileId
-            ) {
-        FilesHelp.deleteFile(entityId, fileId, EntityFileType.PRODUCT);
+            @PathVariable("entityId") String entityId,
+            @PathVariable("fileId") String fileId) {
+        FilesHelp.deleteFile(entityId, fileId, EntityFileType.STORE_LOGO);
         return "Delete file successfully";
     }
 }
