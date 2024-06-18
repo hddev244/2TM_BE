@@ -12,8 +12,10 @@ import store.chikendev._2tm.dto.responce.DistrictResponse;
 import store.chikendev._2tm.dto.responce.ProvinceCityResponse;
 import store.chikendev._2tm.dto.responce.WardResponse;
 import store.chikendev._2tm.service.AddressService;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
+@RequestMapping("/api/address")
 public class AddressController {
     @Autowired
     private AddressService addressService;

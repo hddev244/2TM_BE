@@ -23,7 +23,7 @@ public class StoreController {
 
     @PostMapping(consumes = "multipart/form-data")
     public ApiResponse<StoreResponse> createStore(@RequestPart("storeRequest") @Valid StoreRequest request,
-            @RequestPart("image") MultipartFile image) {
+            @RequestPart(name="image", required = false) MultipartFile image) {
         return new ApiResponse<>(200, null, storeService.createStore(request, image));
     }
 
