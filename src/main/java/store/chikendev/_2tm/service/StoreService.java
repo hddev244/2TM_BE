@@ -1,14 +1,5 @@
 package store.chikendev._2tm.service;
 
-<<<<<<< HEAD
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import store.chikendev._2tm.entity.Store;
-import store.chikendev._2tm.repository.StoreRepository;
-
-import java.util.List;
-=======
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -27,7 +18,6 @@ import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
->>>>>>> 654f0b004619d3a989f0851807a92f73580ca2a7
 
 @Service
 public class StoreService {
@@ -35,11 +25,9 @@ public class StoreService {
     @Autowired
     private StoreRepository storeRepository;
 
-<<<<<<< HEAD
     public List<Store> getAllStores() {
         return storeRepository.findAll();
     }
-=======
     @Autowired
     private FilesHelp filesHelp;
 
@@ -89,5 +77,4 @@ public class StoreService {
 
     }
 
->>>>>>> 654f0b004619d3a989f0851807a92f73580ca2a7
 }

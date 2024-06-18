@@ -12,7 +12,7 @@ import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.service.ProductService;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/product")
 public class ProductController {
     @Autowired
     private ProductService productService;
