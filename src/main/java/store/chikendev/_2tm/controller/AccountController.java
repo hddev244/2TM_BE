@@ -1,6 +1,7 @@
 package store.chikendev._2tm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +43,7 @@ public class AccountController {
     }
 
     @PostMapping("login")
-    public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {
+    public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {  
         AuthenticationResponse responce = authenticationService.auth(request);
 
         if (responce.isAuthenticated()){
@@ -52,14 +53,18 @@ public class AccountController {
             cookie.setMaxAge(24 * 60 * 60);
             // Thêm cookie vào phản hồi
             this.response.addCookie(cookie);
-        } else {
-            Cookie cookie = new Cookie("accessToken", "");
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            cookie.setMaxAge(0);
-            this.response.addCookie(cookie);
-        }
+        } 
         return new ApiResponse<AuthenticationResponse>(200, null, responce);
+    }
+
+    @GetMapping("logout")
+    public ApiResponse<String> logout() {
+        Cookie cookie = new Cookie("accessToken", "");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        this.response.addCookie(cookie);
+        return new ApiResponse<String>(200, null, "Logout success");
     }
 
 }
