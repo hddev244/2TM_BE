@@ -49,9 +49,9 @@ public class AccountController {
         if (responce.isAuthenticated()){
             Cookie cookie = new Cookie("accessToken", responce.getToken());
             cookie.setPath("/");
-            // cookie.setHttpOnly(true);
+            cookie.setHttpOnly(true);
             cookie.setMaxAge(24 * 60 * 60);
-            cookie.setSecure(false);
+            cookie.setSecure(true);
             // Thêm cookie vào phản hồi
             this.response.addCookie(cookie);
         } 
