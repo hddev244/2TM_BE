@@ -146,6 +146,7 @@ public class OtpService {
         return otpRepository.saveAndFlush(save);
     }
 
+    // kiểm tra xem mã OTP có quá 5 phút từ lúc tạo hay không
     private boolean isWithinFiveMinutes(Date dateToCheck) {
         LocalDateTime now = LocalDateTime.now(); // Thời gian hiện tại
         LocalDateTime dateToCheckLocal = convertToLocalDateTimeViaInstant(dateToCheck); // Chuyển đổi Date sang

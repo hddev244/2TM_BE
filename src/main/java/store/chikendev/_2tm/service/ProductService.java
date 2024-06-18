@@ -1,6 +1,5 @@
 package store.chikendev._2tm.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,7 +9,11 @@ import org.springframework.stereotype.Service;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Store;
+import store.chikendev._2tm.exception.AppException;
+import store.chikendev._2tm.exception.ErrorCode;
+import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.ProductRepository;
+import store.chikendev._2tm.repository.StoreRepository;
 
 @Service
 public class ProductService {
@@ -18,14 +21,10 @@ public class ProductService {
     private ProductRepository productRepository;
 
     @Autowired
-    private AccountService accountService;
+    private AccountRepository accountRepository;
 
     @Autowired
-    private StoreService storeService;
-
-    public Product addProduct(Product product) {
-        return productRepository.save(product);
-    }
+    private StoreRepository storeRepository;
 
     public Optional<Product> getProductById(Long id) {
         return productRepository.findById(id);
@@ -41,10 +40,10 @@ public class ProductService {
 
     public Product createProduct(String name, Double price, Integer quantity, String description, String accountId,
             Long storeId) {
-        Optional<Account> accountOpt = accountService.getAccountById(accountId);
-        Optional<Store> storeOpt = storeService.getStoreById(storeId);
+        Optional<Account> accountOpt = accountRepository.findById(accountId);
+        Optional<Store> storeOpt = storeRepository.findById(storeId);
 
-        if (accountOpt.isPresent() && storeOpt.isPresent()) {
+        if (accountOpt.isPresent() || storeOpt.isPresent()) {
             Product product = new Product();
             product.setName(name);
             product.setPrice(price);
@@ -52,8 +51,6 @@ public class ProductService {
             product.setDescription(description);
             product.setAccount(accountOpt.get());
             product.setStore(storeOpt.get());
-            product.setCreatedAt(LocalDateTime.now());
-            product.setUpdatedAt(LocalDateTime.now());
 
             return productRepository.save(product);
         } else {
@@ -63,8 +60,8 @@ public class ProductService {
 
     public Product updateProduct(Long id, String name, Double price, Integer quantity, String description,
             String accountId, Long storeId) {
-        Optional<Account> accountOpt = accountService.getAccountById(accountId);
-        Optional<Store> storeOpt = storeService.getStoreById(storeId);
+        Optional<Account> accountOpt = accountRepository.findById(accountId);
+        Optional<Store> storeOpt = storeRepository.findById(storeId);
 
         if (accountOpt.isPresent() && storeOpt.isPresent()) {
             Optional<Product> existingProductOpt = productRepository.findById(id);
@@ -76,11 +73,9 @@ public class ProductService {
                 existingProduct.setDescription(description);
                 existingProduct.setAccount(accountOpt.get());
                 existingProduct.setStore(storeOpt.get());
-                existingProduct.setUpdatedAt(LocalDateTime.now());
-
                 return productRepository.save(existingProduct);
             } else {
-                throw new IllegalArgumentException("Product not found");
+                throw new AppException(ErrorCode.USER_EXISTED);// fix
             }
         } else {
             throw new IllegalArgumentException("Invalid accountId or storeId");
