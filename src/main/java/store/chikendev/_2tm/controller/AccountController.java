@@ -44,8 +44,9 @@ public class AccountController {
     @PostMapping("login")
     public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request);
-        Cookie cookie = new Cookie(responce.getIdUser(), responce.getToken());
-        cookie.setPath("/accessToken");
+        Cookie cookie = new Cookie("accessToken", responce.getToken());
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
         cookie.setMaxAge(24 * 60 * 60);
 
         // Thêm cookie vào phản hồi
