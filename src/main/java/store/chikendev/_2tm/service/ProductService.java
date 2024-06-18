@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Store;
@@ -26,13 +29,6 @@ public class ProductService {
     @Autowired
     private StoreRepository storeRepository;
 
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
-    }
-
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
@@ -80,5 +76,22 @@ public class ProductService {
         } else {
             throw new IllegalArgumentException("Invalid accountId or storeId");
         }
+    }
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable).map(this::convertToResponse);
+    }
+
+    public Optional<ProductResponse> getProductById(Long id) {
+        return productRepository.findById(id).map(this::convertToResponse);
+    }
+
+    private ProductResponse convertToResponse(Product product) {
+        ProductResponse response = new ProductResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setPrice(product.getPrice());
+        response.setQuantity(product.getQuantity());
+        response.setDescription(product.getDescription());
+        return response;
     }
 }
