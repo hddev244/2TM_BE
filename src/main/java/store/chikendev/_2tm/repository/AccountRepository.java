@@ -9,6 +9,9 @@ import store.chikendev._2tm.entity.Account;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
-
     Optional<Account> findByEmail(String email);
+
+    Optional<Account> findByPhoneNumber(String phoneNumber);
+
+    Optional<Account> findByUsername(String username);
 }

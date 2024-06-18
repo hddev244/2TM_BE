@@ -29,14 +29,11 @@ public class Otp {
     private String tokenCode;
 
     @CreationTimestamp
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(updatable = false)
     private Date createdAt;
 
-    @Column(length = 10, unique = true, name = "phoneNumber")
-    private String phoneNumber;
-
     @OneToOne
-    @JoinColumn(name = "account_phone_number", referencedColumnName = "phoneNumber", unique = true, insertable = false, updatable = false)
+    @JoinColumn(name = "accountId")
     private Account account;
 }

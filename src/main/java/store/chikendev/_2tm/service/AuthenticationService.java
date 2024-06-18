@@ -31,6 +31,7 @@ import store.chikendev._2tm.dto.request.RefreshTokenRequest;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.InvaLidatedToken;
+import store.chikendev._2tm.entity.StateAccount;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
@@ -64,8 +65,16 @@ public class AuthenticationService {
 
     // đăng nhập
     public AuthenticationResponse auth(LoginRequest request) {
-        Account user = accountRepository.findByEmail(request.getEmail())
+        Account user = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (user.getState().getId() == StateAccount.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
+        }
+
+        if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {
+            throw new AppException(ErrorCode.ACCOUNT_NO_VERIFIED);
+        }
+
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated) {
@@ -75,6 +84,7 @@ public class AuthenticationService {
 
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
+                .idUser(user.getId())
                 .token(token)
                 .build();
     }

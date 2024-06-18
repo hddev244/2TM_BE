@@ -11,23 +11,24 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.checkerframework.checker.units.qual.t;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 
+@Component
 public class FilesHelp {
     public static String getUniqueFileName(String originalFileName) {
         return UUID.randomUUID().toString() + "-" + originalFileName.replaceAll("\\s+", "_");
     }
 
     public static void saveFile(MultipartFile file, Object entityId, EntityFileType type) {
-        if (entityId == null || entityId.toString().trim().isEmpty()){
+        if (entityId == null || entityId.toString().trim().isEmpty()) {
             throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
         }
-        String dir = type.getDir()+ entityId;
+        String dir = type.getDir() + entityId;
         try {
             File directoryFile = new File(dir);
             if (!directoryFile.exists()) {
@@ -45,8 +46,9 @@ public class FilesHelp {
         }
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static List<ResponseDocumentDto> getDocuments(Object entityId, EntityFileType type) {
-        if (entityId == null || type == null || entityId.toString().trim().isEmpty()){
+        if (entityId == null || type == null || entityId.toString().trim().isEmpty()) {
             throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
         }
         Path path = Paths.get(type.getDir() + entityId);
@@ -57,21 +59,23 @@ public class FilesHelp {
                 String fileIdReal = item.getFileName().toString().substring(0, 36);
                 ResponseDocumentDto responseDocumentDto = ResponseDocumentDto.builder()
                         .fileName(fileNameReal)
-                        .fileDownloadUri(type.getDir()+ entityId + "/" + item.getFileName().toString())
+                        .fileDownloadUri(type.getDir() + entityId + "/" + item.getFileName().toString())
                         .fileType(Files.probeContentType(item))
                         .fileId(fileIdReal)
                         .size(Files.size(item))
                         .build();
                 responseDocumentDtos.add(responseDocumentDto);
             }
-            return responseDocumentDtos; 
+            return responseDocumentDtos;
         } catch (Exception e) {
             throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
         }
     }
 
+    @SuppressWarnings("unused")
     public static void deleteFile(Object entityId, Object fileId, EntityFileType type) {
-        if (entityId == null || fileId == null || type == null || entityId.toString().trim().isEmpty() || fileId.toString().trim().isEmpty()){
+        if (entityId == null || fileId == null || type == null || entityId.toString().trim().isEmpty()
+                || fileId.toString().trim().isEmpty()) {
             throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
         }
         Path path = Paths.get(type.getDir() + entityId.toString().trim());

@@ -2,6 +2,7 @@ package store.chikendev._2tm.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,14 +14,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class AccountRequest {
+    @NotBlank(message = "không bỏ trống username")
+    @Size(min = 5, message = "username phải từ 5 ký tự trở lên")
+    private String username;
     @NotBlank(message = "không bỏ trống mật khẩu")
     @Size(min = 5, message = "Mật khẩu phải từ 5 ký tự trở lên")
     private String password;
     @NotBlank(message = "Không bỏ trống tên của bạn")
     private String fullName;
+    @NotBlank(message = "Không bỏ số điện thoại")
+    @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại không hợp lệ")
+    private String phoneNumber;
     @NotBlank(message = "Không bỏ trống email")
     @Email(message = "Định dạng email không chính xác")
     private String email;
 
-    
 }
