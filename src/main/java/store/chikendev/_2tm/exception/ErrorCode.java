@@ -16,6 +16,7 @@ public enum ErrorCode {
     ACCOUNT_NO_VERIFIED(400, "Tài khoản của bạn chưa được xác thực", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(400, "Thông tin đăng nhập không chính xác", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_FOUND(400, "Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),
+    STATE_NOT_FOUND(400, "Không tìm thấy trạng thái", HttpStatus.BAD_REQUEST),
     EXCEL_IMPORT_ERROR(400, "Nhập file excel lỗi", HttpStatus.BAD_REQUEST),
     EXCEL_EXPORT_ERROR(400, "Xuất file excel lỗi", HttpStatus.BAD_REQUEST),
     ROLE_NOT_FOUND(400, "Không tìm thấy vai trò", HttpStatus.BAD_REQUEST),

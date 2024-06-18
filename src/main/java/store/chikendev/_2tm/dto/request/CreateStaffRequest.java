@@ -30,6 +30,6 @@ public class CreateStaffRequest {
     private String email;
     @NotNull(message = "Bạn cần phân quyền cho nhân viên")
     private List<String> roles;
-    private Long idStore;
+    private Long storeId;
 
 }
