@@ -1,6 +1,7 @@
 package store.chikendev._2tm.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,15 +33,30 @@ public class StoreController {
         return new ApiResponse<>(200, null, storeService.createStore(request, image));
     }
 
-    @GetMapping
-    public StoreRequest test() {
-        return new StoreRequest();
-    }
 
     @PostMapping(value = "updateImage", consumes = "multipart/form-data")
     public ApiResponse<StoreResponse> updateImage(@RequestPart("id") Long id,
             @RequestPart("image") MultipartFile image) {
         return new ApiResponse<>(200, null, storeService.updateImage(id, image));
+    }
+
+     @GetMapping
+    public ResponseEntity<List<StoreResponse>> getAllStores() {
+        List<Store> stores = storeService.getAllStores();
+        List<StoreResponse> storeResponses = stores.stream().map(this::convertToResponse).collect(Collectors.toList());
+        return ResponseEntity.ok(storeResponses);
+    }
+
+    private StoreResponse convertToResponse(Store store) {
+        StoreResponse storeResponse = new StoreResponse();
+        storeResponse.setId(store.getId());
+        storeResponse.setName(store.getName());
+        storeResponse.setPostalCode(store.getPostalCode());
+        storeResponse.setPhone(store.getPhone());
+        storeResponse.setEmail(store.getEmail());
+        storeResponse.setStreetAddress(store.getStreetAddress());
+        storeResponse.setDescription(store.getDescription());
+        return storeResponse;
     }
 
 }
