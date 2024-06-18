@@ -39,7 +39,8 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public Product createProduct(String name, Double price, Integer quantity, String description, String accountId, Long storeId) {
+    public Product createProduct(String name, Double price, Integer quantity, String description, String accountId,
+            Long storeId) {
         Optional<Account> accountOpt = accountService.getAccountById(accountId);
         Optional<Store> storeOpt = storeService.getStoreById(storeId);
 
@@ -60,7 +61,8 @@ public class ProductService {
         }
     }
 
-    public Product updateProduct(Long id, String name, Double price, Integer quantity, String description, String accountId, Long storeId) {
+    public Product updateProduct(Long id, String name, Double price, Integer quantity, String description,
+            String accountId, Long storeId) {
         Optional<Account> accountOpt = accountService.getAccountById(accountId);
         Optional<Store> storeOpt = storeService.getStoreById(storeId);
 

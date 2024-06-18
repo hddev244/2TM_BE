@@ -1,4 +1,5 @@
 package store.chikendev._2tm.controller;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -27,13 +28,12 @@ public class ProductController {
     public ResponseEntity<Product> addProduct(@RequestBody RequestProduct requestProduct) {
         try {
             Product savedProduct = productService.createProduct(
-                requestProduct.getName(),
-                requestProduct.getPrice(),
-                requestProduct.getQuantity(),
-                requestProduct.getDescription(),
-                requestProduct.getAccountId(),
-                requestProduct.getStoreId()
-            );
+                    requestProduct.getName(),
+                    requestProduct.getPrice(),
+                    requestProduct.getQuantity(),
+                    requestProduct.getDescription(),
+                    requestProduct.getAccountId(),
+                    requestProduct.getStoreId());
             return ResponseEntity.ok(savedProduct);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null);
@@ -56,14 +56,13 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody RequestProduct requestProduct) {
         try {
             Product updatedProduct = productService.updateProduct(
-                id,
-                requestProduct.getName(),
-                requestProduct.getPrice(),
-                requestProduct.getQuantity(),
-                requestProduct.getDescription(),
-                requestProduct.getAccountId(),
-                requestProduct.getStoreId()
-            );
+                    id,
+                    requestProduct.getName(),
+                    requestProduct.getPrice(),
+                    requestProduct.getQuantity(),
+                    requestProduct.getDescription(),
+                    requestProduct.getAccountId(),
+                    requestProduct.getStoreId());
             return ResponseEntity.ok(updatedProduct);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null);
