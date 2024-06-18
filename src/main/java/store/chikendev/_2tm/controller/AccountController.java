@@ -16,6 +16,7 @@ import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
 import store.chikendev._2tm.service.AccountService;
 import store.chikendev._2tm.service.AuthenticationService;
+import store.chikendev._2tm.service.OtpService;
 
 @RestController
 @RequestMapping("/api/account")
@@ -25,6 +26,9 @@ public class AccountController {
     private AccountService accountService;
 
     @Autowired
+    private OtpService otpService;
+
+    @Autowired
     private AuthenticationService authenticationService;
 
     @Autowired
@@ -32,7 +36,9 @@ public class AccountController {
 
     @PostMapping("register")
     public ApiResponse<AccountResponse> register(@RequestBody @Valid AccountRequest request) {
-        return new ApiResponse<AccountResponse>(200, null, accountService.register(request));
+        AccountResponse response = accountService.register(request);
+        otpService.sendOtp(response.getEmail());
+        return new ApiResponse<AccountResponse>(200, null, response);
     }
 
     @PostMapping("login")
