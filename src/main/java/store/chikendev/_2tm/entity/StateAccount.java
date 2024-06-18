@@ -21,6 +21,11 @@ import lombok.NoArgsConstructor;
 @Table(name = "statesAccount")
 @Builder
 public class StateAccount {
+    public static final Long ACTIVE = 1L;
+    public static final Long INACTIVE = 2L;
+    public static final Long CLOSED = 3L;
+    public static final Long VERIFICATION_REQUIRED = 4L;
+    public static final Long LOCKED = 5L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

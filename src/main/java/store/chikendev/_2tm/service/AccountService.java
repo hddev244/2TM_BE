@@ -51,8 +51,8 @@ public class AccountService {
         if (username.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
-        Role role = roleRepository.findById("KH").get();
-        StateAccount state = stateAccountRepository.findById(Long.valueOf(4)).get();
+        Role role = roleRepository.findById(Role.ROLE_CUSTOMER).get();
+        StateAccount state = stateAccountRepository.findById(StateAccount.VERIFICATION_REQUIRED).get();
         Account account = mapper.map(request, Account.class);
         account.setPassword(passwordEncoder.encode(request.getPassword()));
         account.setViolationPoints(100);

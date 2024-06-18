@@ -44,13 +44,21 @@ public class AccountController {
     @PostMapping("login")
     public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request);
-        Cookie cookie = new Cookie("accessToken", responce.getToken());
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(24 * 60 * 60);
 
-        // Thêm cookie vào phản hồi
-        this.response.addCookie(cookie);
+        if (responce.isAuthenticated()){
+            Cookie cookie = new Cookie("accessToken", responce.getToken());
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(24 * 60 * 60);
+            // Thêm cookie vào phản hồi
+            this.response.addCookie(cookie);
+        } else {
+            Cookie cookie = new Cookie("accessToken", "");
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(0);
+            this.response.addCookie(cookie);
+        }
         return new ApiResponse<AuthenticationResponse>(200, null, responce);
     }
 
