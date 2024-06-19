@@ -35,6 +35,7 @@ public enum ErrorCode {
     OTP_EXPIRED(442, "Mã OTP đã hết hạn", HttpStatus.BAD_REQUEST),
     OTP_INFO_INVALID(443, "Thông tin xác thực không tồn tại, vui lòng kiểm tra thông tin đăng kí hoặc tạo tài khoản!", HttpStatus.BAD_REQUEST),
     OTP_INVALID(444, "Mã OTP không đúng", HttpStatus.BAD_REQUEST),
+    OTP_ACCOUNT_VERIFIED(445, "Tài khoản đã được xác thực", HttpStatus.BAD_REQUEST),
 
     FILE_UPLOAD_ERROR(428, "Lỗi khi tải file lên", HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR(500, "Lỗi máy chủ", HttpStatus.INTERNAL_SERVER_ERROR),
