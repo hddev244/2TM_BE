@@ -15,6 +15,7 @@ import store.chikendev._2tm.dto.request.OtpRequest;
 import store.chikendev._2tm.dto.responce.OtpResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Otp;
+import store.chikendev._2tm.entity.StateAccount;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
@@ -84,6 +85,15 @@ public class OtpService {
             Account account = accountRepository.findByEmail(otp.getInput()).orElseThrow(() -> {
                 throw new AppException(ErrorCode.OTP_INFO_INVALID);
             });
+
+            if(account.getState().getId() != StateAccount.LOCKED){
+                throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
+            }
+
+            if(account.getState().getId() != StateAccount.VERIFICATION_REQUIRED){
+                throw new AppException(ErrorCode.OTP_ACCOUNT_VERIFIED);
+            }
+
             List<Otp> otps = otpRepository.findByAccount(account);
             if (otps.size() == 0) {
                 throw new AppException(ErrorCode.OTP_INFO_INVALID);
