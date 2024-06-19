@@ -86,7 +86,7 @@ public class OtpService {
                 throw new AppException(ErrorCode.OTP_INFO_INVALID);
             });
 
-            if(account.getState().getId() != StateAccount.LOCKED){
+            if(account.getState().getId() == StateAccount.LOCKED){
                 throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
             }
 
