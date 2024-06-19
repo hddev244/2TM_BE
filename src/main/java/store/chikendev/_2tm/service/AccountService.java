@@ -28,6 +28,7 @@ import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.RoleRepository;
 import store.chikendev._2tm.repository.StateAccountRepository;
 import store.chikendev._2tm.repository.StoreRepository;
+import store.chikendev._2tm.utils.SendEmail;
 
 @Service
 public class AccountService {
@@ -55,6 +56,9 @@ public class AccountService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private SendEmail sendEmail;
 
     private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private final int PASSWORD_LENGTH = 6;
@@ -96,40 +100,57 @@ public class AccountService {
         if (username.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
-        StateAccount state = stateAccountRepository.findById(StateAccount.ACTIVE).get();
+
+        StateAccount state = stateAccountRepository.findById(StateAccount.ACTIVE)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
         String password = generateRandomPassword();
         Account account = mapper.map(request, Account.class);
         account.setPassword(passwordEncoder.encode(password));
         account.setViolationPoints(100);
         account.setState(state);
-        Account save = accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
 
         List<RoleAccount> roles = new ArrayList<>();
         for (String roleId : request.getRoles()) {
             Role role = roleRepository.findById(roleId).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
             RoleAccount roleAccount = RoleAccount.builder()
-                    .account(save)
+                    .account(savedAccount)
                     .role(role)
                     .build();
             roles.add(roleAccount);
         }
-        AccountStore accountStore = null;
-        if (request.getIdStore() != null) {
-            Store store = storeRepository.findById(request.getIdStore())
-                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
-            accountStore = accountStoreRepository.save(AccountStore.builder()
-                    .account(save)
-                    .store(store)
-                    .build());
-        }
         System.out.println(password);
-        // fixx
+        // Fix: Uncomment and implement the sendEmail method if needed
         // sendEmail(request.getEmail(), password);
-        CreateStaffResponse response = mapper.map(account, CreateStaffResponse.class);
-        response.setStateName(save.getState().getName());
+
+        CreateStaffResponse response = mapper.map(savedAccount, CreateStaffResponse.class);
+        response.setStateName(savedAccount.getState().getName());
         response.setRoles(roleAccountRepository.saveAll(roles).stream()
                 .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
-        response.setNameStore(accountStore != null ? accountStore.getStore().getName() : null);
+
+        if (request.getStoreId() != null) {
+            System.out.println(request.getStoreId());
+            Store store = storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+
+            AccountStore accountStore = AccountStore.builder()
+                    .account(savedAccount)
+                    .store(store)
+                    .build();
+            accountStoreRepository.save(accountStore);
+            response.setNameStore(store.getName());
+        }
+        String subject = "2TM PHÂN CÔNG";
+        String content = "";
+        if (response.getNameStore() != null) {
+            content = "Chào mừng bạn đến với hệ thống 2TM. " + "Bạn đã được phân công vào cửa hàng: "
+                    + response.getNameStore()
+                    + " \nTài khoản: " + response.getUsername() + "\nMật khẩu: " + password;
+        } else {
+            content = "Chào mừng bạn đến với hệ thống 2TM. " + "Bạn đã được phân công vào hệ thống 2TM"
+                    + " \nTài khoản: " + response.getUsername() + "\nMật khẩu: " + password;
+        }
+        sendEmail.sendMail(request.getEmail(), subject, content);
         return response;
     }
 
