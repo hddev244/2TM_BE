@@ -27,11 +27,5 @@ public class CategoryController {
         return new ApiResponse<List<CategoryResponse>>(200,null,categoryResponses);
     }
 
-    private CategoryResponse convertToResponse(Category category) {
-        CategoryResponse categoryResponse = new CategoryResponse();
-        categoryResponse.setId(category.getId());
-        categoryResponse.setName(category.getName());
-        // categoryResponse.setProducts(category.getProducts());
-        return categoryResponse;
-    }
+   
 }

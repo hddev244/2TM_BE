@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import store.chikendev._2tm.dto.request.RequestProduct;
+import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.service.ProductService;
@@ -71,15 +72,15 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        Optional<ProductResponse> productResponse = productService.getProductById(id);
-        return productResponse.map(ResponseEntity::ok)
-                              .orElseGet(() -> ResponseEntity.notFound().build());
+    public ApiResponse<ProductResponse> getByIdProduct(@PathVariable Long id) {
+        return new ApiResponse<ProductResponse>(200,null,productService.getProductById(id));
+        // return productResponse.map(ResponseEntity::ok)
+        //                       .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> getAllProducts(Pageable pageable) {
+    public ApiResponse<Page<ProductResponse>> getAllProducts(Pageable pageable) {
         Page<ProductResponse> products = productService.getAllProducts(pageable);
-        return ResponseEntity.ok(products);
+        return new ApiResponse<Page<ProductResponse>>(200,null,products);
     }
 }

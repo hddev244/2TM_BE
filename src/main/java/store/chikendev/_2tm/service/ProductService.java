@@ -3,6 +3,7 @@ package store.chikendev._2tm.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,8 @@ public class ProductService {
     @Autowired
     private StoreRepository storeRepository;
 
+    @Autowired
+    private ModelMapper mapper;
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
@@ -81,8 +84,11 @@ public class ProductService {
         return productRepository.findAll(pageable).map(this::convertToResponse);
     }
 
-    public Optional<ProductResponse> getProductById(Long id) {
-        return productRepository.findById(id).map(this::convertToResponse);
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Product not find ProductById: " + id));
+        return mapper.map(product,ProductResponse.class);
+        // return productRepository.findById(id).map(this::convertToResponse);
     }
 
     private ProductResponse convertToResponse(Product product) {
