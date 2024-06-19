@@ -20,8 +20,8 @@ public class OtpController {
     private OtpService otpService;
 
     @PostMapping("/send")
-    public ApiResponse<OtpResponse> sendOtp(@RequestParam("input") String input) {
-        return new ApiResponse<OtpResponse>(200, null, otpService.sendOtp(input));
+    public ApiResponse<OtpResponse> sendOtp(@RequestBody OtpRequest otp) {
+        return new ApiResponse<OtpResponse>(200, null, otpService.sendOtp(otp.getInput()));
     }
 
     @PostMapping("/confirm")
