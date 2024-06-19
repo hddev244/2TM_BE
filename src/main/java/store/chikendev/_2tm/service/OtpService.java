@@ -15,6 +15,8 @@ import store.chikendev._2tm.dto.request.OtpRequest;
 import store.chikendev._2tm.dto.responce.OtpResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Otp;
+import store.chikendev._2tm.exception.AppException;
+import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.OtpRepository;
 import store.chikendev._2tm.repository.StateAccountRepository;
@@ -80,11 +82,11 @@ public class OtpService {
     public String validateOtp(OtpRequest otp) {
         if (EMAIL_PATTERN.matcher(otp.getInput()).matches()) {
             Account account = accountRepository.findByEmail(otp.getInput()).orElseThrow(() -> {
-                throw new RuntimeException("Email sai");
+                throw new AppException(ErrorCode.OTP_INFO_INVALID);
             });
             List<Otp> otps = otpRepository.findByAccount(account);
             if (otps.size() == 0) {
-                throw new RuntimeException("Mã OTP không tồn tại");
+                throw new AppException(ErrorCode.OTP_INFO_INVALID);
             }
             if (otps.get(0).getTokenCode().equals(otp.getOtp())) {
                 boolean validateDate = isWithinFiveMinutes(otps.get(0).getCreatedAt());
@@ -94,18 +96,17 @@ public class OtpService {
                     otpRepository.delete(otps.get(0));
                     return "Xác thực thành công";
                 }
-                return "Mã OTP đã hết hạn";
-
+                throw new AppException(ErrorCode.OTP_EXPIRED);
             } else {
-                throw new RuntimeException("Mã OTP không đúng");
+                throw new AppException(ErrorCode.OTP_INVALID);
             }
         } else if (PHONE_PATTERN.matcher(otp.getInput()).matches()) {
             Account account = accountRepository.findByPhoneNumber(otp.getInput()).orElseThrow(() -> {
-                throw new RuntimeException("Số điện thoại sai");
+                throw new AppException(ErrorCode.OTP_INFO_INVALID);
             });
             List<Otp> otps = otpRepository.findByAccount(account);
             if (otps.size() == 0) {
-                throw new RuntimeException("Mã OTP không tồn tại");
+                throw new AppException(ErrorCode.OTP_INFO_INVALID);
             }
             if (otps.get(0).getTokenCode().equals(otp.getOtp())) {
                 boolean validateDate = isWithinFiveMinutes(otps.get(0).getCreatedAt());
@@ -115,12 +116,12 @@ public class OtpService {
                     otpRepository.delete(otps.get(0));
                     return "Xác thực thành công";
                 }
-                return "Mã OTP đã hết hạn";
+                throw new AppException(ErrorCode.OTP_EXPIRED);
             } else {
-                throw new RuntimeException("Mã OTP không đúng");
+                throw new AppException(ErrorCode.OTP_INVALID);
             }
         } else {
-            throw new RuntimeException("Vui lòng kiểm tra lại email hoặc SDT");
+            throw new AppException(ErrorCode.OTP_INFO_INVALID);
         }
 
     }
