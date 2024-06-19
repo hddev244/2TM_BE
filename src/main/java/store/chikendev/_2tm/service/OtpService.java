@@ -96,7 +96,7 @@ public class OtpService {
 
             List<Otp> otps = otpRepository.findByAccount(account);
             if (otps.size() == 0) {
-                throw new AppException(ErrorCode.OTP_INFO_INVALID);
+                throw new AppException(ErrorCode.OTP_REQUEST_NOT_FOUND);
             }
             if (otps.get(0).getTokenCode().equals(otp.getOtp())) {
                 boolean validateDate = isWithinFiveMinutes(otps.get(0).getCreatedAt());
@@ -116,7 +116,7 @@ public class OtpService {
             });
             List<Otp> otps = otpRepository.findByAccount(account);
             if (otps.size() == 0) {
-                throw new AppException(ErrorCode.OTP_INFO_INVALID);
+                throw new AppException(ErrorCode.OTP_REQUEST_NOT_FOUND);
             }
             if (otps.get(0).getTokenCode().equals(otp.getOtp())) {
                 boolean validateDate = isWithinFiveMinutes(otps.get(0).getCreatedAt());
