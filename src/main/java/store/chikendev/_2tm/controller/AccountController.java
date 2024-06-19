@@ -57,7 +57,7 @@ public class AccountController {
             // Thêm cookie vào phản hồi
             this.response.addCookie(cookie);
         }
-        return new ApiResponse<AuthenticationResponse>(200, null, responce);
+        return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
     @GetMapping("logout")

@@ -101,7 +101,7 @@ public class OtpService {
             if (otps.get(0).getTokenCode().equals(otp.getOtp())) {
                 boolean validateDate = isWithinFiveMinutes(otps.get(0).getCreatedAt());
                 if (validateDate) {
-                    account.setState(stateAccountRepository.findById(Long.valueOf(1)).get());
+                    account.setState(stateAccountRepository.findById(StateAccount.ACTIVE).get());
                     accountRepository.saveAndFlush(account);
                     otpRepository.delete(otps.get(0));
                     return "Xác thực thành công";

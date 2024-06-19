@@ -72,7 +72,10 @@ public class AuthenticationService {
         }
 
         if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {
-            throw new AppException(ErrorCode.ACCOUNT_NO_VERIFIED);
+            return AuthenticationResponse.builder()
+                    .email(user.getEmail())
+                    .authenticated(false)
+                    .build();
         }
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());

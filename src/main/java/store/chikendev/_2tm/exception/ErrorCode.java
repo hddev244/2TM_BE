@@ -16,7 +16,7 @@ public enum ErrorCode {
     USER_EXISTED(412, "Username đã tồn tại", HttpStatus.BAD_REQUEST),
     ACCOUNT_BLOCKED(413, "Tài khoản của bạn đã bị khóa do vi phạm chính sách", HttpStatus.BAD_REQUEST),
     ACCOUNT_NO_VERIFIED(414, "Tài khoản của bạn chưa được xác thực", HttpStatus.BAD_REQUEST),
-    LOGIN_FAIL(415, "Đăng nhập không chính xác", HttpStatus.BAD_REQUEST),
+    LOGIN_FAIL(415, "Thông tin đăng nhập không chính xác", HttpStatus.BAD_REQUEST),
     
     STATE_NOT_FOUND(431, "Không tìm thấy trạng thái", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_FOUND(432, "Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),

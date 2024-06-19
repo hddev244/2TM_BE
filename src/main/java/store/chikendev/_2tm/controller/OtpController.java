@@ -28,5 +28,4 @@ public class OtpController {
     public ApiResponse<String> confirmOtp(@RequestBody OtpRequest otp) {
         return new ApiResponse<String>(200, null, otpService.validateOtp(otp));
     }
-
 }
