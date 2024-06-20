@@ -1,8 +1,11 @@
 package store.chikendev._2tm.controller;
 
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +22,8 @@ import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.service.ProductService;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/products")
@@ -72,12 +77,15 @@ public class ProductController {
     @GetMapping("/{id}")
     public ApiResponse<ProductResponse> getByIdProduct(@PathVariable Long id) {
         return new ApiResponse<ProductResponse>(200,null,productService.getProductById(id));
-        // return productResponse.map(ResponseEntity::ok)
-        //                       .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ApiResponse<Page<ProductResponse>> getAllProducts(Pageable pageable) {
+    public ApiResponse<Page<ProductResponse>> getAllProducts(
+        @RequestParam Optional<Integer> size,
+        @RequestParam Optional<Integer> page,
+        @RequestParam Optional<String> sort
+        ){
+        Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
         Page<ProductResponse> products = productService.getAllProducts(pageable);
         return new ApiResponse<Page<ProductResponse>>(200,null,products);
     }
