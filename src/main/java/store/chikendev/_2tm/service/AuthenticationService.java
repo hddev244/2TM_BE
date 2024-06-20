@@ -28,6 +28,7 @@ import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.LogoutRequest;
 import store.chikendev._2tm.dto.request.RefreshTokenRequest;
+import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.InvaLidatedToken;
@@ -36,6 +37,8 @@ import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.InvaLidatedTokenRepository;
+import store.chikendev._2tm.utils.EntityFileType;
+import store.chikendev._2tm.utils.FilesHelp;
 
 @Service
 public class AuthenticationService {
@@ -71,23 +74,39 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
         }
 
-        if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {
-            return AuthenticationResponse.builder()
-                    .email(user.getEmail())
-                    .authenticated(false)
-                    .build();
-        }
-
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated) {
             throw new AppException(ErrorCode.LOGIN_FAIL);
         }
+
+        if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {
+            return AuthenticationResponse.builder()
+                    .account(
+                            AccountResponse.builder()
+                            .email(user.getEmail())
+                            .build()
+                            )
+                    .authenticated(false)
+                    .build();
+        }
+
         var token = this.generateToken(user);
+
+        var image = FilesHelp.getOneDocument(user.getId(), EntityFileType.USER_AVATAR);
 
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
-                .idUser(user.getId())
+                .account(
+                        AccountResponse.builder()
+                        .username(user.getUsername())
+                        .fullName(user.getFullName())
+                        .violationPoints(user.getViolationPoints())
+                        .phoneNumber(user.getPhoneNumber())
+                        .email(user.getEmail())
+                        .image(image)
+                        .build()
+                        )
                 .token(token)
                 .build();
     }
