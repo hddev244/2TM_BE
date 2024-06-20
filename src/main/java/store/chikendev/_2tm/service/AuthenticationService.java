@@ -70,6 +70,7 @@ public class AuthenticationService {
     private Long REFRESHABLE_DURATION;
 
     // đăng nhập
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public AuthenticationResponse auth(LoginRequest request) {
         Account user = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -87,9 +88,8 @@ public class AuthenticationService {
             return AuthenticationResponse.builder()
                     .account(
                             AccountResponse.builder()
-                            .email(user.getEmail())
-                            .build()
-                            )
+                                    .email(user.getEmail())
+                                    .build())
                     .authenticated(false)
                     .build();
         }
@@ -110,16 +110,15 @@ public class AuthenticationService {
                 .authenticated(authenticated)
                 .account(
                         AccountResponse.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .fullName(user.getFullName())
-                        .roles(roles)
-                        .violationPoints(user.getViolationPoints())
-                        .phoneNumber(user.getPhoneNumber())
-                        .email(user.getEmail())
-                        .image(image)
-                        .build()
-                        )
+                                .id(user.getId())
+                                .username(user.getUsername())
+                                .fullName(user.getFullName())
+                                .roles(roles)
+                                .violationPoints(user.getViolationPoints())
+                                .phoneNumber(user.getPhoneNumber())
+                                .email(user.getEmail())
+                                .image(image)
+                                .build())
                 .token(token)
                 .build();
     }

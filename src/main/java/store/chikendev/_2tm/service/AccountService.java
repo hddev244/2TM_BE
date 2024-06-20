@@ -65,13 +65,24 @@ public class AccountService {
 
     public AccountResponse register(AccountRequest request) {
         Optional<Account> email = accountRepository.findByEmail(request.getEmail());
+        if (email.isPresent()) {
+            if (email.get().getState().getName().equals("Verification Required")) {
+                accountRepository.delete(email.get());
+            } else {
+                throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
+            }
+        }
         Optional<Account> phone = accountRepository.findByPhoneNumber(request.getPhoneNumber());
-        if (email.isPresent() || phone.isPresent()) {
-            throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
+        if (phone.isPresent()) {
+            if (phone.get().getState().getName().equals("Verification Required")) {
+                accountRepository.delete(phone.get());
+            } else {
+                throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
+            }
         }
         Optional<Account> username = accountRepository.findByUsername(request.getUsername());
         if (username.isPresent()) {
-            throw new AppException(ErrorCode.USER_EXISTED);
+            throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
         }
         StateAccount state = stateAccountRepository.findById(StateAccount.VERIFICATION_REQUIRED).get();
         Account account = mapper.map(request, Account.class);
@@ -92,8 +103,11 @@ public class AccountService {
 
     public CreateStaffResponse createStaff(CreateStaffRequest request) {
         Optional<Account> email = accountRepository.findByEmail(request.getEmail());
+        if (email.isPresent()) {
+            throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
+        }
         Optional<Account> phone = accountRepository.findByPhoneNumber(request.getPhoneNumber());
-        if (email.isPresent() || phone.isPresent()) {
+        if (phone.isPresent()) {
             throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
         }
         Optional<Account> username = accountRepository.findByUsername(request.getUsername());
@@ -119,9 +133,6 @@ public class AccountService {
                     .build();
             roles.add(roleAccount);
         }
-        System.out.println(password);
-        // Fix: Uncomment and implement the sendEmail method if needed
-        // sendEmail(request.getEmail(), password);
 
         CreateStaffResponse response = mapper.map(savedAccount, CreateStaffResponse.class);
         response.setStateName(savedAccount.getState().getName());
