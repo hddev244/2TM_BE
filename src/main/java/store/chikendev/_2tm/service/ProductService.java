@@ -1,5 +1,6 @@
 package store.chikendev._2tm.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.responce.ProductResponse;
+import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Store;
@@ -17,6 +19,8 @@ import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StoreRepository;
+import store.chikendev._2tm.utils.EntityFileType;
+import store.chikendev._2tm.utils.FilesHelp;
 
 @Service
 public class ProductService {
@@ -79,9 +83,7 @@ public class ProductService {
             throw new IllegalArgumentException("Invalid accountId or storeId");
         }
     }
-    public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable).map(this::convertToResponse);
-    }
+
 
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
@@ -89,6 +91,9 @@ public class ProductService {
         return mapper.map(product,ProductResponse.class);
     }
 
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable).map(this::convertToResponse);
+    }
     private ProductResponse convertToResponse(Product product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
@@ -96,6 +101,8 @@ public class ProductService {
         response.setPrice(product.getPrice());
         response.setQuantity(product.getQuantity());
         response.setDescription(product.getDescription());
+        ResponseDocumentDto responseDocument = FilesHelp.getOneDocument(response.getId(), EntityFileType.CATEGORY);
+        response.setThumbnail(responseDocument);
         return response;
     }
 }
