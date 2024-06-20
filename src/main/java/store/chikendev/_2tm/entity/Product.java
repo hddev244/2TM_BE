@@ -29,6 +29,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "products")
 public class Product {
+    public static final Boolean TYPE_PRODUCT_OF_STORE = true;
+    public static final Boolean TYPE_PRODUCT_OF_ACCOUNT = false;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

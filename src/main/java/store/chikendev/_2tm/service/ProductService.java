@@ -1,6 +1,5 @@
 package store.chikendev._2tm.service;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -88,7 +87,6 @@ public class ProductService {
         Product product = productRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Product not find ProductById: " + id));
         return mapper.map(product,ProductResponse.class);
-        // return productRepository.findById(id).map(this::convertToResponse);
     }
 
     private ProductResponse convertToResponse(Product product) {
