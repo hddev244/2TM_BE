@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.CreateStaffRequest;
+import store.chikendev._2tm.dto.request.changePasswordRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.CreateStaffResponse;
 import store.chikendev._2tm.dto.responce.RoleResponse;
@@ -180,6 +182,26 @@ public class AccountService {
                     .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
             return response;
         });
+    }
+
+    public AccountResponse changePassword(changePasswordRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        boolean checkPass = passwordEncoder.matches(request.getPasswordOld(), account.getPassword());
+        if (checkPass) {
+            if (request.getPasswordNew().equals(request.getPasswordConfirm())) {
+                account.setPassword(passwordEncoder.encode(request.getPasswordNew()));
+                AccountResponse response = mapper.map(accountRepository.save(account), AccountResponse.class);
+                response.setRoles(roleAccountRepository.findByAccount(account).stream()
+                        .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
+                return response;
+            } else {
+                throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+            }
+        }
+        throw new AppException(ErrorCode.PASSWORD_NOT_FOUND);
+
     }
 
     // random pass

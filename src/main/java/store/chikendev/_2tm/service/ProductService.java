@@ -1,6 +1,5 @@
 package store.chikendev._2tm.service;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -84,16 +83,16 @@ public class ProductService {
         }
     }
 
-
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Product not find ProductById: " + id));
-        return mapper.map(product,ProductResponse.class);
+                .orElseThrow(() -> new RuntimeException("Product not find ProductById: " + id));
+        return mapper.map(product, ProductResponse.class);
     }
 
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable).map(this::convertToResponse);
     }
+
     private ProductResponse convertToResponse(Product product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());

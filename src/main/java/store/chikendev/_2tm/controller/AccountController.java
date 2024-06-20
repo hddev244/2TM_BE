@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.LoginRequest;
+import store.chikendev._2tm.dto.request.changePasswordRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
@@ -66,6 +67,11 @@ public class AccountController {
         cookie.setMaxAge(0);
         this.response.addCookie(cookie);
         return new ApiResponse<String>(200, null, "Logout success");
+    }
+
+    @PostMapping("change-password")
+    public ApiResponse<AccountResponse> changePassword(@RequestBody @Valid changePasswordRequest request) {
+        return new ApiResponse<AccountResponse>(200, null, accountService.changePassword(request));
     }
 
 }
