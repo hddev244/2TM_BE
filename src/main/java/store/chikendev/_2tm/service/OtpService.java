@@ -51,7 +51,7 @@ public class OtpService {
         if (EMAIL_PATTERN.matcher(input).matches()) {
             String otp = generateOtp();
             Account account = accountRepository.findByEmail(input).orElseThrow(() -> {
-                throw new RuntimeException("Email sai");
+                throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
             });
             Otp save = create(account, otp);
             String subject = "2TM Xin chào bạn";
@@ -65,7 +65,7 @@ public class OtpService {
             String phoneNumber = input;
 
             Account account = accountRepository.findByPhoneNumber(input).orElseThrow(() -> {
-                throw new RuntimeException("Số điện thoại sai");
+                throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
             });
             Otp save = create(account, otp);
             if (phoneNumber.startsWith("0")) {
@@ -86,11 +86,11 @@ public class OtpService {
                 throw new AppException(ErrorCode.OTP_INFO_INVALID);
             });
 
-            if(account.getState().getId() == StateAccount.LOCKED){
+            if (account.getState().getId() == StateAccount.LOCKED) {
                 throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
             }
 
-            if(account.getState().getId() != StateAccount.VERIFICATION_REQUIRED){
+            if (account.getState().getId() != StateAccount.VERIFICATION_REQUIRED) {
                 throw new AppException(ErrorCode.OTP_ACCOUNT_VERIFIED);
             }
 
@@ -144,7 +144,7 @@ public class OtpService {
 
     public Otp create(Account account, String otp) {
         if (account.getState().getId() != 4) {
-            throw new RuntimeException("Tài khoản đã được kích hoạt");
+            throw new AppException(ErrorCode.OTP_ACCOUNT_VERIFIED);
         }
         List<Otp> validate = otpRepository.findByAccount(account);
         if (validate.size() > 0) {

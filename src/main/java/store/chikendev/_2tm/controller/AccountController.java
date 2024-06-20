@@ -11,12 +11,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.AccountRequest;
-import store.chikendev._2tm.dto.request.CreateStaffRequest;
 import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
-import store.chikendev._2tm.dto.responce.CreateStaffResponse;
 import store.chikendev._2tm.service.AccountService;
 import store.chikendev._2tm.service.AuthenticationService;
 import store.chikendev._2tm.service.OtpService;
@@ -68,12 +66,6 @@ public class AccountController {
         cookie.setMaxAge(0);
         this.response.addCookie(cookie);
         return new ApiResponse<String>(200, null, "Logout success");
-    }
-
-    @PostMapping("create-staff")
-    public ApiResponse<CreateStaffResponse> createStaff(@RequestBody @Valid CreateStaffRequest request) {
-        CreateStaffResponse response = accountService.createStaff(request);
-        return new ApiResponse<CreateStaffResponse>(200, null, response);
     }
 
 }

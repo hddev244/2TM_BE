@@ -2,11 +2,15 @@ package store.chikendev._2tm.service;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import store.chikendev._2tm.dto.request.AccountRequest;
@@ -163,6 +167,19 @@ public class AccountService {
         }
         sendEmail.sendMail(request.getEmail(), subject, content);
         return response;
+    }
+
+    public Page<CreateStaffResponse> getAllStaff(Optional<Integer> pageNo) {
+        Pageable pageable = PageRequest.of(pageNo.orElse(0), 10);
+        List<String> excludedRoles = Arrays.asList("CH", "KH", "ND");
+        Page<Account> roles = roleAccountRepository.findByRoleStaff(excludedRoles, pageable);
+        return roles.map(account -> {
+            CreateStaffResponse response = mapper.map(account, CreateStaffResponse.class);
+            response.setStateName(account.getState().getName());
+            response.setRoles(roleAccountRepository.findByAccount(account).stream()
+                    .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
+            return response;
+        });
     }
 
     // random pass
