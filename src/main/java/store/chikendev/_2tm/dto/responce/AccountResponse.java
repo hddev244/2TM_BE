@@ -1,6 +1,7 @@
 package store.chikendev._2tm.dto.responce;
 
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -20,7 +21,9 @@ public class AccountResponse {
     private String fullName;
     private Integer violationPoints;
     private String phoneNumber;
+    private String address;
     private String email;
+    private List<RoleResponse> roles;
     private Date createdAt;
     private Date updatedAt;
     private String stateName;

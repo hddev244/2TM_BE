@@ -3,7 +3,9 @@ package store.chikendev._2tm.service;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 
@@ -30,6 +32,7 @@ import store.chikendev._2tm.dto.request.LogoutRequest;
 import store.chikendev._2tm.dto.request.RefreshTokenRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
+import store.chikendev._2tm.dto.responce.RoleResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.InvaLidatedToken;
 import store.chikendev._2tm.entity.StateAccount;
@@ -95,12 +98,22 @@ public class AuthenticationService {
 
         var image = FilesHelp.getOneDocument(user.getId(), EntityFileType.USER_AVATAR);
 
+        List<RoleResponse> roles = new ArrayList();
+        user.getRoles().forEach(role -> {
+            roles.add(RoleResponse.builder()
+                    .id(role.getRole().getId())
+                    .name(role.getRole().getName())
+                    .build());
+        });
+
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
                 .account(
                         AccountResponse.builder()
+                        .id(user.getId())
                         .username(user.getUsername())
                         .fullName(user.getFullName())
+                        .roles(roles)
                         .violationPoints(user.getViolationPoints())
                         .phoneNumber(user.getPhoneNumber())
                         .email(user.getEmail())
