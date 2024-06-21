@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,9 +30,15 @@ public class StaffController {
         return new ApiResponse<CreateStaffResponse>(200, null, response);
     }
 
-    @GetMapping("Staff/{page}")
+    @GetMapping("staff/{page}")
     public ApiResponse<Page<CreateStaffResponse>> getStaff(@PathVariable("page") Optional<Integer> pageNo) {
         return new ApiResponse<Page<CreateStaffResponse>>(200, null, accountService.getAllStaff(pageNo));
+    }
+
+    @PutMapping("staff/{id}")
+    public ApiResponse<CreateStaffResponse> updateStaff(@PathVariable("id") String id,
+            @RequestBody @Valid CreateStaffRequest request) {
+        return new ApiResponse<CreateStaffResponse>(200, null, accountService.updateStaff(id, request));
     }
 
 }

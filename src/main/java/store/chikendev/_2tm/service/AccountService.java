@@ -204,6 +204,53 @@ public class AccountService {
 
     }
 
+    public CreateStaffResponse updateStaff(String id, CreateStaffRequest request) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        account.setFullName(request.getFullName());
+        account.setPhoneNumber(request.getPhoneNumber());
+        account.setEmail(request.getEmail());
+        account.setUsername(request.getUsername());
+        Account savedAccount = accountRepository.save(account);
+
+        if (request.getRoles().size() > 0) {
+            List<RoleAccount> allRole = roleAccountRepository.findByAccount(savedAccount);
+            roleAccountRepository.deleteAll(allRole);
+        }
+        List<RoleAccount> roles = new ArrayList<>();
+        for (String roleId : request.getRoles()) {
+            Role role = roleRepository.findById(roleId).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+            RoleAccount roleAccount = RoleAccount.builder()
+                    .account(savedAccount)
+                    .role(role)
+                    .build();
+            roles.add(roleAccount);
+        }
+
+        CreateStaffResponse response = mapper.map(savedAccount, CreateStaffResponse.class);
+        response.setStateName(savedAccount.getState().getName());
+        response.setRoles(roleAccountRepository.saveAll(roles).stream()
+                .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
+
+        if (request.getStoreId() != null) {
+            Optional<AccountStore> storeOld = accountStoreRepository.findByAccount(savedAccount);
+            if (storeOld.isPresent()) {
+                accountStoreRepository.delete(storeOld.get());
+            }
+
+            Store store = storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+
+            AccountStore accountStore = AccountStore.builder()
+                    .account(savedAccount)
+                    .store(store)
+                    .build();
+            accountStoreRepository.save(accountStore);
+            response.setNameStore(store.getName());
+        }
+        return response;
+    }
+
     // random pass
     public String generateRandomPassword() {
         SecureRandom random = new SecureRandom();

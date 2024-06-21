@@ -17,4 +17,5 @@ public interface RoleAccountRepository extends JpaRepository<RoleAccount, Long> 
 
     @Query("SELECT r.account FROM RoleAccount r WHERE r.role.id NOT IN (:excludedRoles)  GROUP BY r.account")
     Page<Account> findByRoleStaff(@Param("excludedRoles") List<String> excludedRoles, Pageable pageable);
+
 }
