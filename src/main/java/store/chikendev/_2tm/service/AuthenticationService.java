@@ -35,6 +35,8 @@ import store.chikendev._2tm.dto.responce.AuthenticationResponse;
 import store.chikendev._2tm.dto.responce.RoleResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.InvaLidatedToken;
+import store.chikendev._2tm.entity.Role;
+import store.chikendev._2tm.entity.RoleAccount;
 import store.chikendev._2tm.entity.StateAccount;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
@@ -45,6 +47,11 @@ import store.chikendev._2tm.utils.FilesHelp;
 
 @Service
 public class AuthenticationService {
+
+    public static final String LOGIN_ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String LOGIN_ROLE_STAFF = "ROLE_STAFF";
+    public static final String LOGIN_ROLE_USER = "ROLE_USER";
+    public static final String LOGIN_ROLE_DELIVERY = "ROLE_DELIVERY";
 
     @Autowired
     private AccountRepository accountRepository;
@@ -71,7 +78,7 @@ public class AuthenticationService {
 
     // đăng nhập
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public AuthenticationResponse auth(LoginRequest request) {
+    public AuthenticationResponse auth(LoginRequest request, String role_login) {
         Account user = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         if (user.getState().getId() == StateAccount.LOCKED) {
@@ -82,6 +89,39 @@ public class AuthenticationService {
 
         if (!authenticated) {
             throw new AppException(ErrorCode.LOGIN_FAIL);
+        }
+
+        List<RoleAccount> aRoles = user.getRoles();
+
+        if (LOGIN_ROLE_ADMIN.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_ADMIN));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        }
+
+        if (LOGIN_ROLE_DELIVERY.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_SHIPPER));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        }
+
+        if (LOGIN_ROLE_STAFF.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_STAFF)
+                    || role.getRole().getId().equals(Role.ROLE_STAFF));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        }
+        
+        if (LOGIN_ROLE_USER.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_USER)
+                    || role.getRole().getId().equals(Role.ROLE_CUSTOMER)
+                    || role.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
         }
 
         if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {

@@ -19,6 +19,7 @@ public enum ErrorCode {
     LOGIN_FAIL(415, "Thông tin đăng nhập không chính xác", HttpStatus.BAD_REQUEST),
     PASSWORD_NOT_MATCH(416, "Nhập lại mật khẩu không đúng", HttpStatus.BAD_REQUEST),
     PASSWORD_NOT_FOUND(416, "Mật khẩu cũ bạn nhập sai", HttpStatus.BAD_REQUEST),
+    LOGIN_ROLE_REQUIRED(403, "Tài khoản không có quyền truy cập!", HttpStatus.FORBIDDEN),
 
     STATE_NOT_FOUND(431, "Không tìm thấy trạng thái", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_FOUND(432, "Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),

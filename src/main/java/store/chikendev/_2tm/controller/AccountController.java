@@ -45,7 +45,55 @@ public class AccountController {
 
     @PostMapping("login")
     public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {
-        AuthenticationResponse responce = authenticationService.auth(request);
+        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_USER);
+
+        if (responce.isAuthenticated()) {
+            Cookie cookie = new Cookie("accessToken", responce.getToken());
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(24 * 60 * 60);
+            cookie.setSecure(true);
+            // Thêm cookie vào phản hồi
+            this.response.addCookie(cookie);
+        }
+        return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
+    }
+
+    @PostMapping("admin/login")
+    public ApiResponse<AuthenticationResponse> adminLogin(@RequestBody LoginRequest request) {
+        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_ADMIN);
+
+        if (responce.isAuthenticated()) {
+            Cookie cookie = new Cookie("accessToken", responce.getToken());
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(24 * 60 * 60);
+            cookie.setSecure(true);
+            // Thêm cookie vào phản hồi
+            this.response.addCookie(cookie);
+        }
+        return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
+    }
+
+    @PostMapping("staff/login")
+    public ApiResponse<AuthenticationResponse> staffLogin(@RequestBody LoginRequest request) {
+        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_STAFF);
+
+        if (responce.isAuthenticated()) {
+            Cookie cookie = new Cookie("accessToken", responce.getToken());
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(24 * 60 * 60);
+            cookie.setSecure(true);
+            // Thêm cookie vào phản hồi
+            this.response.addCookie(cookie);
+        }
+        return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
+    }
+
+    @PostMapping("delevery/login")
+    public ApiResponse<AuthenticationResponse> deleveryLogin(@RequestBody LoginRequest request) {
+        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_DELIVERY);
 
         if (responce.isAuthenticated()) {
             Cookie cookie = new Cookie("accessToken", responce.getToken());

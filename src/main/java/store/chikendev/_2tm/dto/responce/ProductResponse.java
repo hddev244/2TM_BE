@@ -1,5 +1,7 @@
 package store.chikendev._2tm.dto.responce;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
@@ -18,6 +20,8 @@ public class ProductResponse {
     private Double price;
     private Integer quantity;
     private String description;
+    private List<AttributeDetailResponse> attributes;
+    private StoreResponse store;
+    private AddressResponse address;
     private ResponseDocumentDto thumbnail;
-    
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
+import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Store;
@@ -90,7 +91,34 @@ public class ProductService {
     }
 
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable).map(this::convertToResponse);
+        Page<Product> products = productRepository.findAll(pageable);
+        Page<ProductResponse> productResponses = products.map(product -> {
+            var thumbnail = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
+            var address = "";
+            if (product.getStore().getWard() != null && product.getStore().getWard().getDistrict() != null
+                    && product.getStore().getWard().getDistrict().getProvinceCity() != null){
+                        String StoreWard = product.getStore().getWard().getName();
+                        String StoreDistrict = product.getStore().getWard().getDistrict().getName();
+                        String StoreProvince = product.getStore().getWard().getDistrict().getProvinceCity().getName();
+                        String storeAddress = product.getStore().getStreetAddress();
+                        address = storeAddress + ", " + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
+            }
+
+            return ProductResponse.builder()
+                    .id(product.getId())
+                    .thumbnail(thumbnail)
+                    .name(product.getName())
+                    .price(product.getPrice())
+                    .quantity(product.getQuantity())
+                    .store(
+                            StoreResponse.builder()
+                                    .name(product.getStore().getName())
+                                    .streetAddress(address)
+                                    .build()
+                    )
+                    .build();
+        });
+        return productResponses;
     }
 
     private ProductResponse convertToResponse(Product product) {
