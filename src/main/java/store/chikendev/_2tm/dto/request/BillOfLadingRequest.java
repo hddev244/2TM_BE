@@ -13,4 +13,5 @@ public class BillOfLadingRequest {
     private Long order;
     private String deliveryPerson;
     private String createBy;
+    
 }
