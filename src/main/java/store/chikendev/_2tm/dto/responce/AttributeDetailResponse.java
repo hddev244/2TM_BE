@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AddressResponse {
-    private String name;
+public class AttributeDetailResponse {
+
+    private Long id;
+    private String description;
 }

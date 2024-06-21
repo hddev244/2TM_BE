@@ -1,5 +1,7 @@
 package store.chikendev._2tm.dto.responce;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
@@ -12,13 +14,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class StoreResponse {
+public class ProductResponse {
     private Long id;
     private String name;
-    private String postalCode;
-    private String phone;
-    private String email;
-    private String streetAddress;
+    private Double price;
+    private Integer quantity;
     private String description;
-    private ResponseDocumentDto urlImage;
+    private List<AttributeDetailResponse> attributes;
+    private StoreResponse store;
+    private AddressResponse address;
+    private ResponseDocumentDto thumbnail;
 }

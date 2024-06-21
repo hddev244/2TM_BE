@@ -6,6 +6,7 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -69,17 +70,14 @@ public class Account {
     @JoinColumn(name = "primaryAddress")
     private Address address;
 
-    @OneToMany(mappedBy = "account")
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RoleAccount> roles;
 
     @OneToMany(mappedBy = "account")
     private List<Address> addresses;
 
-    @OneToOne(mappedBy = "account")
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private Otp otp;
-
-    @OneToOne(mappedBy = "account")
-    private AccountStore store;
 
     @OneToMany(mappedBy = "account")
     private List<Product> products;

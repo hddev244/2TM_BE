@@ -3,7 +3,9 @@ package store.chikendev._2tm.service;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 
@@ -28,17 +30,28 @@ import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.LogoutRequest;
 import store.chikendev._2tm.dto.request.RefreshTokenRequest;
+import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
+import store.chikendev._2tm.dto.responce.RoleResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.InvaLidatedToken;
+import store.chikendev._2tm.entity.Role;
+import store.chikendev._2tm.entity.RoleAccount;
 import store.chikendev._2tm.entity.StateAccount;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.InvaLidatedTokenRepository;
+import store.chikendev._2tm.utils.EntityFileType;
+import store.chikendev._2tm.utils.FilesHelp;
 
 @Service
 public class AuthenticationService {
+
+    public static final String LOGIN_ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String LOGIN_ROLE_STAFF = "ROLE_STAFF";
+    public static final String LOGIN_ROLE_USER = "ROLE_USER";
+    public static final String LOGIN_ROLE_DELIVERY = "ROLE_DELIVERY";
 
     @Autowired
     private AccountRepository accountRepository;
@@ -64,15 +77,12 @@ public class AuthenticationService {
     private Long REFRESHABLE_DURATION;
 
     // đăng nhập
-    public AuthenticationResponse auth(LoginRequest request) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public AuthenticationResponse auth(LoginRequest request, String role_login) {
         Account user = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         if (user.getState().getId() == StateAccount.LOCKED) {
             throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
-        }
-
-        if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {
-            throw new AppException(ErrorCode.ACCOUNT_NO_VERIFIED);
         }
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
@@ -80,11 +90,75 @@ public class AuthenticationService {
         if (!authenticated) {
             throw new AppException(ErrorCode.LOGIN_FAIL);
         }
+
+        List<RoleAccount> aRoles = user.getRoles();
+
+        if (LOGIN_ROLE_ADMIN.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_ADMIN));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        }
+
+        if (LOGIN_ROLE_DELIVERY.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_SHIPPER));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        }
+
+        if (LOGIN_ROLE_STAFF.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_STAFF)
+                    || role.getRole().getId().equals(Role.ROLE_STAFF));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        }
+        
+        if (LOGIN_ROLE_USER.equals(role_login)) {
+            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_USER)
+                    || role.getRole().getId().equals(Role.ROLE_CUSTOMER)
+                    || role.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER));
+            if (!hasRole) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        }
+
+        if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {
+            return AuthenticationResponse.builder()
+                    .account(
+                            AccountResponse.builder()
+                                    .email(user.getEmail())
+                                    .build())
+                    .authenticated(false)
+                    .build();
+        }
+
         var token = this.generateToken(user);
+
+        var image = FilesHelp.getOneDocument(user.getId(), EntityFileType.USER_AVATAR);
+
+        List<RoleResponse> roles = new ArrayList();
+        user.getRoles().forEach(role -> {
+            roles.add(RoleResponse.builder()
+                    .id(role.getRole().getId())
+                    .name(role.getRole().getName())
+                    .build());
+        });
 
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
-                .idUser(user.getId())
+                .account(
+                        AccountResponse.builder()
+                                .id(user.getId())
+                                .username(user.getUsername())
+                                .fullName(user.getFullName())
+                                .roles(roles)
+                                .violationPoints(user.getViolationPoints())
+                                .phoneNumber(user.getPhoneNumber())
+                                .email(user.getEmail())
+                                .image(image)
+                                .build())
                 .token(token)
                 .build();
     }

@@ -5,7 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import store.chikendev._2tm.entity.Category;
+import store.chikendev._2tm.dto.responce.ApiResponse;
+import store.chikendev._2tm.dto.responce.CategoryResponse;
 import store.chikendev._2tm.service.CategoryService;
 
 import java.util.List;
@@ -13,12 +14,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
-
     @Autowired
     private CategoryService categoryService;
 
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
+    public ApiResponse<List<CategoryResponse>> getAllCategories() {
+        List<CategoryResponse> categoryResponses = categoryService.getAllCategories();
+        
+        return new ApiResponse<List<CategoryResponse>>(200,null,categoryResponses);
     }
+
+   
 }

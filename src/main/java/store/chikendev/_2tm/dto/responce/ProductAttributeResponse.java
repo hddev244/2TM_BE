@@ -1,5 +1,7 @@
 package store.chikendev._2tm.dto.responce;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AddressResponse {
+public class ProductAttributeResponse {
+    private Long id;
     private String name;
+    private List<AttributeDetailResponse> detail;
 }

@@ -25,9 +25,7 @@ public class StoreService {
     @Autowired
     private StoreRepository storeRepository;
 
-    public List<Store> getAllStores() {
-        return storeRepository.findAll();
-    }
+
     @Autowired
     private FilesHelp filesHelp;
 
@@ -76,5 +74,8 @@ public class StoreService {
         return response;
 
     }
-
+    public List<Store> getAllStores() {
+        return storeRepository.findAll();
+    }
+    
 }

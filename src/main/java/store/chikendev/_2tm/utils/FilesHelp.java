@@ -49,7 +49,7 @@ public class FilesHelp {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static List<ResponseDocumentDto> getDocuments(Object entityId, EntityFileType type) {
         if (entityId == null || type == null || entityId.toString().trim().isEmpty()) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
+           return new ArrayList<ResponseDocumentDto>();
         }
         Path path = Paths.get(type.getDir() + entityId);
         List<ResponseDocumentDto> responseDocumentDtos = new ArrayList();
@@ -68,8 +68,17 @@ public class FilesHelp {
             }
             return responseDocumentDtos;
         } catch (Exception e) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
+            return new ArrayList<ResponseDocumentDto>();
+            // throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
         }
+    }
+
+    public static ResponseDocumentDto getOneDocument(Object entityId, EntityFileType type){
+        List<ResponseDocumentDto> responseDocumentDtos = getDocuments(entityId, type);
+        if (responseDocumentDtos.size() != 0) {
+            return responseDocumentDtos.get(0);
+        }
+        return new ResponseDocumentDto();
     }
 
     @SuppressWarnings("unused")
