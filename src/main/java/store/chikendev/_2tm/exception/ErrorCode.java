@@ -21,6 +21,7 @@ public enum ErrorCode {
     WARD_NOT_FOUND(400, "Không tìm thấy địa chỉ", HttpStatus.BAD_REQUEST),
     IMAGE_NOT_FOUND(400, "Không tìm thấy hình ảnh", HttpStatus.BAD_REQUEST),
     STORE_NOT_FOUND(400, "Không tìm thấy cửa hàng", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_FOUND(400, "Không tìm thấy order", HttpStatus.BAD_REQUEST),
     OTP_ERROR(400, "Không thể gửi OTP", HttpStatus.BAD_REQUEST),
     LOGIN_FAIL(400, "Đăng nhập không chính xác", HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR(500, "Lỗi máy chủ", HttpStatus.INTERNAL_SERVER_ERROR),
