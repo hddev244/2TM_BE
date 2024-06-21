@@ -14,11 +14,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.CreateStaffRequest;
 import store.chikendev._2tm.dto.request.changePasswordRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.CreateStaffResponse;
+import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.RoleResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
@@ -34,6 +37,8 @@ import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.RoleRepository;
 import store.chikendev._2tm.repository.StateAccountRepository;
 import store.chikendev._2tm.repository.StoreRepository;
+import store.chikendev._2tm.utils.EntityFileType;
+import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.SendEmail;
 
 @Service
@@ -65,6 +70,9 @@ public class AccountService {
 
     @Autowired
     private SendEmail sendEmail;
+
+    @Autowired
+    private FilesHelp filesHelp;
 
     private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private final int PASSWORD_LENGTH = 6;
@@ -171,6 +179,7 @@ public class AccountService {
         return response;
     }
 
+    @SuppressWarnings("static-access")
     public Page<CreateStaffResponse> getAllStaff(Optional<Integer> pageNo) {
         Pageable pageable = PageRequest.of(pageNo.orElse(0), 10);
         List<String> excludedRoles = Arrays.asList("CH", "KH", "ND");
@@ -180,6 +189,10 @@ public class AccountService {
             response.setStateName(account.getState().getName());
             response.setRoles(roleAccountRepository.findByAccount(account).stream()
                     .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
+            List<ResponseDocumentDto> image = filesHelp.getDocuments(account.getId(), EntityFileType.USER_AVATAR);
+            if (image.size() > 0) {
+                response.setUrlImage(image.get(0));
+            }
             return response;
         });
     }
@@ -249,6 +262,16 @@ public class AccountService {
             response.setNameStore(store.getName());
         }
         return response;
+    }
+
+    @SuppressWarnings("static-access")
+    public String updateImage(String id, MultipartFile file) {
+        Account account = accountRepository.findById(id).orElseThrow(() -> {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        });
+        filesHelp.saveFile(file, account.getId(), EntityFileType.USER_AVATAR);
+        List<ResponseDocumentDto> imageNew = filesHelp.getDocuments(id, EntityFileType.USER_AVATAR);
+        return imageNew.get(0).getFileDownloadUri();
     }
 
     // random pass

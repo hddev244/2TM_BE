@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,7 +47,7 @@ public class AccountController {
 
     @PostMapping("login")
     public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {
-        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_USER);
+        AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_USER);
 
         if (responce.isAuthenticated()) {
             Cookie cookie = new Cookie("accessToken", responce.getToken());
@@ -61,7 +63,7 @@ public class AccountController {
 
     @PostMapping("admin/login")
     public ApiResponse<AuthenticationResponse> adminLogin(@RequestBody LoginRequest request) {
-        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_ADMIN);
+        AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_ADMIN);
 
         if (responce.isAuthenticated()) {
             Cookie cookie = new Cookie("accessToken", responce.getToken());
@@ -77,7 +79,7 @@ public class AccountController {
 
     @PostMapping("staff/login")
     public ApiResponse<AuthenticationResponse> staffLogin(@RequestBody LoginRequest request) {
-        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_STAFF);
+        AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_STAFF);
 
         if (responce.isAuthenticated()) {
             Cookie cookie = new Cookie("accessToken", responce.getToken());
@@ -93,7 +95,8 @@ public class AccountController {
 
     @PostMapping("delevery/login")
     public ApiResponse<AuthenticationResponse> deleveryLogin(@RequestBody LoginRequest request) {
-        AuthenticationResponse responce = authenticationService.auth(request,AuthenticationService.LOGIN_ROLE_DELIVERY);
+        AuthenticationResponse responce = authenticationService.auth(request,
+                AuthenticationService.LOGIN_ROLE_DELIVERY);
 
         if (responce.isAuthenticated()) {
             Cookie cookie = new Cookie("accessToken", responce.getToken());
@@ -120,6 +123,12 @@ public class AccountController {
     @PostMapping("change-password")
     public ApiResponse<AccountResponse> changePassword(@RequestBody @Valid changePasswordRequest request) {
         return new ApiResponse<AccountResponse>(200, null, accountService.changePassword(request));
+    }
+
+    @PostMapping(value = "updateImage", consumes = "multipart/form-data")
+    public ApiResponse<String> updateImage(@RequestPart("id") String id,
+            @RequestPart("image") MultipartFile image) {
+        return new ApiResponse<String>(200, null, accountService.updateImage(id, image));
     }
 
 }
