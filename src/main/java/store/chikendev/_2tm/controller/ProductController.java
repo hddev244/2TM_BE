@@ -16,13 +16,18 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.request.RequestProduct;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.service.ProductService;
+import store.chikendev._2tm.utils.EntityFileType;
+import store.chikendev._2tm.utils.FilesHelp;
+
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 
 
 @RestController
@@ -66,6 +71,13 @@ public class ProductController {
         }
     }
 
+    @PostMapping(value = "addImage", consumes = "multipart/form-data")
+    public ApiResponse<String> updateImage(@RequestPart("id") Long id,
+            @RequestPart("image") MultipartFile image) {
+        FilesHelp.saveFile(image, id, EntityFileType.PRODUCT);
+        return new ApiResponse<>(200, null, "Update image success");
+    }
+
 
 
     @DeleteMapping("/{id}")
@@ -81,9 +93,9 @@ public class ProductController {
 
     @GetMapping
     public ApiResponse<Page<ProductResponse>> getAllProducts(
-        @RequestParam Optional<Integer> size,
-        @RequestParam Optional<Integer> page,
-        @RequestParam Optional<String> sort
+        @RequestParam(required = false, name = "size") Optional<Integer> size,
+        @RequestParam(required = false, name = "page") Optional<Integer> page,
+        @RequestParam(required = false, name ="sort") Optional<String> sort
         ){
         Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
         Page<ProductResponse> products = productService.getAllProducts(pageable);

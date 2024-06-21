@@ -1,5 +1,7 @@
 package store.chikendev._2tm.dto.responce;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class StoreResponse {
     private Long id;
     private String name;
