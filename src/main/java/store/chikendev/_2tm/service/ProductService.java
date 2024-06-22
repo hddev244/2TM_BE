@@ -94,16 +94,9 @@ public class ProductService {
         Page<Product> products = productRepository.findAll(pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
             var thumbnail = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
-            var address = "";
-            if (product.getStore().getWard() != null && product.getStore().getWard().getDistrict() != null
-                    && product.getStore().getWard().getDistrict().getProvinceCity() != null){
-                        String StoreWard = product.getStore().getWard().getName();
-                        String StoreDistrict = product.getStore().getWard().getDistrict().getName();
-                        String StoreProvince = product.getStore().getWard().getDistrict().getProvinceCity().getName();
-                        String storeAddress = product.getStore().getStreetAddress();
-                        address = storeAddress + ", " + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
-            }
-
+            var address = getStoreAddress(product.getStore());
+            var storeName = product.getStore() == null ? "" : product.getStore().getName();
+            
             return ProductResponse.builder()
                     .id(product.getId())
                     .thumbnail(thumbnail)
@@ -112,13 +105,27 @@ public class ProductService {
                     .quantity(product.getQuantity())
                     .store(
                             StoreResponse.builder()
-                                    .name(product.getStore().getName())
+                                    .name(storeName)
                                     .streetAddress(address)
                                     .build()
                     )
                     .build();
         });
         return productResponses;
+    }
+
+    private String getStoreAddress(Store store) {
+        if (store == null) {
+            return "";
+        }
+        if (store.getWard() != null ){
+                        String StoreWard = store.getWard().getName();
+                        String StoreDistrict = store.getWard().getDistrict().getName();
+                        String StoreProvince = store.getWard().getDistrict().getProvinceCity().getName();
+                        String storeAddress = store.getStreetAddress() == null ? "" : store.getStreetAddress() + ", ";
+                        return storeAddress  + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
+            }
+        return "";
     }
 
     private ProductResponse convertToResponse(Product product) {

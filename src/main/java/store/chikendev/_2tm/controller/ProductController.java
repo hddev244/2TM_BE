@@ -1,6 +1,5 @@
 package store.chikendev._2tm.controller;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,6 @@ import store.chikendev._2tm.utils.FilesHelp;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 
-
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -51,8 +49,6 @@ public class ProductController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
-
 
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody RequestProduct requestProduct) {
@@ -78,8 +74,6 @@ public class ProductController {
         return new ApiResponse<>(200, null, "Update image success");
     }
 
-
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
@@ -88,17 +82,16 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ApiResponse<ProductResponse> getByIdProduct(@PathVariable Long id) {
-        return new ApiResponse<ProductResponse>(200,null,productService.getProductById(id));
+        return new ApiResponse<ProductResponse>(200, null, productService.getProductById(id));
     }
 
     @GetMapping
     public ApiResponse<Page<ProductResponse>> getAllProducts(
-        @RequestParam(required = false, name = "size") Optional<Integer> size,
-        @RequestParam(required = false, name = "page") Optional<Integer> page,
-        @RequestParam(required = false, name ="sort") Optional<String> sort
-        ){
+            @RequestParam(required = false, name = "size") Optional<Integer> size,
+            @RequestParam(required = false, name = "page") Optional<Integer> page,
+            @RequestParam(required = false, name = "sort") Optional<String> sort) {
         Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
         Page<ProductResponse> products = productService.getAllProducts(pageable);
-        return new ApiResponse<Page<ProductResponse>>(200,null,products);
+        return new ApiResponse<Page<ProductResponse>>(200, null, products);
     }
 }

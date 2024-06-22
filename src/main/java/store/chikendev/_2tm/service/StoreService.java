@@ -25,7 +25,6 @@ public class StoreService {
     @Autowired
     private StoreRepository storeRepository;
 
-
     @Autowired
     private FilesHelp filesHelp;
 
@@ -61,12 +60,8 @@ public class StoreService {
         Store store = storeRepository.findById(id).orElseThrow(() -> {
             throw new AppException(ErrorCode.STORE_NOT_FOUND);
         });
-        List<ResponseDocumentDto> image = filesHelp.getDocuments(id, EntityFileType.STORE_LOGO);
-        if (image.size() > 0) {
-            filesHelp.deleteFile(id, image.get(0).getFileId(), EntityFileType.STORE_LOGO);
-            if (file.getOriginalFilename() != null) {
-                filesHelp.saveFile(file, store.getId(), EntityFileType.STORE_LOGO);
-            }
+        if (file.getOriginalFilename() != null) {
+            filesHelp.saveFile(file, store.getId(), EntityFileType.STORE_LOGO);
         }
         List<ResponseDocumentDto> urlImage = filesHelp.getDocuments(store.getId(), EntityFileType.STORE_LOGO);
         StoreResponse response = mapper.map(store, StoreResponse.class);
@@ -74,8 +69,9 @@ public class StoreService {
         return response;
 
     }
+
     public List<Store> getAllStores() {
         return storeRepository.findAll();
     }
-    
+
 }
