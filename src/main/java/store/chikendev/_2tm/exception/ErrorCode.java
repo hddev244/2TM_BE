@@ -25,6 +25,7 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(432, "Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(433, "Thông tin đăng nhập không chính xác", HttpStatus.BAD_REQUEST),
     ORDER_NOT_FOUND(434, "Tông tin order không chính xác", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_FOUND(435, "Không tìm thấy sản phẩm", HttpStatus.BAD_REQUEST),
 
     // File
     ROLE_NOT_FOUND(420, "Không tìm thấy vai trò", HttpStatus.BAD_REQUEST),
@@ -33,7 +34,6 @@ public enum ErrorCode {
     STORE_NOT_FOUND(423, "Không tìm thấy cửa hàng", HttpStatus.BAD_REQUEST),
     EXCEL_IMPORT_ERROR(425, "Nhập file excel lỗi", HttpStatus.BAD_REQUEST),
     EXCEL_EXPORT_ERROR(426, "Xuất file excel lỗi", HttpStatus.BAD_REQUEST),
-
 
     // OTP
     OTP_ERROR(441, "Không thể gửi OTP", HttpStatus.BAD_REQUEST),

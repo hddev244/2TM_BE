@@ -1,6 +1,8 @@
 package store.chikendev._2tm.service;
 
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import store.chikendev._2tm.dto.responce.AttributeProductResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.StoreResponse;
@@ -84,22 +87,18 @@ public class ProductService {
         }
     }
 
-    public ProductResponse getProductById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not find ProductById: " + id));
-        return mapper.map(product, ProductResponse.class);
-    }
-
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         Page<Product> products = productRepository.findAll(pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
-            var thumbnail = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
+            var thumbnail = FilesHelp.getDocuments(product.getId(), EntityFileType.PRODUCT);
             var address = getStoreAddress(product.getStore());
             var storeName = product.getStore() == null ? "" : product.getStore().getName();
-            
+
             return ProductResponse.builder()
                     .id(product.getId())
-                    .thumbnail(thumbnail)
+                    .thumbnail(thumbnail.stream().map(image -> {
+                        return image.getFileDownloadUri();
+                    }).toList())
                     .name(product.getName())
                     .price(product.getPrice())
                     .quantity(product.getQuantity())
@@ -107,8 +106,7 @@ public class ProductService {
                             StoreResponse.builder()
                                     .name(storeName)
                                     .streetAddress(address)
-                                    .build()
-                    )
+                                    .build())
                     .build();
         });
         return productResponses;
@@ -118,13 +116,13 @@ public class ProductService {
         if (store == null) {
             return "";
         }
-        if (store.getWard() != null ){
-                        String StoreWard = store.getWard().getName();
-                        String StoreDistrict = store.getWard().getDistrict().getName();
-                        String StoreProvince = store.getWard().getDistrict().getProvinceCity().getName();
-                        String storeAddress = store.getStreetAddress() == null ? "" : store.getStreetAddress() + ", ";
-                        return storeAddress  + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
-            }
+        if (store.getWard() != null) {
+            String StoreWard = store.getWard().getName();
+            String StoreDistrict = store.getWard().getDistrict().getName();
+            String StoreProvince = store.getWard().getDistrict().getProvinceCity().getName();
+            String storeAddress = store.getStreetAddress() == null ? "" : store.getStreetAddress() + ", ";
+            return storeAddress + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
+        }
         return "";
     }
 
@@ -135,8 +133,38 @@ public class ProductService {
         response.setPrice(product.getPrice());
         response.setQuantity(product.getQuantity());
         response.setDescription(product.getDescription());
-        ResponseDocumentDto responseDocument = FilesHelp.getOneDocument(response.getId(), EntityFileType.CATEGORY);
-        response.setThumbnail(responseDocument);
+        List<ResponseDocumentDto> responseDocument = FilesHelp.getDocuments(response.getId(), EntityFileType.CATEGORY);
+        response.setThumbnail(responseDocument.stream().map(image -> {
+            return image.getFileDownloadUri();
+        }).toList());
         return response;
+    }
+
+    public ProductResponse getById(Long id) {
+        Product product = productRepository.findById(id).orElseThrow(() -> {
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+        });
+
+        List<AttributeProductResponse> attrs = new ArrayList<>();
+
+        if (product.getAttributes().size() > 0) {
+            product.getAttributes().forEach(att -> {
+                attrs.add(AttributeProductResponse.builder()
+                        .id(att.getId())
+                        .name(att.getAttributeDetail().getAttribute().getName())
+                        .value(att.getAttributeDetail().getDescription())
+                        .build());
+            });
+        }
+        StoreResponse store = mapper.map(product.getStore(), StoreResponse.class);
+        ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
+        store.setUrlImage(imageStore);
+        ProductResponse response = convertToResponse(product);
+        response.setAttributes(attrs);
+        response.setStore(store);
+        response.setIdCategory(product.getCategory().getId());
+
+        return response;
+
     }
 }

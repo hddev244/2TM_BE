@@ -80,11 +80,6 @@ public class ProductController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<ProductResponse> getByIdProduct(@PathVariable Long id) {
-        return new ApiResponse<ProductResponse>(200, null, productService.getProductById(id));
-    }
-
     @GetMapping
     public ApiResponse<Page<ProductResponse>> getAllProducts(
             @RequestParam(required = false, name = "size") Optional<Integer> size,
@@ -93,5 +88,11 @@ public class ProductController {
         Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
         Page<ProductResponse> products = productService.getAllProducts(pageable);
         return new ApiResponse<Page<ProductResponse>>(200, null, products);
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<ProductResponse> getProductById(@PathVariable Long id) {
+        ProductResponse product = productService.getById(id);
+        return new ApiResponse<ProductResponse>(200, null, product);
     }
 }

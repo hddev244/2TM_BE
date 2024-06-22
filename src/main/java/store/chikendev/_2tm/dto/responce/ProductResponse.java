@@ -20,8 +20,8 @@ public class ProductResponse {
     private Double price;
     private Integer quantity;
     private String description;
-    private List<AttributeDetailResponse> attributes;
+    private List<AttributeProductResponse> attributes;
     private StoreResponse store;
-    private AddressResponse address;
-    private ResponseDocumentDto thumbnail;
+    private List<String> thumbnail;
+    private Long idCategory;
 }
