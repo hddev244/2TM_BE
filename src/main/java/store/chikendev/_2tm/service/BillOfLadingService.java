@@ -1,14 +1,20 @@
 package store.chikendev._2tm.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.request.BillOfLadingRequest;
 import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
+import store.chikendev._2tm.dto.responce.WardResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.BillOfLading;
 import store.chikendev._2tm.entity.Order;
+import store.chikendev._2tm.entity.Ward;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
@@ -54,5 +60,24 @@ public class BillOfLadingService {
         return response;
     }
 
+    public List<BillOfLading> getAllBillOfLadings() {
+        return billOfLRepository.findAll();
+    }
+
+    public List<BillOfLadingResponse> getBillOfLadingByDeliveryPersonId(String id){
+        List<BillOfLading> billOfLadings = billOfLRepository.getBillOfLadingByDeliveryPersonId(id);
+        return billOfLadings.stream().map(this:: getResponse).collect(Collectors.toList());
+    }
+
+    public BillOfLadingResponse getResponse(BillOfLading billOfLadings) {
+        BillOfLadingResponse response = new BillOfLadingResponse();
+        response.setId(billOfLadings.getId());
+        response.setDeliveryPerson(billOfLadings.getDeliveryPerson().getFullName());
+        response.setCreateBy(billOfLadings.getCreateBy().getFullName());
+        response.setOrderId(billOfLadings.getOrder().getId());
+        response.setCreatedAt(billOfLadings.getCreatedAt());
+
+        return response;
+    }
 
 }
