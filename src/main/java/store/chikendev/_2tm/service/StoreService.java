@@ -47,10 +47,10 @@ public class StoreService {
         if (file.getOriginalFilename() != null) {
             filesHelp.saveFile(file, save.getId(), EntityFileType.STORE_LOGO);
         }
-        List<ResponseDocumentDto> urlImage = filesHelp.getDocuments(save.getId(), EntityFileType.STORE_LOGO);
+        ResponseDocumentDto urlImage = filesHelp.getOneDocument(save.getId(), EntityFileType.STORE_LOGO);
 
         StoreResponse response = mapper.map(store, StoreResponse.class);
-        response.setUrlImage(urlImage.get(0));
+        response.setUrlImage(urlImage.getFileDownloadUri());
         return response;
 
     }
@@ -63,15 +63,40 @@ public class StoreService {
         if (file.getOriginalFilename() != null) {
             filesHelp.saveFile(file, store.getId(), EntityFileType.STORE_LOGO);
         }
-        List<ResponseDocumentDto> urlImage = filesHelp.getDocuments(store.getId(), EntityFileType.STORE_LOGO);
+        ResponseDocumentDto urlImage = filesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
         StoreResponse response = mapper.map(store, StoreResponse.class);
-        response.setUrlImage(urlImage.get(0));
+        response.setUrlImage(urlImage.getFileDownloadUri());
         return response;
 
     }
 
-    public List<Store> getAllStores() {
-        return storeRepository.findAll();
+    @SuppressWarnings("static-access")
+    public List<StoreResponse> getAllStores() {
+        List<Store> stores = storeRepository.findAll();
+        List<StoreResponse> response = stores.stream().map(store -> {
+            StoreResponse storeResponse = mapper.map(store, StoreResponse.class);
+            String streetAddress = store.getStreetAddress();
+            storeResponse.setStreetAddress(streetAddress + ", " + store.getWard().getName() + ", "
+                    + store.getWard().getDistrict().getName() + ", "
+                    + store.getWard().getDistrict().getProvinceCity().getName());
+            ResponseDocumentDto urlImage = filesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
+            storeResponse.setUrlImage(urlImage.getFileDownloadUri());
+            return storeResponse;
+        }).toList();
+        return response;
+
     }
+
+    // private StoreResponse convertToResponse(Store store) {
+    // StoreResponse storeResponse = new StoreResponse();
+    // storeResponse.setId(store.getId());
+    // storeResponse.setName(store.getName());
+    // storeResponse.setPostalCode(store.getPostalCode());
+    // storeResponse.setPhone(store.getPhone());
+    // storeResponse.setEmail(store.getEmail());
+    // storeResponse.setStreetAddress(store.getStreetAddress());
+    // storeResponse.setDescription(store.getDescription());
+    // return storeResponse;
+    // }
 
 }

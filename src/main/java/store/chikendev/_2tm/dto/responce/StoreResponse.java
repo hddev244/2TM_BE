@@ -20,5 +20,5 @@ public class StoreResponse {
     private String email;
     private String streetAddress;
     private String description;
-    private ResponseDocumentDto urlImage;
+    private String urlImage;
 }
