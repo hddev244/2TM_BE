@@ -23,5 +23,6 @@ public class ProductResponse {
     private List<AttributeProductResponse> attributes;
     private StoreResponse store;
     private List<ResponseDocumentDto> images;
+    private ResponseDocumentDto thumbnail;
     private Long idCategory;
 }
