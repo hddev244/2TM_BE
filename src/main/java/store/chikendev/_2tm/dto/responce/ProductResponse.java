@@ -22,6 +22,6 @@ public class ProductResponse {
     private String description;
     private List<AttributeProductResponse> attributes;
     private StoreResponse store;
-    private List<String> thumbnail;
+    private List<ResponseDocumentDto> thumbnail;
     private Long idCategory;
 }
