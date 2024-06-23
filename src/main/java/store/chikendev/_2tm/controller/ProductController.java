@@ -98,11 +98,11 @@ public class ProductController {
         return new ApiResponse<ProductResponse>(200, null, product);
     }
 
-    @GetMapping("/products")
-    public ApiResponse<List<ProductResponse>> getProducts() {
-        List<ProductResponse> products = productService.getProducts();
-        return new ApiResponse<List<ProductResponse>>(200, null, products);
-    }
+    // @GetMapping("/products")
+    // public ApiResponse<List<ProductResponse>> getProducts() {
+    // List<ProductResponse> products = productService.getProducts();
+    // return new ApiResponse<List<ProductResponse>>(200, null, products);
+    // }
 
     @GetMapping("search")
     public ApiResponse<Page<ProductResponse>> searchProducts(

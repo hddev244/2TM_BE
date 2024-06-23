@@ -179,7 +179,6 @@ public class ProductService {
 
     public Page<ProductResponse> getByNameAndDescription(String value) {
         Pageable pageable = PageRequest.of(0, 20);
-
         Page<Product> products = productRepository.findProductsBySearchTerm(value, pageable);
         System.out.println(products.getContent().size());
         Page<ProductResponse> productResponses = products.map(product -> {
@@ -212,23 +211,15 @@ public class ProductService {
 
     }
 
-    public List<ProductResponse> getProducts() {
-        List<Product> products = productRepository.findByQuantityGreaterThanOrderByCreatedAtDesc(0);
-        return products.stream().map(this::mapToResponse).collect(Collectors.toList());
-    }
+    // fix làm giống getByNameAndDescription thay đổi
+    // productRepository.findByQuantityGreaterThanOrderByCreatedAtDesc(0); vô còn
+    // lại y trang
 
-    private ProductResponse mapToResponse(Product product) {
-        ProductResponse response = new ProductResponse();
-        response.setId(product.getId());
-        response.setName(product.getName());
-        response.setPrice(product.getPrice());
-        response.setQuantity(product.getQuantity());
-        response.setDescription(product.getDescription());
-        response.setCreatedAt(product.getCreatedAt().toString());
-        response.setUpdatedAt(product.getUpdatedAt().toString());
-        response.setType(product.getType());
-        response.setProductType(product.getType() ? "Sản phẩm của cửa hàng" : "Ký gửi");
-        return response;
-    }
+    // public List<ProductResponse> getProducts() {
+    // List<Product> products =
+    // productRepository.findByQuantityGreaterThanOrderByCreatedAtDesc(0);
+    // return
+    // products.stream().map(this::mapToResponse).collect(Collectors.toList());
+    // }
 
 }
