@@ -91,7 +91,7 @@ public class ProductService {
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         Page<Product> products = productRepository.findAll(pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
-            var thumbnail = FilesHelp.getDocuments(product.getId(), EntityFileType.PRODUCT);
+            var thumbnail = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
             var address = getStoreAddress(product.getStore());
             var storeName = product.getStore() == null ? "" : product.getStore().getName();
 
@@ -133,7 +133,7 @@ public class ProductService {
         response.setQuantity(product.getQuantity());
         response.setDescription(product.getDescription());
         List<ResponseDocumentDto> responseDocument = FilesHelp.getDocuments(response.getId(), EntityFileType.CATEGORY);
-        response.setThumbnail(responseDocument);
+        response.setImages(responseDocument);
         return response;
     }
 

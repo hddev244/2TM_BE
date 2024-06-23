@@ -22,7 +22,8 @@ public class ProductResponse {
     private String description;
     private List<AttributeProductResponse> attributes;
     private StoreResponse store;
-    private List<ResponseDocumentDto> thumbnail;
+    private List<ResponseDocumentDto> images;
+    private ResponseDocumentDto thumbnail;
     private Long idCategory;
     private String createdAt;
     private String updatedAt;
