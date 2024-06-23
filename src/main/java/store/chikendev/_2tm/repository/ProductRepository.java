@@ -1,5 +1,7 @@
 package store.chikendev._2tm.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +14,8 @@ import store.chikendev._2tm.entity.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+    List<Product> findByQuantityGreaterThanOrderByCreatedAtDesc(int quantity);
+
     @Query("select p from Product p where p.name like %:searchTerm% or p.description like %:searchTerm%")
     Page<Product> findProductsBySearchTerm(@Param("searchTerm") String searchTerm, Pageable pageable);
 }
