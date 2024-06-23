@@ -155,9 +155,7 @@ public class ProductService {
         StoreResponse store = mapper.map(product.getStore(), StoreResponse.class);
         ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
         store.setUrlImage(imageStore.getFileDownloadUri());
-        store.setStreetAddress(store.getStreetAddress() + ", " + product.getStore().getWard().getName() + ", "
-                + product.getStore().getWard().getDistrict().getName() + ", "
-                + product.getStore().getWard().getDistrict().getProvinceCity().getName());
+        store.setStreetAddress(getStoreAddress(product.getStore()));
 
         ProductResponse response = convertToResponse(product);
         response.setAttributes(attrs);

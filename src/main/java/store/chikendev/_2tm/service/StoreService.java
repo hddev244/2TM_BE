@@ -75,16 +75,27 @@ public class StoreService {
         List<Store> stores = storeRepository.findAll();
         List<StoreResponse> response = stores.stream().map(store -> {
             StoreResponse storeResponse = mapper.map(store, StoreResponse.class);
-            String streetAddress = store.getStreetAddress();
-            storeResponse.setStreetAddress(streetAddress + ", " + store.getWard().getName() + ", "
-                    + store.getWard().getDistrict().getName() + ", "
-                    + store.getWard().getDistrict().getProvinceCity().getName());
+            storeResponse.setStreetAddress(getStoreAddress(store));
             ResponseDocumentDto urlImage = filesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
             storeResponse.setUrlImage(urlImage.getFileDownloadUri());
             return storeResponse;
         }).toList();
         return response;
 
+    }
+
+    private String getStoreAddress(Store store) {
+        if (store == null) {
+            return "";
+        }
+        if (store.getWard() != null) {
+            String StoreWard = store.getWard().getName();
+            String StoreDistrict = store.getWard().getDistrict().getName();
+            String StoreProvince = store.getWard().getDistrict().getProvinceCity().getName();
+            String storeAddress = store.getStreetAddress() == null ? "" : store.getStreetAddress() + ", ";
+            return storeAddress + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
+        }
+        return "";
     }
 
     // private StoreResponse convertToResponse(Store store) {
