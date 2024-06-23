@@ -23,7 +23,7 @@ public class TestUploadFileController {
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(
             @RequestParam("entityId") String entityId) {
-        return new ApiResponse<>(200, null, FilesHelp.getDocuments(entityId, EntityFileType.CATEGORY));
+        return new ApiResponse<>(200, null, FilesHelp.getDocuments(entityId, EntityFileType.PRODUCT));
     }
 
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
@@ -31,7 +31,7 @@ public class TestUploadFileController {
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("entityId") String entityId) {
         for (MultipartFile file : files) {
-            FilesHelp.saveFile(file, entityId, EntityFileType.CATEGORY);
+            FilesHelp.saveFile(file, entityId, EntityFileType.PRODUCT);
         }
         return "Upload file successfully";
     }
@@ -40,7 +40,7 @@ public class TestUploadFileController {
     public String deleteFile(
             @PathVariable("entityId") String entityId,
             @PathVariable("fileId") String fileId) {
-        FilesHelp.deleteFile(entityId, fileId, EntityFileType.CATEGORY);
+        FilesHelp.deleteFile(entityId, fileId, EntityFileType.PRODUCT);
         return "Delete file successfully";
     }
 }

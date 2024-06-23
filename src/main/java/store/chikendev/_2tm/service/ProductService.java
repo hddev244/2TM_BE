@@ -142,7 +142,7 @@ public class ProductService {
             response.setTypeProduct(product.getType() ? "Cửa hàng" : "Ký gửi");
         }
 
-        List<ResponseDocumentDto> responseDocument = FilesHelp.getDocuments(response.getId(), EntityFileType.CATEGORY);
+        List<ResponseDocumentDto> responseDocument = FilesHelp.getDocuments(response.getId(), EntityFileType.PRODUCT);
         response.setImages(responseDocument);
         return response;
     }
