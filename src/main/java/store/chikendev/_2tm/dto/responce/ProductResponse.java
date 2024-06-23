@@ -24,4 +24,8 @@ public class ProductResponse {
     private StoreResponse store;
     private List<ResponseDocumentDto> thumbnail;
     private Long idCategory;
+    private String createdAt;
+    private String updatedAt;
+    private Boolean type;
+    private String productType;
 }

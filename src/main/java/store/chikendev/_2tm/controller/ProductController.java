@@ -1,5 +1,6 @@
 package store.chikendev._2tm.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,5 +95,11 @@ public class ProductController {
     public ApiResponse<ProductResponse> getProductById(@PathVariable Long id) {
         ProductResponse product = productService.getById(id);
         return new ApiResponse<ProductResponse>(200, null, product);
+    }
+
+    @GetMapping("/products")
+    public ApiResponse<List<ProductResponse>> getProducts() {
+        List<ProductResponse> products = productService.getProducts();
+        return new ApiResponse<List<ProductResponse>>(200, null, products);
     }
 }

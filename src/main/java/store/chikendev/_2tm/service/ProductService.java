@@ -1,6 +1,7 @@
 package store.chikendev._2tm.service;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -165,4 +166,24 @@ public class ProductService {
         return response;
 
     }
+
+    public List<ProductResponse> getProducts() {
+        List<Product> products = productRepository.findByQuantityGreaterThanOrderByCreatedAtDesc(0);
+        return products.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    private ProductResponse mapToResponse(Product product) {
+        ProductResponse response = new ProductResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setPrice(product.getPrice());
+        response.setQuantity(product.getQuantity());
+        response.setDescription(product.getDescription());
+        response.setCreatedAt(product.getCreatedAt().toString());
+        response.setUpdatedAt(product.getUpdatedAt().toString());
+        response.setType(product.getType());
+        response.setProductType(product.getType() ? "Sản phẩm của cửa hàng" : "Ký gửi");
+        return response;
+    }
+
 }
