@@ -96,4 +96,12 @@ public class ProductController {
         ProductResponse product = productService.getById(id);
         return new ApiResponse<ProductResponse>(200, null, product);
     }
+
+    @GetMapping("search")
+    public ApiResponse<Page<ProductResponse>> searchProducts(
+            @RequestParam(required = false, name = "value") String value) {
+        Page<ProductResponse> products = productService.getByNameAndDescription(value);
+        System.out.println(products.getSize());
+        return new ApiResponse<Page<ProductResponse>>(200, null, products);
+    }
 }

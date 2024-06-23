@@ -7,6 +7,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -93,6 +94,10 @@ public class ProductService {
             var thumbnail = FilesHelp.getDocuments(product.getId(), EntityFileType.PRODUCT);
             var address = getStoreAddress(product.getStore());
             var storeName = product.getStore() == null ? "" : product.getStore().getName();
+            var type = "";
+            if (product.getType() != null) {
+                type = product.getType() ? "Cửa hàng" : "Ký gửi";
+            }
 
             return ProductResponse.builder()
                     .id(product.getId())
@@ -100,6 +105,7 @@ public class ProductService {
                     .name(product.getName())
                     .price(product.getPrice())
                     .quantity(product.getQuantity())
+                    .typeProduct(type)
                     .store(
                             StoreResponse.builder()
                                     .name(storeName)
@@ -131,6 +137,10 @@ public class ProductService {
         response.setPrice(product.getPrice());
         response.setQuantity(product.getQuantity());
         response.setDescription(product.getDescription());
+        if (product.getType() != null) {
+            response.setTypeProduct(product.getType() ? "Cửa hàng" : "Ký gửi");
+        }
+
         List<ResponseDocumentDto> responseDocument = FilesHelp.getDocuments(response.getId(), EntityFileType.CATEGORY);
         response.setImages(responseDocument);
         return response;
@@ -146,7 +156,7 @@ public class ProductService {
         if (product.getAttributes().size() > 0) {
             product.getAttributes().forEach(att -> {
                 attrs.add(AttributeProductResponse.builder()
-                        .id(att.getId())
+                        .id(att.getAttributeDetail().getAttribute().getId())
                         .name(att.getAttributeDetail().getAttribute().getName())
                         .value(att.getAttributeDetail().getDescription())
                         .build());
@@ -163,6 +173,41 @@ public class ProductService {
         response.setIdCategory(product.getCategory().getId());
 
         return response;
+
+    }
+
+    public Page<ProductResponse> getByNameAndDescription(String value) {
+        Pageable pageable = PageRequest.of(0, 20);
+
+        Page<Product> products = productRepository.findProductsBySearchTerm(value, pageable);
+        System.out.println(products.getContent().size());
+        Page<ProductResponse> productResponses = products.map(product -> {
+            List<AttributeProductResponse> attrs = new ArrayList<>();
+            if (product.getAttributes().size() > 0) {
+                product.getAttributes().forEach(att -> {
+                    attrs.add(AttributeProductResponse.builder()
+                            .id(att.getAttributeDetail().getAttribute().getId())
+                            .name(att.getAttributeDetail().getAttribute().getName())
+                            .value(att.getAttributeDetail().getDescription())
+                            .build());
+                });
+            }
+            StoreResponse store = null;
+            if (product.getStore() != null) {
+                store = mapper.map(product.getStore(), StoreResponse.class);
+                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(),
+                        EntityFileType.STORE_LOGO);
+                store.setUrlImage(imageStore.getFileDownloadUri());
+                store.setStreetAddress(getStoreAddress(product.getStore()));
+            }
+            ProductResponse response = convertToResponse(product);
+            response.setAttributes(attrs);
+            response.setStore(store);
+            response.setIdCategory(product.getCategory().getId());
+
+            return response;
+        });
+        return productResponses;
 
     }
 }
