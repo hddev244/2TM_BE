@@ -51,7 +51,8 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody RequestProduct requestProduct) {
+    public ResponseEntity<Product> updateProduct(@PathVariable("id") Long id,
+            @RequestBody RequestProduct requestProduct) {
         try {
             Product updatedProduct = productService.updateProduct(
                     id,
@@ -91,7 +92,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductResponse> getProductById(@PathVariable Long id) {
+    public ApiResponse<ProductResponse> getProductById(@PathVariable("id") Long id) {
         ProductResponse product = productService.getById(id);
         return new ApiResponse<ProductResponse>(200, null, product);
     }

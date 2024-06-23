@@ -96,7 +96,7 @@ public class ProductService {
 
             return ProductResponse.builder()
                     .id(product.getId())
-                    .thumbnail(thumbnail)
+                    .images(thumbnail)
                     .name(product.getName())
                     .price(product.getPrice())
                     .quantity(product.getQuantity())
@@ -132,7 +132,7 @@ public class ProductService {
         response.setQuantity(product.getQuantity());
         response.setDescription(product.getDescription());
         List<ResponseDocumentDto> responseDocument = FilesHelp.getDocuments(response.getId(), EntityFileType.CATEGORY);
-        response.setThumbnail(responseDocument);
+        response.setImages(responseDocument);
         return response;
     }
 
