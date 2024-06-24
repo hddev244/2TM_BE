@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.LoginRequest;
-import store.chikendev._2tm.dto.request.changePasswordRequest;
+import store.chikendev._2tm.dto.request.ChangePasswordRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
@@ -121,7 +121,7 @@ public class AccountController {
     }
 
     @PostMapping("change-password")
-    public ApiResponse<AccountResponse> changePassword(@RequestBody @Valid changePasswordRequest request) {
+    public ApiResponse<AccountResponse> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
         return new ApiResponse<AccountResponse>(200, null, accountService.changePassword(request));
     }
 

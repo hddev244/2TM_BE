@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.CreateStaffRequest;
-import store.chikendev._2tm.dto.request.changePasswordRequest;
+import store.chikendev._2tm.dto.request.ChangePasswordRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.CreateStaffResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
@@ -197,7 +197,7 @@ public class AccountService {
         });
     }
 
-    public AccountResponse changePassword(changePasswordRequest request) {
+    public AccountResponse changePassword(ChangePasswordRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
