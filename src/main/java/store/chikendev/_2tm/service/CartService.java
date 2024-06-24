@@ -1,12 +1,20 @@
 package store.chikendev._2tm.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.request.CartItemRequest;
+import store.chikendev._2tm.dto.responce.CartResponse;
+import store.chikendev._2tm.dto.responce.ProductResponse;
+import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.Product;
+import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.entity.Account;
@@ -30,7 +38,7 @@ public class CartService {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
-    String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -41,4 +49,59 @@ public class CartService {
 
         return cartItemsRepository.save(cartItem);
     }
+
+    // Lấy tìm userid qua token
+    public List<CartResponse> getUserCart() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        List<CartItems> carts = cartItemsRepository.getItemsByAccount(account.getId());
+        return carts.stream().map(this::convertToCartDto).collect(Collectors.toList());
+    }
+
+    // Lấy thông tin giỏ hàng
+    private CartResponse convertToCartDto(CartItems cart) {
+        return CartResponse.builder()
+                .id(cart.getId())
+                .quantity(cart.getQuantity())
+                .product(convertToProductDto(cart.getProduct()))
+                .build();
+
+    }
+
+    // Lấy Store
+    private String getStoreAddress(Store store) {
+        if (store == null) {
+            return "";
+        }
+        if (store.getWard() != null) {
+            String StoreWard = store.getWard().getName();
+            String StoreDistrict = store.getWard().getDistrict().getName();
+            String StoreProvince = store.getWard().getDistrict().getProvinceCity().getName();
+            String storeAddress = store.getStreetAddress() == null ? "" : store.getStreetAddress() + ", ";
+            return storeAddress + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
+        }
+        return "";
+    }
+
+    // Lấy sản phẩm
+    private List<ProductResponse> convertToProductDto(Product product) {
+        List<ProductResponse> productResponses = new ArrayList<>();
+        if (product != null) {
+            productResponses.add(ProductResponse.builder()
+                    .id(product.getId())
+                    .name(product.getName())
+                    .price(product.getPrice())
+                    .quantity(product.getQuantity())
+                    .description(product.getDescription())
+                    .store(StoreResponse.builder()
+                            .id(product.getStore().getId())
+                            .name(product.getStore().getName())
+                            .streetAddress(getStoreAddress(product.getStore()))
+                            .build())
+                    .build());
+        }
+        return productResponses;
+    }
+
 }
