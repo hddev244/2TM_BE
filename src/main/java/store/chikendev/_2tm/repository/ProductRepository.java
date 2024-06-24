@@ -18,4 +18,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("select p from Product p where p.name like %:searchTerm% or p.description like %:searchTerm%")
     Page<Product> findProductsBySearchTerm(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.quantity > 0 ORDER BY p.createdAt DESC")
+    Page<Product> findAvailableProducts(Pageable pageable);
 }
