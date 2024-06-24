@@ -12,16 +12,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import store.chikendev._2tm.dto.request.RequestProduct;
 import store.chikendev._2tm.dto.responce.AttributeProductResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
+import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.utils.EntityFileType;
@@ -41,52 +44,11 @@ public class ProductService {
     @Autowired
     private ModelMapper mapper;
 
+    @Autowired
+    private AccountStoreRepository accountStoreRepository;
+
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
-    }
-
-    public Product createProduct(String name, Double price, Integer quantity, String description, String accountId,
-            Long storeId) {
-        Optional<Account> accountOpt = accountRepository.findById(accountId);
-        Optional<Store> storeOpt = storeRepository.findById(storeId);
-
-        if (accountOpt.isPresent() || storeOpt.isPresent()) {
-            Product product = new Product();
-            product.setName(name);
-            product.setPrice(price);
-            product.setQuantity(quantity);
-            product.setDescription(description);
-            product.setAccount(accountOpt.get());
-            product.setStore(storeOpt.get());
-
-            return productRepository.save(product);
-        } else {
-            throw new IllegalArgumentException("Invalid accountId or storeId");
-        }
-    }
-
-    public Product updateProduct(Long id, String name, Double price, Integer quantity, String description,
-            String accountId, Long storeId) {
-        Optional<Account> accountOpt = accountRepository.findById(accountId);
-        Optional<Store> storeOpt = storeRepository.findById(storeId);
-
-        if (accountOpt.isPresent() && storeOpt.isPresent()) {
-            Optional<Product> existingProductOpt = productRepository.findById(id);
-            if (existingProductOpt.isPresent()) {
-                Product existingProduct = existingProductOpt.get();
-                existingProduct.setName(name);
-                existingProduct.setPrice(price);
-                existingProduct.setQuantity(quantity);
-                existingProduct.setDescription(description);
-                existingProduct.setAccount(accountOpt.get());
-                existingProduct.setStore(storeOpt.get());
-                return productRepository.save(existingProduct);
-            } else {
-                throw new AppException(ErrorCode.USER_EXISTED);// fix
-            }
-        } else {
-            throw new IllegalArgumentException("Invalid accountId or storeId");
-        }
     }
 
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
