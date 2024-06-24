@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 import store.chikendev._2tm.service.CartItemService;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import store.chikendev._2tm.dto.request.CartItemRequest;
 import store.chikendev._2tm.dto.responce.ApiResponse;
-import store.chikendev._2tm.dto.responce.CartResponse;
+import store.chikendev._2tm.dto.responce.CartItemResponse;
+import store.chikendev._2tm.entity.CartItems;
 
 @RestController
 public class CartItemController {
@@ -21,8 +24,14 @@ public class CartItemController {
     private CartItemService cartService;
 
     @GetMapping("/cart")
-    public ApiResponse<List<CartResponse>> getUserCart() {
-        return new ApiResponse<List<CartResponse>>(200, null, cartService.getUserCart());
+    public ApiResponse<List<CartItemResponse>> getUserCart() {
+        return new ApiResponse<List<CartItemResponse>>(200, null, cartService.getUserCart());
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<CartItems> addProductToCart(@RequestBody CartItemRequest request) {
+        CartItems cartItem = cartService.addProductToCart(request);
+        return ResponseEntity.ok(cartItem);
     }
 
 }

@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import store.chikendev._2tm.dto.request.CartItemRequest;
 import store.chikendev._2tm.dto.responce.AttributeProductResponse;
-import store.chikendev._2tm.dto.responce.CartResponse;
+import store.chikendev._2tm.dto.responce.CartItemResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.Account;
@@ -42,7 +43,7 @@ public class CartItemService {
         private ProductService productService;
 
         // Lấy tìm userid qua token
-        public List<CartResponse> getUserCart() {
+        public List<CartItemResponse> getUserCart() {
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();
                 Account account = accountRepository.findByEmail(email)
                                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -51,8 +52,8 @@ public class CartItemService {
         }
 
         // Lấy thông tin giỏ hàng
-        private CartResponse convertToCartDto(CartItems cart) {
-                return CartResponse.builder()
+        private CartItemResponse convertToCartDto(CartItems cart) {
+                return CartItemResponse.builder()
                                 .id(cart.getId())
                                 .quantity(cart.getQuantity())
                                 .product(convertToProductDto(cart.getProduct()))
@@ -94,4 +95,21 @@ public class CartItemService {
                 }
                 return productResponses;
         }
+
+        public CartItems addProductToCart(CartItemRequest request) {
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        CartItems cartItem = new CartItems();
+        cartItem.setProduct(product);
+        cartItem.setAccount(account);
+        cartItem.setQuantity(request.getQuantity());
+
+        return cartRepository.save(cartItem);
+    }
 }
+
