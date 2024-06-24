@@ -27,6 +27,7 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(434, "Tông tin order không chính xác", HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_FOUND(435, "Không tìm thấy sản phẩm", HttpStatus.BAD_REQUEST),
     ATTRIBUTE_NOT_FOUND(436, "Không tìm thấy thuộc tính", HttpStatus.BAD_REQUEST),
+    QUANTITY_ERROR(436, "Số lượng vượt quá số hàng tồn kho", HttpStatus.BAD_REQUEST),
 
     // File
     ROLE_NOT_FOUND(420, "Không tìm thấy vai trò", HttpStatus.BAD_REQUEST),
