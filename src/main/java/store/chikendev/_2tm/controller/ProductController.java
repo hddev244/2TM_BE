@@ -73,11 +73,20 @@ public class ProductController {
         return new ApiResponse<Page<ProductResponse>>(200, null, products);
     }
 
-    @GetMapping("/api/products")
+    @GetMapping("allproducts")
     public ApiResponse<Page<ProductResponse>> getAvailableProducts(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size) {
         Page<ProductResponse> products =  productService.getAvailableProducts(page, size);
+        return new ApiResponse<Page<ProductResponse>>(200,null, products);
+    }
+
+
+    @GetMapping("category/{categoryId}")
+    public ApiResponse<Page<ProductResponse>> getAvailableProductsByCategory(@PathVariable Long categoryId,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "20") int size) {
+        Page<ProductResponse> products = productService.getAvailableProductsByCategory(categoryId, page, size);
         return new ApiResponse<Page<ProductResponse>>(200,null, products);
     }
 }

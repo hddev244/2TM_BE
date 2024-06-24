@@ -21,4 +21,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT p FROM Product p WHERE p.quantity > 0 ORDER BY p.createdAt DESC")
     Page<Product> findAvailableProducts(Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.category.id = :categoryId ORDER BY p.createdAt DESC")
+    Page<Product> findAvailableProductsByCategory(@Param("categoryId") Long categoryId, Pageable pageable);
+
 }
