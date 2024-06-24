@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import store.chikendev._2tm.dto.request.StaffCreateProductRequest;
+import store.chikendev._2tm.dto.request.CreateProductRequest;
 import store.chikendev._2tm.dto.responce.AttributeProductResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
@@ -67,7 +67,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public ProductResponse staffCreateProduct(StaffCreateProductRequest request, MultipartFile[] files) {
+    public ProductResponse staffCreateProduct(CreateProductRequest request, MultipartFile[] files) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
@@ -132,7 +132,7 @@ public class ProductService {
 
     }
 
-    public ProductResponse CustomerCreateProduct(StaffCreateProductRequest request, MultipartFile[] files) {
+    public ProductResponse CustomerCreateProduct(CreateProductRequest request, MultipartFile[] files) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);

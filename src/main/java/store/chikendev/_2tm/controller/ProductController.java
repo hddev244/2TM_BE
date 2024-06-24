@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
-import store.chikendev._2tm.dto.request.StaffCreateProductRequest;
+import store.chikendev._2tm.dto.request.CreateProductRequest;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.service.ProductService;
@@ -40,7 +40,7 @@ public class ProductController {
     }
 
     @PostMapping(value = "staff-create", consumes = "multipart/form-data")
-    public ApiResponse<ProductResponse> staffCreate(@RequestPart("product") @Valid StaffCreateProductRequest request,
+    public ApiResponse<ProductResponse> staffCreate(@RequestPart("product") @Valid CreateProductRequest request,
             @RequestPart("images") MultipartFile[] images) {
         return new ApiResponse<>(200, null, productService.staffCreateProduct(request, images));
     }

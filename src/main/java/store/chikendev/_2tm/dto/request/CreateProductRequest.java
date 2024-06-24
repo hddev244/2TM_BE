@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StaffCreateProductRequest {
+public class CreateProductRequest {
     @NotBlank(message = "Không trống tên sản phẩm")
     private String name;
     @NotNull(message = "Không bỏ trống giá sản phẩm")
