@@ -12,4 +12,5 @@ import store.chikendev._2tm.entity.BillOfLading;
 public interface BillOfLadingRepository extends JpaRepository<BillOfLading, Long> {
     @Query("select o from BillOfLading o where o.deliveryPerson.id = ?1")
     List<BillOfLading> getBillOfLadingByDeliveryPersonId(String id);
+
 }

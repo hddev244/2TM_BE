@@ -253,7 +253,6 @@ public class ProductService {
         return productResponses;
 
     }
-
     // fix làm giống getByNameAndDescription thay đổi
     // productRepository.findByQuantityGreaterThanOrderByCreatedAtDesc(0); vô còn
     // lại y trang
@@ -264,5 +263,78 @@ public class ProductService {
     // return
     // products.stream().map(this::mapToResponse).collect(Collectors.toList());
     // }
+
+    public Page<ProductResponse> getAvailableProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productRepository.findAvailableProducts(pageable);
+
+        Page<ProductResponse> productResponses = products.map(product -> {
+            List<AttributeProductResponse> attrs = new ArrayList<>();
+            if (product.getAttributes().size() > 0) {
+                product.getAttributes().forEach(att -> {
+                    attrs.add(AttributeProductResponse.builder()
+                            .id(att.getAttributeDetail().getId())
+                            .name(att.getAttributeDetail().getAttribute().getName())
+                            .value(att.getAttributeDetail().getDescription())
+                            .build());
+                });
+            }
+
+            StoreResponse store = null;
+            if (product.getStore() != null) {
+                store = mapper.map(product.getStore(), StoreResponse.class);
+                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(),
+                        EntityFileType.STORE_LOGO);
+                store.setUrlImage(imageStore.getFileDownloadUri());
+                store.setStreetAddress(getStoreAddress(product.getStore()));
+            }
+            ProductResponse response = convertToResponse(product);
+            response.setAttributes(attrs);
+            response.setStore(store);
+            response.setIdCategory(product.getCategory().getId());
+            
+
+            return response;
+        });
+
+        return productResponses;
+    }
+
+
+        public Page<ProductResponse> getAvailableProductsByCategory(Long categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productRepository.findAvailableProductsByCategory(categoryId, pageable);
+
+        Page<ProductResponse> productResponses = products.map(product -> {
+            List<AttributeProductResponse> attrs = new ArrayList<>();
+            if (product.getAttributes().size() > 0) {
+                product.getAttributes().forEach(att -> {
+                    attrs.add(AttributeProductResponse.builder()
+                            .id(att.getAttributeDetail().getId())
+                            .name(att.getAttributeDetail().getAttribute().getName())
+                            .value(att.getAttributeDetail().getDescription())
+                            .build());
+                });
+            }
+
+            StoreResponse store = null;
+            if (product.getStore() != null) {
+                store = mapper.map(product.getStore(), StoreResponse.class);
+                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
+                store.setUrlImage(imageStore.getFileDownloadUri());
+                store.setStreetAddress(getStoreAddress(product.getStore()));
+            }
+
+            ProductResponse response = convertToResponse(product);
+            response.setAttributes(attrs);
+            response.setStore(store);
+            response.setIdCategory(product.getCategory().getId());
+            
+
+            return response;
+        });
+
+        return productResponses;
+    }
 
 }
