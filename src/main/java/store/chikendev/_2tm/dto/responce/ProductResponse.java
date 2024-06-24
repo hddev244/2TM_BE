@@ -25,4 +25,5 @@ public class ProductResponse {
     private List<ResponseDocumentDto> images;
     private ResponseDocumentDto thumbnail;
     private Long idCategory;
+    private String typeProduct;
 }

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import store.chikendev._2tm.entity.Account;
 
+
+
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
     Optional<Account> findByEmail(String email);
@@ -14,4 +16,5 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     Optional<Account> findByPhoneNumber(String phoneNumber);
 
     Optional<Account> findByUsername(String username);
-}
+
+    }
