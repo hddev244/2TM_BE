@@ -1,8 +1,13 @@
 package store.chikendev._2tm.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -13,11 +18,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.AccountRequest;
-import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
+import store.chikendev._2tm.dto.request.LoginRequest;
+
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
+import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.service.AccountService;
 import store.chikendev._2tm.service.AuthenticationService;
 import store.chikendev._2tm.service.OtpService;
@@ -129,6 +136,12 @@ public class AccountController {
     public ApiResponse<String> updateImage(@RequestPart("id") String id,
             @RequestPart("image") MultipartFile image) {
         return new ApiResponse<String>(200, null, accountService.updateImage(id, image));
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<Account> updateAccount(@PathVariable("id") String id, @RequestBody AccountRequest updateAccountRequest) {
+        Account updatedAccount = accountService.updateAccountById(id, updateAccountRequest);
+        return new ApiResponse<Account>(200, null, updatedAccount);
     }
 
 }

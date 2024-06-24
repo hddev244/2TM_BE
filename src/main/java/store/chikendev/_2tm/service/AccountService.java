@@ -286,4 +286,20 @@ public class AccountService {
         return password.toString();
     }
 
+
+    
+    public Account updateAccountById(String id, AccountRequest AccountRequest) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // Cập nhật thông tin tài khoản
+        account.setUsername(AccountRequest.getUsername());
+        account.setPassword(AccountRequest.getPassword());
+        account.setFullName(AccountRequest.getFullName());
+        account.setPhoneNumber(AccountRequest.getPhoneNumber());
+        account.setEmail(AccountRequest.getEmail());
+        // Cập nhật các trường khác nếu cần thiết
+
+        return accountRepository.save(account);
+    }
 }
