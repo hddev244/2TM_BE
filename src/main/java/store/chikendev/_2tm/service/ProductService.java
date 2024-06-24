@@ -68,7 +68,7 @@ public class ProductService {
                 product.setAccount(account);
                 product.setStore(store);
                 Product savedProduct = productRepository.save(product);
-                return ProductResponse(savedProduct);
+                return convertToResponse(savedProduct);
             } else {
                 throw new IllegalArgumentException("Account is not linked with the store");
             }
@@ -99,7 +99,7 @@ public class ProductService {
                     existingProduct.setStore(store);
 
                     Product savedProduct = productRepository.save(existingProduct);
-                    return mapToProductResponse(savedProduct);
+                    return convertToResponse(savedProduct);
                 } else {
                     throw new IllegalArgumentException("Product not found");
                 }
@@ -109,18 +109,6 @@ public class ProductService {
         } else {
             throw new IllegalArgumentException("Invalid accountId or storeId");
         }
-    }
-    private ProductResponse mapToProductResponse(Product product) {
-        ProductResponse response = new ProductResponse();
-        response.setId(product.getId());
-        response.setName(product.getName());
-        response.setPrice(product.getPrice());
-        response.setQuantity(product.getQuantity());
-        response.setDescription(product.getDescription());
-        response.setAccountId(product.getAccount().getId());
-        response.setStoreId(product.getStore().getId());
-        // Map additional fields if necessary
-        return response;
     }
 
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
