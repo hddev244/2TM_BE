@@ -51,68 +51,6 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public ProductResponse createProduct(RequestProduct request) {
-        Optional<Account> accountOpt = accountRepository.findById(request.getAccountId());
-        Optional<Store> storeOpt = storeRepository.findById(request.getStoreId());
-
-        if (accountOpt.isPresent() || storeOpt.isPresent()) {
-            Account account = accountOpt.get();
-            Store store = storeOpt.get();
-
-            // Kiểm tra liên kết giữa tài khoản và cửa hàng
-            Optional<AccountStore> accountStoreOpt = accountStoreRepository.findByAccountAndStore(account, store);
-            if (accountStoreOpt.isPresent()) {
-                Product product = new Product();
-                product.setName(request.getName());
-                product.setPrice(request.getPrice());
-                product.setQuantity(request.getQuantity());
-                product.setDescription(request.getDescription());
-                product.setAccount(account);
-                product.setStore(store);
-                Product savedProduct = productRepository.save(product);
-                return convertToResponse(savedProduct);
-            } else {
-                throw new IllegalArgumentException("Account is not linked with the store");
-            }
-        } else {
-            throw new IllegalArgumentException("Invalid accountId or storeId");
-        }
-    }
-
-    public ProductResponse updateProduct(Long id, RequestProduct request) {
-        Optional<Account> accountOpt = accountRepository.findById(request.getAccountId());
-        Optional<Store> storeOpt = storeRepository.findById(request.getStoreId());
-
-        if (accountOpt.isPresent() || storeOpt.isPresent()) {
-            Account account = accountOpt.get();
-            Store store = storeOpt.get();
-
-            // Kiểm tra liên kết giữa tài khoản và cửa hàng
-            Optional<AccountStore> accountStoreOpt = accountStoreRepository.findByAccountAndStore(account, store);
-            if (accountStoreOpt.isPresent()) {
-                Optional<Product> existingProductOpt = productRepository.findById(id);
-                if (existingProductOpt.isPresent()) {
-                    Product existingProduct = existingProductOpt.get();
-                    existingProduct.setName(request.getName());
-                    existingProduct.setPrice(request.getPrice());
-                    existingProduct.setQuantity(request.getQuantity());
-                    existingProduct.setDescription(request.getDescription());
-                    existingProduct.setAccount(account);
-                    existingProduct.setStore(store);
-
-                    Product savedProduct = productRepository.save(existingProduct);
-                    return convertToResponse(savedProduct);
-                } else {
-                    throw new IllegalArgumentException("Product not found");
-                }
-            } else {
-                throw new IllegalArgumentException("Account is not linked with the store");
-            }
-        } else {
-            throw new IllegalArgumentException("Invalid accountId or storeId");
-        }
-    }
-
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         Page<Product> products = productRepository.findAll(pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
