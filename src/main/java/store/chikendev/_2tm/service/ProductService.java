@@ -10,16 +10,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import store.chikendev._2tm.dto.request.RequestProduct;
 import store.chikendev._2tm.dto.responce.AttributeProductResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
+import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.utils.EntityFileType;
@@ -39,52 +42,85 @@ public class ProductService {
     @Autowired
     private ModelMapper mapper;
 
+    @Autowired
+    private AccountStoreRepository accountStoreRepository;
+
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
 
-    public Product createProduct(String name, Double price, Integer quantity, String description, String accountId,
-            Long storeId) {
-        Optional<Account> accountOpt = accountRepository.findById(accountId);
-        Optional<Store> storeOpt = storeRepository.findById(storeId);
+    public ProductResponse createProduct(RequestProduct request) {
+        Optional<Account> accountOpt = accountRepository.findById(request.getAccountId());
+        Optional<Store> storeOpt = storeRepository.findById(request.getStoreId());
 
         if (accountOpt.isPresent() || storeOpt.isPresent()) {
-            Product product = new Product();
-            product.setName(name);
-            product.setPrice(price);
-            product.setQuantity(quantity);
-            product.setDescription(description);
-            product.setAccount(accountOpt.get());
-            product.setStore(storeOpt.get());
+            Account account = accountOpt.get();
+            Store store = storeOpt.get();
 
-            return productRepository.save(product);
+            // Kiểm tra liên kết giữa tài khoản và cửa hàng
+            Optional<AccountStore> accountStoreOpt = accountStoreRepository.findByAccountAndStore(account, store);
+            if (accountStoreOpt.isPresent()) {
+                Product product = new Product();
+                product.setName(request.getName());
+                product.setPrice(request.getPrice());
+                product.setQuantity(request.getQuantity());
+                product.setDescription(request.getDescription());
+                product.setAccount(account);
+                product.setStore(store);
+                Product savedProduct = productRepository.save(product);
+                return ProductResponse(savedProduct);
+            } else {
+                throw new IllegalArgumentException("Account is not linked with the store");
+            }
         } else {
             throw new IllegalArgumentException("Invalid accountId or storeId");
         }
     }
 
-    public Product updateProduct(Long id, String name, Double price, Integer quantity, String description,
-            String accountId, Long storeId) {
-        Optional<Account> accountOpt = accountRepository.findById(accountId);
-        Optional<Store> storeOpt = storeRepository.findById(storeId);
+    public ProductResponse updateProduct(Long id, RequestProduct request) {
+        Optional<Account> accountOpt = accountRepository.findById(request.getAccountId());
+        Optional<Store> storeOpt = storeRepository.findById(request.getStoreId());
 
-        if (accountOpt.isPresent() && storeOpt.isPresent()) {
-            Optional<Product> existingProductOpt = productRepository.findById(id);
-            if (existingProductOpt.isPresent()) {
-                Product existingProduct = existingProductOpt.get();
-                existingProduct.setName(name);
-                existingProduct.setPrice(price);
-                existingProduct.setQuantity(quantity);
-                existingProduct.setDescription(description);
-                existingProduct.setAccount(accountOpt.get());
-                existingProduct.setStore(storeOpt.get());
-                return productRepository.save(existingProduct);
+        if (accountOpt.isPresent() || storeOpt.isPresent()) {
+            Account account = accountOpt.get();
+            Store store = storeOpt.get();
+
+            // Kiểm tra liên kết giữa tài khoản và cửa hàng
+            Optional<AccountStore> accountStoreOpt = accountStoreRepository.findByAccountAndStore(account, store);
+            if (accountStoreOpt.isPresent()) {
+                Optional<Product> existingProductOpt = productRepository.findById(id);
+                if (existingProductOpt.isPresent()) {
+                    Product existingProduct = existingProductOpt.get();
+                    existingProduct.setName(request.getName());
+                    existingProduct.setPrice(request.getPrice());
+                    existingProduct.setQuantity(request.getQuantity());
+                    existingProduct.setDescription(request.getDescription());
+                    existingProduct.setAccount(account);
+                    existingProduct.setStore(store);
+
+                    Product savedProduct = productRepository.save(existingProduct);
+                    return mapToProductResponse(savedProduct);
+                } else {
+                    throw new IllegalArgumentException("Product not found");
+                }
             } else {
-                throw new AppException(ErrorCode.USER_EXISTED);// fix
+                throw new IllegalArgumentException("Account is not linked with the store");
             }
         } else {
             throw new IllegalArgumentException("Invalid accountId or storeId");
         }
+    }
+    private ProductResponse mapToProductResponse(Product product) {
+        ProductResponse response = new ProductResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setPrice(product.getPrice());
+        response.setQuantity(product.getQuantity());
+        response.setDescription(product.getDescription());
+        response.setAccountId(product.getAccount().getId());
+        response.setStoreId(product.getStore().getId());
+        // Map additional fields if necessary
+        return response;
     }
 
     public Page<ProductResponse> getAllProducts(Pageable pageable) {

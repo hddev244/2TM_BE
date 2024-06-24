@@ -35,36 +35,22 @@ public class ProductController {
     private ProductService productService;
 
     @PostMapping
-    public ResponseEntity<Product> addProduct(@RequestBody RequestProduct requestProduct) {
+    public ApiResponse<ProductResponse> addProduct(@RequestBody RequestProduct requestProduct) {
         try {
-            Product savedProduct = productService.createProduct(
-                    requestProduct.getName(),
-                    requestProduct.getPrice(),
-                    requestProduct.getQuantity(),
-                    requestProduct.getDescription(),
-                    requestProduct.getAccountId(),
-                    requestProduct.getStoreId());
-            return ResponseEntity.ok(savedProduct);
+            ProductResponse savedProduct = productService.createProduct(requestProduct);
+            return new ApiResponse<>(200, "Product created successfully", savedProduct, null);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
+            return new ApiResponse<>(400, "Failed to create product", null, e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable("id") Long id,
-            @RequestBody RequestProduct requestProduct) {
+    public ApiResponse<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody RequestProduct requestProduct) {
         try {
-            Product updatedProduct = productService.updateProduct(
-                    id,
-                    requestProduct.getName(),
-                    requestProduct.getPrice(),
-                    requestProduct.getQuantity(),
-                    requestProduct.getDescription(),
-                    requestProduct.getAccountId(),
-                    requestProduct.getStoreId());
-            return ResponseEntity.ok(updatedProduct);
+            ProductResponse updatedProduct = productService.updateProduct(id, requestProduct);
+            return new ApiResponse<>(200, "Product updated successfully", updatedProduct, null);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
+            return new ApiResponse<>(400, "Failed to update product", null, e.getMessage());
         }
     }
 
