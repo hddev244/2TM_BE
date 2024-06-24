@@ -20,6 +20,9 @@ import lombok.NoArgsConstructor;
 @Table(name = "statesProduct")
 @Builder
 public class StateProduct {
+    public static final Long IN_CONFIRM = 1L;
+    public static final Long CONFIRM = 2L;
+    public static final Long REFUSE = 3L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.validation.Valid;
+import store.chikendev._2tm.dto.request.StaffCreateProductRequest;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.service.ProductService;
@@ -35,6 +37,12 @@ public class ProductController {
             @RequestPart("image") MultipartFile image) {
         FilesHelp.saveFile(image, id, EntityFileType.PRODUCT);
         return new ApiResponse<>(200, null, "Update image success");
+    }
+
+    @PostMapping(value = "staff-create", consumes = "multipart/form-data")
+    public ApiResponse<ProductResponse> staffCreate(@RequestPart("product") @Valid StaffCreateProductRequest request,
+            @RequestPart("images") MultipartFile[] images) {
+        return new ApiResponse<>(200, null, productService.staffCreateProduct(request, images));
     }
 
     @DeleteMapping("/{id}")
