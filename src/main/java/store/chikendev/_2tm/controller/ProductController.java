@@ -67,12 +67,6 @@ public class ProductController {
         return new ApiResponse<ProductResponse>(200, null, product);
     }
 
-    // @GetMapping("/products")
-    // public ApiResponse<List<ProductResponse>> getProducts() {
-    // List<ProductResponse> products = productService.getProducts();
-    // return new ApiResponse<List<ProductResponse>>(200, null, products);
-    // }
-
     @GetMapping("search")
     public ApiResponse<Page<ProductResponse>> searchProducts(
             @RequestParam(required = false, name = "value") String value) {
@@ -83,18 +77,17 @@ public class ProductController {
 
     @GetMapping("allproducts")
     public ApiResponse<Page<ProductResponse>> getAvailableProducts(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size) {
-        Page<ProductResponse> products =  productService.getAvailableProducts(page, size);
-        return new ApiResponse<Page<ProductResponse>>(200,null, products);
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<ProductResponse> products = productService.getAvailableProducts(page, size);
+        return new ApiResponse<Page<ProductResponse>>(200, null, products);
     }
-
 
     @GetMapping("category/{categoryId}")
     public ApiResponse<Page<ProductResponse>> getAvailableProductsByCategory(@PathVariable Long categoryId,
-                                                                @RequestParam(defaultValue = "0") int page,
-                                                                @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         Page<ProductResponse> products = productService.getAvailableProductsByCategory(categoryId, page, size);
-        return new ApiResponse<Page<ProductResponse>>(200,null, products);
+        return new ApiResponse<Page<ProductResponse>>(200, null, products);
     }
 }

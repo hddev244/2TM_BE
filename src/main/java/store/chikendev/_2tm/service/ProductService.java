@@ -82,7 +82,7 @@ public class ProductService {
 
         Product product = mapper.map(request, Product.class);
         product.setAccount(account);
-        product.setType(true);
+        product.setType(Product.TYPE_PRODUCT_OF_STORE);
         product.setCategory(category);
         product.setState(state);
         if (store.isPresent()) {
@@ -253,16 +253,6 @@ public class ProductService {
         return productResponses;
 
     }
-    // fix làm giống getByNameAndDescription thay đổi
-    // productRepository.findByQuantityGreaterThanOrderByCreatedAtDesc(0); vô còn
-    // lại y trang
-
-    // public List<ProductResponse> getProducts() {
-    // List<Product> products =
-    // productRepository.findByQuantityGreaterThanOrderByCreatedAtDesc(0);
-    // return
-    // products.stream().map(this::mapToResponse).collect(Collectors.toList());
-    // }
 
     public Page<ProductResponse> getAvailableProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -292,7 +282,6 @@ public class ProductService {
             response.setAttributes(attrs);
             response.setStore(store);
             response.setIdCategory(product.getCategory().getId());
-            
 
             return response;
         });
@@ -300,8 +289,7 @@ public class ProductService {
         return productResponses;
     }
 
-
-        public Page<ProductResponse> getAvailableProductsByCategory(Long categoryId, int page, int size) {
+    public Page<ProductResponse> getAvailableProductsByCategory(Long categoryId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAvailableProductsByCategory(categoryId, pageable);
 
@@ -329,7 +317,6 @@ public class ProductService {
             response.setAttributes(attrs);
             response.setStore(store);
             response.setIdCategory(product.getCategory().getId());
-            
 
             return response;
         });
