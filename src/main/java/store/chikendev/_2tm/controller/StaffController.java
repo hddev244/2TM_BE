@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,17 +25,19 @@ public class StaffController {
     @Autowired
     private AccountService accountService;
 
+    @PreAuthorize("hasAnyRole('QTV')")
     @PostMapping("create-staff")
     public ApiResponse<CreateStaffResponse> createStaff(@RequestBody @Valid CreateStaffRequest request) {
         CreateStaffResponse response = accountService.createStaff(request);
         return new ApiResponse<CreateStaffResponse>(200, null, response);
     }
-
+    @PreAuthorize("hasAnyRole('QTV')")
     @GetMapping("staff/{page}")
     public ApiResponse<Page<CreateStaffResponse>> getStaff(@PathVariable("page") Optional<Integer> pageNo) {
         return new ApiResponse<Page<CreateStaffResponse>>(200, null, accountService.getAllStaff(pageNo));
     }
 
+    @PreAuthorize("hasAnyRole('QTV', 'NVCH', 'NVGH', 'QLCH')")
     @PutMapping("staff/{id}")
     public ApiResponse<CreateStaffResponse> updateStaff(@PathVariable("id") String id,
             @RequestBody @Valid CreateStaffRequest request) {

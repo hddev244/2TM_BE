@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,12 +40,14 @@ public class ProductController {
         return new ApiResponse<>(200, null, "Update image success");
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
     @PostMapping(value = "staff-create", consumes = "multipart/form-data")
     public ApiResponse<ProductResponse> staffCreate(@RequestPart("product") @Valid CreateProductRequest request,
             @RequestPart("images") MultipartFile[] images) {
         return new ApiResponse<>(200, null, productService.staffCreateProduct(request, images));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);

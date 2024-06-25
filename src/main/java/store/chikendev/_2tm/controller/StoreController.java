@@ -2,6 +2,7 @@ package store.chikendev._2tm.controller;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,12 +24,14 @@ public class StoreController {
     @Autowired
     private StoreService storeService;
 
+    @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PostMapping(consumes = "multipart/form-data")
     public ApiResponse<StoreResponse> createStore(@RequestPart("storeRequest") @Valid StoreRequest request,
             @RequestPart(name = "image", required = false) MultipartFile image) {
         return new ApiResponse<>(200, null, storeService.createStore(request, image));
     }
-
+   
+    @PreAuthorize("hasAnyRole('ROLE_QTV', 'ROLE_QLCH')")
     @PostMapping(value = "updateImage", consumes = "multipart/form-data")
     public ApiResponse<StoreResponse> updateImage(@RequestPart("id") Long id,
             @RequestPart("image") MultipartFile image) {
