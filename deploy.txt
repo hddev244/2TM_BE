@@ -1,0 +1,16 @@
+== dev_
+cp -f target/_2tm-0.0.1-SNAPSHOT.jar ../deploy/2tm_dev.jar
+scp ../deploy/2tm_dev.jar hddev244@ssh.2tm.store:/home/hddev244/2tm.store/deploy_be
+ssh hddev244@ssh.2tm.store
+sudo systemctl restart 2tm_dev
+
+== production
+scp 2tm_production.jar hddev244@ssh.2tm.store:/home/hddev244/2tm.store/deploy_be
+ssh hddev244@ssh.2tm.store
+sudo systemctl restart 2tm_production
+
+fe
+cd 2tm.store/2TM/ && git pull && npm run build & pm2 restart 2tm.store
+
+
+Server user pw : Armtnyjt7@
