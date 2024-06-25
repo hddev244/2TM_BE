@@ -198,7 +198,7 @@ public class ProductService {
     }
 
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        Page<Product> products = productRepository.findAll(pageable);
+        Page<Product> products = productRepository.findAvailableProducts(pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
             var thumbnail = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
             var address = getStoreAddress(product.getStore());

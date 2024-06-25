@@ -110,7 +110,7 @@ public class CartService {
                             .build());
                 });
             }
-            List<ResponseDocumentDto> images = FilesHelp.getDocuments(product.getId(), EntityFileType.PRODUCT);
+            ResponseDocumentDto image = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
             System.out.println(product.getId());
             ResponseDocumentDto imageStore = FilesHelp.getOneDocument(product.getStore().getId(),
                     EntityFileType.STORE_LOGO);
@@ -127,7 +127,7 @@ public class CartService {
                             .urlImage(imageStore.getFileDownloadUri())
                             .build())
                     .attributes(attrs)
-                    .images(images)
+                    .thumbnail(image)
                     .build());
         }
 
