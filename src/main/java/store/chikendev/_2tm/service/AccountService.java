@@ -267,10 +267,12 @@ public class AccountService {
     public void lockStaff(String id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-                account.setState(new StateAccount(StateAccount.LOCKED, id, null));
-                accountRepository.save(account);
-        }
-    
+
+            StateAccount lockedState = new StateAccount();
+            lockedState.setId(StateAccount.LOCKED);  // Set trạng thái là 5 (bị khóa)
+            account.setState(lockedState);
+            accountRepository.save(account);
+    }
 
     @SuppressWarnings("static-access")
     public String updateImage(String id, MultipartFile file) {
