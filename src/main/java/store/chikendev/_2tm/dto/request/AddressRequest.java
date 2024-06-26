@@ -1,4 +1,4 @@
-package store.chikendev._2tm.dto.responce;
+package store.chikendev._2tm.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AddressResponse {
-    private Long id;
-    private String name;
+public class AddressRequest {
+    private String streetAddress;
+    private Long wardId;
 }
