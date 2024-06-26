@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import store.chikendev._2tm.dto.responce.ApiResponse;
+import store.chikendev._2tm.dto.responce.ProductStoreResponse;
 import store.chikendev._2tm.service.ProductStoreService;
 
 @RestController
@@ -16,8 +17,8 @@ public class ProductStoreController {
     private ProductStoreService productStoreService;
 
     @GetMapping("/{id}")
-    public ApiResponse getProduct(@PathVariable("id") Long id) {
-        return new ApiResponse(200, null, productStoreService.getById(id));
+    public ApiResponse<ProductStoreResponse> getProduct(@PathVariable("id") Long id) {
+        return new ApiResponse<ProductStoreResponse>(200, null, productStoreService.getById(id));
     }
 
 }
