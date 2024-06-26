@@ -2,6 +2,7 @@ package store.chikendev._2tm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +33,7 @@ public class ConsignmentOrdersController {
     }
 
     @PostMapping(value = "create-order")
-    public ApiResponse<String> createOrder(@RequestPart("order") @Valid ConsignmentOrdersRequest request) {
+    public ApiResponse<String> createOrder(@RequestBody @Valid ConsignmentOrdersRequest request) {
         return new ApiResponse<String>(200, null, consignmentOrdersService.createConsignmentOrders(request));
     }
 }
