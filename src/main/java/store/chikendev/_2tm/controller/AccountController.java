@@ -1,11 +1,6 @@
 package store.chikendev._2tm.controller;
 
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.annotation.Persistent;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -141,7 +136,8 @@ public class AccountController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<Account> updateAccount(@PathVariable("id") String id, @RequestBody AccountRequest updateAccountRequest) {
+    public ApiResponse<Account> updateAccount(@PathVariable("id") String id,
+            @RequestBody AccountRequest updateAccountRequest) {
         Account updatedAccount = accountService.updateAccountById(id, updateAccountRequest);
         return new ApiResponse<Account>(200, null, updatedAccount);
     }
