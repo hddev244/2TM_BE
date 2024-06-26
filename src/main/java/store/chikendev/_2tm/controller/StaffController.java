@@ -25,19 +25,19 @@ public class StaffController {
     @Autowired
     private AccountService accountService;
 
-    @PreAuthorize("hasAnyRole('QTV')")
+    @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PostMapping("create-staff")
     public ApiResponse<CreateStaffResponse> createStaff(@RequestBody @Valid CreateStaffRequest request) {
         CreateStaffResponse response = accountService.createStaff(request);
         return new ApiResponse<CreateStaffResponse>(200, null, response);
     }
-    @PreAuthorize("hasAnyRole('QTV')")
+    @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @GetMapping("staff/{page}")
     public ApiResponse<Page<CreateStaffResponse>> getStaff(@PathVariable("page") Optional<Integer> pageNo) {
         return new ApiResponse<Page<CreateStaffResponse>>(200, null, accountService.getAllStaff(pageNo));
     }
 
-    @PreAuthorize("hasAnyRole('QTV', 'NVCH', 'NVGH', 'QLCH')")
+    @PreAuthorize("hasAnyRole('ROLE_QTV', 'ROLE_NVCH', 'ROLE_NVGH', 'ROLE_QLCH')")
     @PutMapping("staff/{id}")
     public ApiResponse<CreateStaffResponse> updateStaff(@PathVariable("id") String id,
             @RequestBody @Valid CreateStaffRequest request) {
