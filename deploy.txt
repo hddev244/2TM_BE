@@ -14,3 +14,4 @@ cd 2tm.store/2TM/ && git pull && npm run build & pm2 restart 2tm.store
 
 
 Server user pw : Armtnyjt7@
+
