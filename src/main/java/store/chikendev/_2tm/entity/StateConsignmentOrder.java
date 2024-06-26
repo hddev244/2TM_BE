@@ -21,6 +21,11 @@ import lombok.NoArgsConstructor;
 @Table(name = "stateConsignmentOrder")
 @Builder
 public class StateConsignmentOrder {
+
+    public static final Long IN_CONFIRM = 1L;
+    public static final Long CONFIRM = 2L;
+    public static final Long REFUSE = 6L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

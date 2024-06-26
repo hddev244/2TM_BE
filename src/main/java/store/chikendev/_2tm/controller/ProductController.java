@@ -44,7 +44,7 @@ public class ProductController {
     @PostMapping(value = "staff-create", consumes = "multipart/form-data")
     public ApiResponse<ProductResponse> staffCreate(@RequestPart("product") @Valid CreateProductRequest request,
             @RequestPart("images") MultipartFile[] images) {
-        return new ApiResponse<>(200, null, productService.staffCreateProduct(request, images));
+        return new ApiResponse<ProductResponse>(200, null, productService.staffCreateProduct(request, images));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")

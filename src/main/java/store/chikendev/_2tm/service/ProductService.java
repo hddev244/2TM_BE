@@ -143,18 +143,12 @@ public class ProductService {
         StateProduct state = stateProductRepository.findById(StateProduct.IN_CONFIRM).orElseThrow(() -> {
             throw new AppException(ErrorCode.STATE_NOT_FOUND);
         });
-        Optional<AccountStore> store = accountStoreRepository.findByAccount(account);
 
         Product product = mapper.map(request, Product.class);
         product.setOwnerId(account);
         product.setType(Product.TYPE_PRODUCT_OF_ACCOUNT);
         product.setCategory(category);
         product.setState(state);
-        if (store.isPresent()) {
-            product.setStore(store.get().getStore());
-        } else {
-            throw new AppException(ErrorCode.STORE_NOT_FOUND);
-        }
         // lưu ảnh
         Product save = productRepository.save(product);
         for (MultipartFile file : files) {
@@ -180,17 +174,10 @@ public class ProductService {
                     .value(att.getAttributeDetail().getDescription())
                     .build());
         });
-        // store response
-        StoreResponse responseStore = mapper.map(save.getStore(), StoreResponse.class);
-        ResponseDocumentDto imageStore = FilesHelp.getOneDocument(save.getStore().getId(),
-                EntityFileType.STORE_LOGO);
-        responseStore.setUrlImage(imageStore.getFileDownloadUri());
-        responseStore.setStreetAddress(getStoreAddress(save.getStore()));
 
         // product response
         ProductResponse response = convertToResponse(save);
         response.setIdCategory(product.getCategory().getId());
-        response.setStore(responseStore);
         response.setAttributes(attrs);
 
         return response;
