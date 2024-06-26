@@ -15,4 +15,6 @@ public interface CartItemsRepository extends JpaRepository<CartItems, Long> {
 
     @Query("SELECT o FROM CartItems o WHERE o.product.id =?1")
     List<CartItems> getItemsByProduct(Long Id);
+
+    CartItems findCartItemsByAccountIdAndProductId(String id, Long idProduct);
 }

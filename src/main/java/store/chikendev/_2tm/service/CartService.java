@@ -37,29 +37,62 @@ public class CartService {
     @Autowired
     private AccountRepository accountRepository;
 
-    public void addProductToCart(Long idProduct) {
-        Product product = productRepository.findById(idProduct)
-                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+    @SuppressWarnings("unused")
+    public void addProductToCart(Long idProduct, Integer quantityRequest) {
+
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        List<CartItems> addQuantity = cartItemsRepository.getItemsByAccount(account.getId());
-        for (CartItems cart : addQuantity) {
-            if (cart.getProduct().getId() == idProduct) {
-                int quantity = cart.getQuantity() + 1;
-                if (product.getQuantity() >= quantity) {
-                    cart.setQuantity(quantity);
-                } else {
-                    throw new AppException(ErrorCode.QUANTITY_ERROR);
-                }
-                cartItemsRepository.save(cart);
-                return;
+
+        Product product = productRepository.findById(idProduct)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+        CartItems cartItemFound = cartItemsRepository.findCartItemsByAccountIdAndProductId(account.getId(), idProduct);
+
+        if (cartItemFound == null) {
+            CartItems cartItem = new CartItems();
+            if (product.getQuantity() >= quantityRequest ) {
+                cartItem.setQuantity(quantityRequest);
+            } else {
+                throw new AppException(ErrorCode.QUANTITY_ERROR);
             }
+            cartItem.setProduct(product);
+            cartItem.setAccount(account);
+            cartItemsRepository.save(cartItem);
+            return;
+        } else {
+            int quantity = cartItemFound.getQuantity() + quantityRequest;
+            if (product.getQuantity() >= quantity) {
+                cartItemFound.setQuantity(quantity);
+            } else {
+                cartItemFound.setQuantity(product.getQuantity());
+                throw new AppException(ErrorCode.QUANTITY_ERROR);
+            }
+            cartItemsRepository.save(cartItemFound);
+            return;
         }
-        CartItems cartItem = new CartItems();
-        cartItem.setProduct(product);
-        cartItem.setAccount(account);
-        cartItemsRepository.save(cartItem);
+        // chỉ cần tìm sản phẩm trong giỏ hàng, nếu có thì cập nhật số lượng, không thì
+        // thêm mới
+        // không cần lấy tất cả sản phẩm trong giỏ hàng để kiểm tra và cập nhật
+
+        // List<CartItems> addQuantity =
+        // cartItemsRepository.getItemsByAccount(account.getId());
+        // for (CartItems cart : addQuantity) {
+        // if (cart.getProduct().getId() == idProduct) {
+        // int quantity = cart.getQuantity() + 1;
+        // if (product.getQuantity() >= quantity) {
+        // cart.setQuantity(quantity);
+        // } else {
+        // throw new AppException(ErrorCode.QUANTITY_ERROR);
+        // }
+        // cartItemsRepository.save(cart);
+        // return;
+        // }
+        // }
+        // CartItems cartItem = new CartItems();
+        // cartItem.setProduct(product);
+        // cartItem.setAccount(account);
+        // cartItemsRepository.save(cartItem);
     }
 
     // Lấy tìm userid qua token
