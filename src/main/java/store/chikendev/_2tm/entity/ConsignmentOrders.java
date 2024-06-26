@@ -35,6 +35,10 @@ public class ConsignmentOrders {
 
     private String note;
 
+    private String phoneNumber;
+
+    private String detailAddress;
+
     @ManyToOne
     @JoinColumn(name = "ordererId")
     private Account ordererId;
@@ -54,5 +58,9 @@ public class ConsignmentOrders {
     @ManyToOne
     @JoinColumn(name = "stateId")
     private StateConsignmentOrder stateId;
+
+    @ManyToOne
+    @JoinColumn(name = "wardId")
+    private Ward ward;
 
 }

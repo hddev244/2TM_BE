@@ -26,14 +26,18 @@ public class ConsignmentOrdersController {
     @Autowired
     private ProductService productService;
 
-    @PostMapping(value = "create-product", consumes = "multipart/form-data")
-    public ApiResponse<ProductResponse> staffCreate(@RequestPart("product") @Valid CreateProductRequest request,
-            @RequestPart("images") MultipartFile[] images) {
-        return new ApiResponse<ProductResponse>(200, null, productService.CustomerCreateProduct(request, images));
-    }
+    // @PostMapping(value = "create-product", consumes = "multipart/form-data")
+    // public ApiResponse<ProductResponse> staffCreate(@RequestPart("product")
+    // @Valid CreateProductRequest request,
+    // @RequestPart("images") MultipartFile[] images) {
+    // return new ApiResponse<ProductResponse>(200, null,
+    // productService.CustomerCreateProduct(request, images));
+    // }
 
-    @PostMapping(value = "create-order")
-    public ApiResponse<String> createOrder(@RequestBody @Valid ConsignmentOrdersRequest request) {
-        return new ApiResponse<String>(200, null, consignmentOrdersService.createConsignmentOrders(request));
-    }
+    // @PostMapping(value = "create-order")
+    // public ApiResponse<String> createOrder(@RequestBody @Valid
+    // ConsignmentOrdersRequest request) {
+    // return new ApiResponse<String>(200, null,
+    // consignmentOrdersService.createConsignmentOrders(request));
+    // }
 }

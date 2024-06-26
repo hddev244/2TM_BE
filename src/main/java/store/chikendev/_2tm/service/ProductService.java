@@ -132,58 +132,6 @@ public class ProductService {
 
     }
 
-    public ProductResponse CustomerCreateProduct(CreateProductRequest request, MultipartFile[] files) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
-        });
-        Category category = categoryRepository.findById(request.getIdCategory()).orElseThrow(() -> {
-            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
-        });
-        StateProduct state = stateProductRepository.findById(StateProduct.IN_CONFIRM).orElseThrow(() -> {
-            throw new AppException(ErrorCode.STATE_NOT_FOUND);
-        });
-
-        Product product = mapper.map(request, Product.class);
-        product.setOwnerId(account);
-        product.setType(Product.TYPE_PRODUCT_OF_ACCOUNT);
-        product.setCategory(category);
-        product.setState(state);
-        // lưu ảnh
-        Product save = productRepository.save(product);
-        for (MultipartFile file : files) {
-            FilesHelp.saveFile(file, save.getId(), EntityFileType.PRODUCT);
-        }
-        // lưu attribute
-        List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
-        request.getIdAttributeDetail().forEach(id -> {
-            ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
-                    .product(save)
-                    .attributeDetail(attributeDetailRepository.findById(id).orElseThrow(() -> {
-                        throw new AppException(ErrorCode.ATTRIBUTE_NOT_FOUND);
-                    }))
-                    .build();
-            attributeDetails.add(attributeDetail);
-        });
-        List<ProductAttributeDetail> saveAttribute = productAttributeDetailRepository.saveAll(attributeDetails);
-        List<AttributeProductResponse> attrs = new ArrayList<>();
-        saveAttribute.forEach(att -> {
-            attrs.add(AttributeProductResponse.builder()
-                    .id(att.getAttributeDetail().getAttribute().getId())
-                    .name(att.getAttributeDetail().getAttribute().getName())
-                    .value(att.getAttributeDetail().getDescription())
-                    .build());
-        });
-
-        // product response
-        ProductResponse response = convertToResponse(save);
-        response.setIdCategory(product.getCategory().getId());
-        response.setAttributes(attrs);
-
-        return response;
-
-    }
-
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         Page<Product> products = productRepository.findAvailableProducts(pageable);
         Page<ProductResponse> productResponses = products.map(product -> {

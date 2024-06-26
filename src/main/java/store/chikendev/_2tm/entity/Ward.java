@@ -39,4 +39,7 @@ public class Ward {
 
     @OneToMany(mappedBy = "ward")
     private List<Order> orders;
+
+    @OneToMany(mappedBy = "ward")
+    private List<ConsignmentOrders> consignmentOrders;
 }
