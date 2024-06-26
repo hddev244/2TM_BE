@@ -264,6 +264,14 @@ public class AccountService {
         return response;
     }
 
+    public void lockStaff(String id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                account.setState(new StateAccount(StateAccount.LOCKED, id, null));
+                accountRepository.save(account);
+        }
+    
+
     @SuppressWarnings("static-access")
     public String updateImage(String id, MultipartFile file) {
         Account account = accountRepository.findById(id).orElseThrow(() -> {

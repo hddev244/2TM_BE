@@ -44,4 +44,11 @@ public class StaffController {
         return new ApiResponse<CreateStaffResponse>(200, null, accountService.updateStaff(id, request));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_QTV')")
+    @PutMapping("lock-staff/{id}")
+    public ApiResponse<Void> lockStaff(@PathVariable("id") String id) {
+        accountService.lockStaff(id);
+        return new ApiResponse<>(200, null,null);
+    }
+
 }
