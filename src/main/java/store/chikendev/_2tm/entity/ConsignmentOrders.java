@@ -51,4 +51,8 @@ public class ConsignmentOrders {
     @JoinColumn(name = "storeId")
     private Store store;
 
+    @ManyToOne
+    @JoinColumn(name = "stateId")
+    private StateConsignmentOrder stateId;
+
 }
