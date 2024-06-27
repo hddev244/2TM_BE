@@ -27,6 +27,6 @@ public class AccountStore {
     private Store store;
 
     @OneToOne
-    @JoinColumn(name = "accountId")
+    @JoinColumn(name = "accountId",unique = true)
     private Account account;
 }
