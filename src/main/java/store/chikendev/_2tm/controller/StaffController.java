@@ -46,9 +46,9 @@ public class StaffController {
         return new ApiResponse<CreateStaffResponse>(200, null, accountService.updateStaff(id, request));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_QTV')")
+    // @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PutMapping("/lock-staff/{id}")
-    public ApiResponse<AccountResponse> lockAccount(@PathVariable String id) {
+    public ApiResponse<AccountResponse> lockAccount(@PathVariable("id") String id) {
         AccountResponse updatedAccount = accountService.lockAccount(id);
         return new ApiResponse<AccountResponse>(200,null, updatedAccount);
     }

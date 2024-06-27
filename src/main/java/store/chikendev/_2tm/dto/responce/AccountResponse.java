@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import store.chikendev._2tm.entity.StateAccount;
 
 @Data
 @NoArgsConstructor
@@ -28,4 +29,5 @@ public class AccountResponse {
     private Date updatedAt;
     private String stateName;
     private ResponseDocumentDto image;
+    private StateAccount state;
 }
