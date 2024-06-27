@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.request.ConsignmentOrdersRequest;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
+import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Category;
@@ -125,7 +126,7 @@ public class ConsignmentOrdersService {
 
         Optional<Account> deliveryPerson = store.getAccountStores().stream()
                 .flatMap(acc -> acc.getAccount().getRoles().stream()
-                        .filter(role -> role.getRole().getId().equals("CH"))
+                        .filter(role -> role.getRole().getId().equals("NVGH"))
                         .map(role -> acc.getAccount()))
                 .findFirst();
         if (deliveryPerson.isPresent() == false) {
@@ -146,24 +147,33 @@ public class ConsignmentOrdersService {
         return "Tạo vận đơn thành công, mã đơn hàng của bạn là: " + consignmentOrdersRepository.save(save).getId();
     }
 
-    public Page<ConsignmentOrdersResponse> getByState(int page, int size, Long stateId) {
+    public Page<ConsignmentOrdersResponse> getByState(int size, int page, Long stateId) {
         Pageable pageable = PageRequest.of(page, size);
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
-        });
-        StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId).orElseThrow(() -> {
-            throw new AppException(ErrorCode.STATE_NOT_FOUND);
         });
         Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
 
         final boolean checkStaff = account.getRoles().stream()
                 .anyMatch(role -> role.getRole().getId().equals("NVGH"));
         if (checkStaff) {
+            if (stateId == null) {
+                stateId = StateConsignmentOrder.IN_CONFIRM;
+            }
+            StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId).orElseThrow(() -> {
+                throw new AppException(ErrorCode.STATE_NOT_FOUND);
+            });
             Page<ConsignmentOrders> responce = consignmentOrdersRepository.findByDeliveryPersonAndStateId(account,
                     state, pageable);
             return convertToResponse(responce);
         } else {
+            if (stateId == null) {
+                stateId = StateConsignmentOrder.COMPLETED;
+            }
+            StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId).orElseThrow(() -> {
+                throw new AppException(ErrorCode.STATE_NOT_FOUND);
+            });
             if (accountStore.isPresent()) {
                 Page<ConsignmentOrders> responce = consignmentOrdersRepository
                         .findByStoreAndStateId(accountStore.get().getStore(), state, pageable);
@@ -177,14 +187,38 @@ public class ConsignmentOrdersService {
 
     private Page<ConsignmentOrdersResponse> convertToResponse(Page<ConsignmentOrders> responce) {
         return responce.map(consignmentOrders -> {
+            ResponseDocumentDto file = FilesHelp.getOneDocument(consignmentOrders.getId(),
+                    EntityFileType.CONSIGNMENT_ORDER);
             ConsignmentOrdersResponse response = new ConsignmentOrdersResponse();
             response.setId(consignmentOrders.getId());
             response.setNote(consignmentOrders.getNote());
+            response.setCreatedAt(consignmentOrders.getCreatedAt());
             response.setOrdererName(consignmentOrders.getOrdererId().getFullName());
+            response.setDeliveryPersonName(consignmentOrders.getDeliveryPerson().getFullName());
             response.setProductName(consignmentOrders.getProduct().getName());
             response.setStoreName(consignmentOrders.getStore().getName());
             response.setStateName(consignmentOrders.getStateId().getStatus());
+            response.setAddress(getAddress(consignmentOrders));
+            response.setPhone(consignmentOrders.getPhoneNumber());
+            response.setUrlImage(file.getFileDownloadUri());
             return response;
         });
+    }
+
+    private String getAddress(ConsignmentOrders consignmentOrders) {
+        if (consignmentOrders == null) {
+            return "";
+        }
+        if (consignmentOrders.getWard() != null) {
+            String addressWard = consignmentOrders.getWard().getName();
+            String addressDistrict = consignmentOrders.getWard().getDistrict().getName();
+            String addressProvince = consignmentOrders.getWard().getDistrict().getProvinceCity().getName();
+            String addressAddress = consignmentOrders.getDetailAddress() == null ? ""
+                    : consignmentOrders.getDetailAddress() + ", ";
+            return addressAddress + addressWard + ", " + addressDistrict + ", " +
+                    addressProvince;
+        }
+        return "";
+
     }
 }

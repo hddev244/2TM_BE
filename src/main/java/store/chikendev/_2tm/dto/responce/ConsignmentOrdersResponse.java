@@ -21,4 +21,7 @@ public class ConsignmentOrdersResponse {
     private String productName;
     private String storeName;
     private String stateName;
+    private String address;
+    private String phone;
+    private String urlImage;
 }

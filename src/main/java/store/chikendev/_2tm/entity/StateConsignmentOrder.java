@@ -23,7 +23,10 @@ import lombok.NoArgsConstructor;
 public class StateConsignmentOrder {
 
     public static final Long IN_CONFIRM = 1L;
-    public static final Long CONFIRM = 2L;
+    public static final Long PROCESSING_ORDER = 2L;
+    public static final Long ORDER_SUCCESSFULLY = 3L;
+    public static final Long COMPLETED = 4L;
+    public static final Long ORDER_FAILED = 5L;
     public static final Long REFUSE = 6L;
 
     @Id

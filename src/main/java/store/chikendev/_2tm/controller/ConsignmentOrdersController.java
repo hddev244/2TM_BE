@@ -1,20 +1,22 @@
 package store.chikendev._2tm.controller;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.ConsignmentOrdersRequest;
-import store.chikendev._2tm.dto.request.CreateProductRequest;
-import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.service.ConsignmentOrdersService;
-import store.chikendev._2tm.service.ProductService;
 import store.chikendev._2tm.dto.responce.ApiResponse;
+import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
 
 @RestController
 @RequestMapping("/api/consignment")
@@ -23,21 +25,19 @@ public class ConsignmentOrdersController {
     @Autowired
     private ConsignmentOrdersService consignmentOrdersService;
 
-    @Autowired
-    private ProductService productService;
+    @PostMapping(value = "create", consumes = "multipart/form-data")
+    public ApiResponse<String> staffCreate(@RequestPart("consignmentOrders") @Valid ConsignmentOrdersRequest request,
+            @RequestPart("images") MultipartFile[] images) {
+        return new ApiResponse<String>(200, null,
+                consignmentOrdersService.createConsignmentOrders(request, images));
+    }
 
-    // @PostMapping(value = "create-product", consumes = "multipart/form-data")
-    // public ApiResponse<ProductResponse> staffCreate(@RequestPart("product")
-    // @Valid CreateProductRequest request,
-    // @RequestPart("images") MultipartFile[] images) {
-    // return new ApiResponse<ProductResponse>(200, null,
-    // productService.CustomerCreateProduct(request, images));
-    // }
-
-    // @PostMapping(value = "create-order")
-    // public ApiResponse<String> createOrder(@RequestBody @Valid
-    // ConsignmentOrdersRequest request) {
-    // return new ApiResponse<String>(200, null,
-    // consignmentOrdersService.createConsignmentOrders(request));
-    // }
+    @GetMapping
+    public ApiResponse<Page<ConsignmentOrdersResponse>> getByState(
+            @RequestParam(required = false, name = "size") Optional<Integer> size,
+            @RequestParam(required = false, name = "page") Optional<Integer> page,
+            @RequestParam(required = false, name = "state") Long state) {
+        return new ApiResponse<Page<ConsignmentOrdersResponse>>(200, null,
+                consignmentOrdersService.getByState(size.orElse(10), page.orElse(0), state));
+    }
 }
