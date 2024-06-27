@@ -48,8 +48,8 @@ public class StaffController {
 
     @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PutMapping("/lock-staff/{id}")
-    public ResponseEntity<AccountResponse> lockAccount(@PathVariable String id) {
+    public ApiResponse<AccountResponse> lockAccount(@PathVariable String id) {
         AccountResponse updatedAccount = accountService.lockAccount(id);
-        return ResponseEntity.ok(updatedAccount);
+        return new ApiResponse<AccountResponse>(200,null, updatedAccount);
     }
 }
