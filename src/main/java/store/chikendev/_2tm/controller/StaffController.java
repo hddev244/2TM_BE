@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.CreateStaffRequest;
+import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.CreateStaffResponse;
 import store.chikendev._2tm.service.AccountService;
@@ -43,10 +45,11 @@ public class StaffController {
             @RequestBody @Valid CreateStaffRequest request) {
         return new ApiResponse<CreateStaffResponse>(200, null, accountService.updateStaff(id, request));
     }
+
     @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PutMapping("/lock-staff/{id}")
-    public ApiResponse<Void> lockStaff(@PathVariable("id") String id) {
-        accountService.lockStaff(id);
-        return new ApiResponse<>(200, null, null);
+    public ResponseEntity<AccountResponse> lockAccount(@PathVariable String id) {
+        AccountResponse updatedAccount = accountService.lockAccount(id);
+        return ResponseEntity.ok(updatedAccount);
     }
 }
