@@ -103,6 +103,10 @@ public class StoreService {
     public List<StoreResponse> getStoreByDistrictId(Long dictrictId) {
         List<Store> stores = storeRepository.findByDictrictId(dictrictId);
 
+        if (stores.isEmpty()) {
+            throw new AppException(ErrorCode.STORE_NOT_FOUND);
+        }
+
         List<StoreResponse> response = stores.stream().map(store -> {
             StoreResponse storeResponse = mapper.map(store, StoreResponse.class);
             storeResponse.setStreetAddress(getStoreAddress(store));

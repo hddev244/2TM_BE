@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,7 @@ public class ConsignmentOrdersController {
     @Autowired
     private ConsignmentOrdersService consignmentOrdersService;
 
+    @PreAuthorize("hasRole('ROLE_CH')")
     @PostMapping(value = "create", consumes = "multipart/form-data")
     public ApiResponse<String> staffCreate(@RequestPart("consignmentOrders") @Valid ConsignmentOrdersRequest request,
             @RequestPart("images") MultipartFile[] images) {
@@ -32,6 +34,7 @@ public class ConsignmentOrdersController {
                 consignmentOrdersService.createConsignmentOrders(request, images));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_QTV', 'ROLE_QLCH', 'ROLE_CH', 'ROLE_NVCH')")
     @GetMapping
     public ApiResponse<Page<ConsignmentOrdersResponse>> getByState(
             @RequestParam(required = false, name = "size") Optional<Integer> size,
