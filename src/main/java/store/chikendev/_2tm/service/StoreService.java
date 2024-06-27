@@ -42,6 +42,8 @@ public class StoreService {
                     .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
             store.setWard(ward);
         }
+        store.setActiveStatus(true);
+
         Store save = storeRepository.save(store);
 
         if (file.getOriginalFilename() != null) {
@@ -96,6 +98,19 @@ public class StoreService {
             return storeAddress + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
         }
         return "";
+    }
+
+    public List<StoreResponse> getStoreByDistrictId(Long dictrictId) {
+        List<Store> stores = storeRepository.findByDictrictId(dictrictId);
+
+        List<StoreResponse> response = stores.stream().map(store -> {
+            StoreResponse storeResponse = mapper.map(store, StoreResponse.class);
+            storeResponse.setStreetAddress(getStoreAddress(store));
+            ResponseDocumentDto urlImage = filesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
+            storeResponse.setUrlImage(urlImage.getFileDownloadUri());
+            return storeResponse;
+        }).toList();
+        return response;
     }
 
     // private StoreResponse convertToResponse(Store store) {

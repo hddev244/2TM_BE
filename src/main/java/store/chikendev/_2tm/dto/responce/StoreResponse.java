@@ -21,4 +21,5 @@ public class StoreResponse {
     private String streetAddress;
     private String description;
     private String urlImage;
+    private boolean activeStatus;
 }

@@ -4,7 +4,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -16,6 +15,8 @@ import store.chikendev._2tm.dto.request.StoreRequest;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.service.StoreService;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/store")
@@ -37,6 +38,18 @@ public class StoreController {
             @RequestPart("image") MultipartFile image) {
         return new ApiResponse<>(200, null, storeService.updateImage(id, image));
     }
+
+    /**
+     * Get store by district id
+     * @param districtId
+     * @return StoreResponse
+     */
+    @GetMapping("district")
+    public ApiResponse<List<StoreResponse>> getStoreByDistrictId(@RequestParam("id") Long districtId) {
+        List<StoreResponse> storeResponse = storeService.getStoreByDistrictId(districtId);
+        return new ApiResponse<>(200, null, storeResponse);
+    }
+    
 
     @GetMapping
     public ApiResponse<List<StoreResponse>> getAllStore() {
