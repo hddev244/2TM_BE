@@ -34,7 +34,7 @@ public class ConsignmentOrdersController {
                 consignmentOrdersService.createConsignmentOrders(request, images));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_QTV', 'ROLE_QLCH', 'ROLE_CH', 'ROLE_NVCH')")
+    @PreAuthorize("hasAnyRole('ROLE_QTV', 'ROLE_QLCH', 'ROLE_CH', 'ROLE_NVCH','ROLE_NVGH')")
     @GetMapping
     public ApiResponse<Page<ConsignmentOrdersResponse>> getByState(
             @RequestParam(required = false, name = "size") Optional<Integer> size,
