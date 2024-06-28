@@ -73,7 +73,7 @@ public class StoreService {
     }
 
     @SuppressWarnings("static-access")
-        public List<StoreResponse> getAllStores() {
+    public List<StoreResponse> getAllStores() {
         List<Store> stores = storeRepository.findAll();
         List<StoreResponse> response = stores.stream().map(store -> {
             StoreResponse storeResponse = mapper.map(store, StoreResponse.class);
@@ -107,6 +107,7 @@ public class StoreService {
             throw new AppException(ErrorCode.STORE_NOT_FOUND);
         }
 
+        @SuppressWarnings("static-access")
         List<StoreResponse> response = stores.stream().map(store -> {
             StoreResponse storeResponse = mapper.map(store, StoreResponse.class);
             storeResponse.setStreetAddress(getStoreAddress(store));
