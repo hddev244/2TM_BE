@@ -29,6 +29,7 @@ public enum ErrorCode {
     ATTRIBUTE_NOT_FOUND(436, "Không tìm thấy thuộc tính", HttpStatus.BAD_REQUEST),
     QUANTITY_ERROR(437, "Số lượng vượt quá số hàng tồn kho", HttpStatus.BAD_REQUEST),
     DELIVERY_PERSON_NOT_FOUND(438, "Khu vực của bạn không hỗ trợ lấy hàng", HttpStatus.BAD_REQUEST),
+    PAYMENT_ERROR(439, "Thanh toán không thành công", HttpStatus.BAD_REQUEST),
 
     // File
     ROLE_NOT_FOUND(420, "Không tìm thấy vai trò", HttpStatus.BAD_REQUEST),

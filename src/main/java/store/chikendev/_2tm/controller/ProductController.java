@@ -22,7 +22,6 @@ import store.chikendev._2tm.dto.request.CreateProductRequest;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
-import store.chikendev._2tm.service.ConsignmentOrdersService;
 import store.chikendev._2tm.service.ProductService;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
@@ -91,13 +90,15 @@ public class ProductController {
 
     /**
      * Chủ hàng tạo đơn hàng ký gửi
+     * 
      * @param request
      * @param images
      * @return
      */
     @PreAuthorize("hasRole('ROLE_CH')")
     @PostMapping(value = "owner-create", consumes = "multipart/form-data")
-    public ApiResponse<ConsignmentOrdersResponse> staffCreate(@RequestPart("consignmentOrders") @Valid ConsignmentOrdersRequest request,
+    public ApiResponse<ConsignmentOrdersResponse> staffCreate(
+            @RequestPart("consignmentOrders") @Valid ConsignmentOrdersRequest request,
             @RequestPart("images") MultipartFile[] images) {
         return new ApiResponse<ConsignmentOrdersResponse>(200, null,
                 productService.ownerCreateProduct(request, images));

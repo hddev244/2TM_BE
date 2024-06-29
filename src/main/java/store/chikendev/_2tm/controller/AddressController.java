@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import store.chikendev._2tm.dto.request.AddressRequest;
 import store.chikendev._2tm.dto.responce.AddressResponse;
-import store.chikendev._2tm.entity.Address;
 
 @RestController
 @RequestMapping("/api/address")

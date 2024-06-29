@@ -1,7 +1,6 @@
 package store.chikendev._2tm.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,13 +9,11 @@ import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.request.AddressRequest;
 import store.chikendev._2tm.dto.responce.AddressResponse;
-import store.chikendev._2tm.dto.responce.CartResponse;
 import store.chikendev._2tm.dto.responce.DistrictResponse;
 import store.chikendev._2tm.dto.responce.ProvinceCityResponse;
 import store.chikendev._2tm.dto.responce.WardResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Address;
-import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.District;
 import store.chikendev._2tm.entity.ProvinceCity;
 import store.chikendev._2tm.entity.Ward;

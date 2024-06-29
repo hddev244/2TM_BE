@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +32,7 @@ public class StaffController {
         CreateStaffResponse response = accountService.createStaff(request);
         return new ApiResponse<CreateStaffResponse>(200, null, response);
     }
+
     @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @GetMapping("staff/{page}")
     public ApiResponse<Page<CreateStaffResponse>> getStaff(@PathVariable("page") Optional<Integer> pageNo) {
@@ -50,6 +50,6 @@ public class StaffController {
     @PutMapping("/lock-staff/{id}")
     public ApiResponse<AccountResponse> lockAccount(@PathVariable("id") String id) {
         AccountResponse updatedAccount = accountService.lockAccount(id);
-        return new ApiResponse<AccountResponse>(200,null, updatedAccount);
+        return new ApiResponse<AccountResponse>(200, null, updatedAccount);
     }
 }
