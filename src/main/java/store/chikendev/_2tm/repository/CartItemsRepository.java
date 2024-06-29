@@ -1,6 +1,7 @@
 package store.chikendev._2tm.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +18,7 @@ public interface CartItemsRepository extends JpaRepository<CartItems, Long> {
     List<CartItems> getItemsByProduct(Long Id);
 
     CartItems findCartItemsByAccountIdAndProductId(String id, Long idProduct);
+    
+    Optional<CartItems> findByProductId(Long productId);
+
 }

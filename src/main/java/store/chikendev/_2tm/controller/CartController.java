@@ -17,7 +17,7 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    @PreAuthorize("hasAnyRole('ROLE_KH')")
+    // @PreAuthorize("hasAnyRole('ROLE_KH')")
     @PostMapping("/add")
     public ApiResponse<?> addProductToCart(
         @RequestParam(name="productId") Long productId, 
@@ -32,4 +32,14 @@ public class CartController {
     public ApiResponse<List<CartResponse>> getUserCart() {
         return new ApiResponse<List<CartResponse>>(200, null, cartService.getUserCart());
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_KH')")
+    @DeleteMapping("/remove")
+    public ApiResponse<?> removeProductFromCart(
+            @RequestParam(name="productId") Long productId) {
+        cartService.removeProductFromCart(productId);
+        return new ApiResponse<>(200, Collections.singletonList("Sản phẩm đã được xóa khỏi giỏ hàng"), null);
+    }
+
+    
 }

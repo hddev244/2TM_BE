@@ -38,6 +38,7 @@ public class CartService {
     private AccountRepository accountRepository;
 
     @SuppressWarnings("unused")
+    //thêm sản phẩm vào giỏ hàng
     public void addProductToCart(Long idProduct, Integer quantityRequest) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -166,5 +167,14 @@ public class CartService {
 
         return productResponses;
     }
+
+    // Xóa sản phẩm khỏi giỏ hàng
+    public void removeProductFromCart(Long productId) {
+        CartItems cartItem = cartItemsRepository.findByProductId(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng"));
+        cartItemsRepository.delete(cartItem);
+    }
+
+    
 
 }
