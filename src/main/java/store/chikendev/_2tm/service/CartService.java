@@ -38,7 +38,7 @@ public class CartService {
     private AccountRepository accountRepository;
 
     @SuppressWarnings("unused")
-    //thêm sản phẩm vào giỏ hàng
+    // thêm sản phẩm vào giỏ hàng
     public void addProductToCart(Long idProduct, Integer quantityRequest) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -52,7 +52,7 @@ public class CartService {
 
         if (cartItemFound == null) {
             CartItems cartItem = new CartItems();
-            if (product.getQuantity() >= quantityRequest ) {
+            if (product.getQuantity() >= quantityRequest) {
                 cartItem.setQuantity(quantityRequest);
             } else {
                 throw new AppException(ErrorCode.QUANTITY_ERROR);
@@ -131,8 +131,7 @@ public class CartService {
     }
 
     // Lấy sản phẩm
-    private List<ProductResponse> convertToProductDto(Product product) {
-        List<ProductResponse> productResponses = new ArrayList<>();
+    private ProductResponse convertToProductDto(Product product) {
         if (product != null) {
             List<AttributeProductResponse> attrs = new ArrayList<>();
             if (product.getAttributes().size() > 0) {
@@ -148,7 +147,7 @@ public class CartService {
             System.out.println(product.getId());
             ResponseDocumentDto imageStore = FilesHelp.getOneDocument(product.getStore().getId(),
                     EntityFileType.STORE_LOGO);
-            productResponses.add(ProductResponse.builder()
+            return ProductResponse.builder()
                     .id(product.getId())
                     .name(product.getName())
                     .price(product.getPrice())
@@ -162,10 +161,9 @@ public class CartService {
                             .build())
                     .attributes(attrs)
                     .thumbnail(image)
-                    .build());
+                    .build();
         }
-
-        return productResponses;
+        return null;
     }
 
     // Xóa sản phẩm khỏi giỏ hàng
@@ -174,7 +172,5 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng"));
         cartItemsRepository.delete(cartItem);
     }
-
-    
 
 }

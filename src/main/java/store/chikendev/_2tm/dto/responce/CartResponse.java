@@ -1,7 +1,5 @@
 package store.chikendev._2tm.dto.responce;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class CartResponse {
     private Long id;
     private Integer quantity;
-    private List<ProductResponse> product;
+    private ProductResponse product;
 }
