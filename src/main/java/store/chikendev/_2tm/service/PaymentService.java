@@ -14,21 +14,17 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.springframework.stereotype.Service;
-
 import store.chikendev._2tm.config.VNPTConfig;
-import store.chikendev._2tm.exception.AppException;
-import store.chikendev._2tm.exception.ErrorCode;
 
 @Service
 public class PaymentService {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public String createVNPT(Long amountOder) throws UnsupportedEncodingException {
-        System.out.println(amountOder);
-
-        long amount = amountOder * 100; // Assuming amountOder is in VND, convert to smallest unit.
+    public String createVNPT(Integer amountOder) throws UnsupportedEncodingException {
+        String orderType = "other";
+        long amount = amountOder * 100;
         String vnp_TxnRef = VNPTConfig.getRandomNumber(8);
-
+        String vnp_IpAddr = "127.0.0.1";
         String vnp_TmnCode = VNPTConfig.vnp_TmnCode;
 
         Map<String, String> vnp_Params = new HashMap<>();
@@ -40,8 +36,10 @@ public class PaymentService {
         vnp_Params.put("vnp_BankCode", "NCB");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
-        vnp_Params.put("vnp_OrderType", "billpayment");
+        vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
+        vnp_Params.put("vnp_ReturnUrl", "http://localhost:8080/api/payment/success");
+        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -79,7 +77,8 @@ public class PaymentService {
         String vnp_SecureHash = VNPTConfig.hmacSHA512(VNPTConfig.secretKey, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = VNPTConfig.vnp_PayUrl + "?" + queryUrl;
-
         return paymentUrl;
+
     }
+
 }

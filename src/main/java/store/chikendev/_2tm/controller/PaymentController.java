@@ -19,7 +19,12 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @GetMapping("create-vnpt")
-    public ApiResponse<String> create_vnpt(@RequestParam("amount") Long amount) throws UnsupportedEncodingException {
+    public ApiResponse<String> create_vnpt(@RequestParam("amount") Integer amount) throws UnsupportedEncodingException {
         return new ApiResponse<>(200, null, paymentService.createVNPT(amount));
+    }
+
+    @GetMapping("success")
+    public ApiResponse<String> success() {
+        return new ApiResponse<>(200, null, "Thanh toán thành công");
     }
 }
