@@ -124,9 +124,7 @@ public class ProductService {
         }
         // lưu ảnh
         Product save = productRepository.save(product);
-        for (MultipartFile file : files) {
-            FilesHelp.saveFile(file, save.getId(), EntityFileType.PRODUCT);
-        }
+        saveProductImages(save, files);
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
         request.getIdAttributeDetail().forEach(id -> {
@@ -167,7 +165,19 @@ public class ProductService {
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         Page<Product> products = productRepository.findAvailableProducts(pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
-            var thumbnail = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
+            ResponseDocumentDto thumbnail = null;
+            // thay đổi ảnh thumbnail bằng image từ db
+            if (product.getImages().size() > 0) {
+                var image = product.getImages().get(0).getImage();
+                thumbnail = ResponseDocumentDto.builder()
+                        .fileId(image.getFileId())
+                        .fileName(image.getFileName())
+                        .fileDownloadUri(image.getFileDownloadUri())
+                        .fileType(image.getFileType())
+                        .size(image.getSize())
+                        .build();
+            }
+
             var address = getStoreAddress(product.getStore());
             var storeName = product.getStore() == null ? "" : product.getStore().getName();
             var type = "";
@@ -228,7 +238,16 @@ public class ProductService {
             response.setTypeProduct(product.getType() ? "Cửa hàng" : "Ký gửi");
         }
 
-        List<ResponseDocumentDto> responseDocument = FilesHelp.getDocuments(response.getId(), EntityFileType.PRODUCT);
+        List<ResponseDocumentDto> responseDocument = product.getImages().stream().map(img -> {
+            Image image = img.getImage();
+            return ResponseDocumentDto.builder()
+                    .fileId(image.getFileId())
+                    .fileName(image.getFileName())
+                    .fileDownloadUri(image.getFileDownloadUri())
+                    .fileType(image.getFileType())
+                    .size(image.getSize())
+                    .build();
+        }).toList();
         response.setImages(responseDocument);
         return response;
     }
@@ -376,25 +395,7 @@ public class ProductService {
         // lưu ảnh
         Product saveProduct = productRepository.save(product);
 
-        List<ProductImages> productImages = new ArrayList<>();
-        for (MultipartFile file : images) {
-            ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, saveProduct.getId(), EntityFileType.PRODUCT);
-            Image image = Image.builder()
-                    .fileId(fileSaved.getFileId())
-                    .fileName(fileSaved.getFileName())
-                    .fileDownloadUri(fileSaved.getFileDownloadUri())
-                    .fileType(fileSaved.getFileType())
-                    .size(fileSaved.getSize())
-                    .build();
-            Image imageSaved = imageRepository.save(image);
-            
-            ProductImages productImage = ProductImages.builder()
-                    .product(saveProduct)
-                    .image(imageSaved)
-                    .build();
-            productImages.add(productImage);
-        }
-        productImagesRepository.saveAll(productImages);
+        saveProductImages(saveProduct, images);
 
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
@@ -410,7 +411,7 @@ public class ProductService {
         productAttributeDetailRepository.saveAll(attributeDetails);
 
         StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.IN_CONFIRM).get();
-        
+
         ConsignmentOrders save = ConsignmentOrders.builder()
                 .note(request.getNote())
                 .ordererId(account)
@@ -456,5 +457,27 @@ public class ProductService {
         }
         return "";
 
+    }
+
+    private void saveProductImages(Product product, MultipartFile[] images) {
+        List<ProductImages> productImages = new ArrayList<>();
+        for (MultipartFile file : images) {
+            ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, product.getId(), EntityFileType.PRODUCT);
+            Image image = Image.builder()
+                    .fileId(fileSaved.getFileId())
+                    .fileName(fileSaved.getFileName())
+                    .fileDownloadUri(fileSaved.getFileDownloadUri())
+                    .fileType(fileSaved.getFileType())
+                    .size(fileSaved.getSize())
+                    .build();
+            Image imageSaved = imageRepository.save(image);
+
+            ProductImages productImage = ProductImages.builder()
+                    .product(product)
+                    .image(imageSaved)
+                    .build();
+            productImages.add(productImage);
+        }
+        productImagesRepository.saveAll(productImages);
     }
 }
