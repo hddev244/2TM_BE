@@ -100,6 +100,9 @@ public class ProductController {
     public ApiResponse<ConsignmentOrdersResponse> staffCreate(
             @RequestPart("consignmentOrders") @Valid ConsignmentOrdersRequest request,
             @RequestPart("images") MultipartFile[] images) {
+                System.out.println("owner-create");
+                System.out.println(request.getPhoneNumber());
+
         return new ApiResponse<ConsignmentOrdersResponse>(200, null,
                 productService.ownerCreateProduct(request, images));
     }

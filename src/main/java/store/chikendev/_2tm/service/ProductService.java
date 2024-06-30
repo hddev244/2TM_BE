@@ -25,8 +25,10 @@ import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Category;
 import store.chikendev._2tm.entity.ConsignmentOrders;
+import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.ProductAttributeDetail;
+import store.chikendev._2tm.entity.ProductImages;
 import store.chikendev._2tm.entity.StateConsignmentOrder;
 import store.chikendev._2tm.entity.StateProduct;
 import store.chikendev._2tm.entity.Store;
@@ -38,7 +40,9 @@ import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.AttributeDetailRepository;
 import store.chikendev._2tm.repository.CategoryRepository;
 import store.chikendev._2tm.repository.ConsignmentOrdersRepository;
+import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.ProductAttributeDetailRepository;
+import store.chikendev._2tm.repository.ProductImagesRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateConsignmentOrderRepository;
 import store.chikendev._2tm.repository.StateProductRepository;
@@ -52,6 +56,12 @@ public class ProductService {
 
     @Autowired
     private ConsignmentOrdersRepository consignmentOrdersRepository;
+
+    @Autowired
+    private ImageRepository imageRepository;
+
+    @Autowired
+    ProductImagesRepository productImagesRepository;
 
     @Autowired
     private StateConsignmentOrderRepository stateConsignmentOrderRepository;
@@ -341,6 +351,17 @@ public class ProductService {
         Ward ward = wardRepository.findById(request.getWardId()).orElseThrow(() -> {
             throw new AppException(ErrorCode.WARD_NOT_FOUND);
         });
+
+        Optional<Account> deliveryPerson = store.getAccountStores().stream()
+                .flatMap(acc -> acc.getAccount().getRoles().stream()
+                        .filter(role -> role.getRole().getId().equals("NVGH"))
+                        .map(role -> acc.getAccount()))
+                .findFirst();
+
+        if (deliveryPerson.isPresent() == false) {
+            throw new AppException(ErrorCode.DELIVERY_PERSON_NOT_FOUND);
+        }
+
         Product product = Product.builder()
                 .name(request.getName())
                 .price(request.getPrice())
@@ -354,9 +375,27 @@ public class ProductService {
 
         // lưu ảnh
         Product saveProduct = productRepository.save(product);
+
+        List<ProductImages> productImages = new ArrayList<>();
         for (MultipartFile file : images) {
-            FilesHelp.saveFile(file, saveProduct.getId(), EntityFileType.PRODUCT);
+            ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, saveProduct.getId(), EntityFileType.PRODUCT);
+            Image image = Image.builder()
+                    .fileId(fileSaved.getFileId())
+                    .fileName(fileSaved.getFileName())
+                    .fileDownloadUri(fileSaved.getFileDownloadUri())
+                    .fileType(fileSaved.getFileType())
+                    .size(fileSaved.getSize())
+                    .build();
+            Image imageSaved = imageRepository.save(image);
+            
+            ProductImages productImage = ProductImages.builder()
+                    .product(saveProduct)
+                    .image(imageSaved)
+                    .build();
+            productImages.add(productImage);
         }
+        productImagesRepository.saveAll(productImages);
+
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
         request.getIdAttributeDetail().forEach(id -> {
@@ -370,19 +409,12 @@ public class ProductService {
         });
         productAttributeDetailRepository.saveAll(attributeDetails);
 
-        Optional<Account> deliveryPerson = store.getAccountStores().stream()
-                .flatMap(acc -> acc.getAccount().getRoles().stream()
-                        .filter(role -> role.getRole().getId().equals("NVGH"))
-                        .map(role -> acc.getAccount()))
-                .findFirst();
-        if (deliveryPerson.isPresent() == false) {
-            throw new AppException(ErrorCode.DELIVERY_PERSON_NOT_FOUND);
-        }
         StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.IN_CONFIRM).get();
+        
         ConsignmentOrders save = ConsignmentOrders.builder()
                 .note(request.getNote())
                 .ordererId(account)
-                .product(product)
+                .product(saveProduct)
                 .store(store)
                 .stateId(state)
                 .phoneNumber(request.getPhoneNumber())

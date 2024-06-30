@@ -20,11 +20,9 @@ import store.chikendev._2tm.exception.ErrorCode;
 
 @Component
 public class FilesHelp {
-    public static String getUniqueFileName(String originalFileName) {
-        return UUID.randomUUID().toString() + "-" + originalFileName.replaceAll("\\s+", "_");
-    }
 
-    public static void saveFile(MultipartFile file, Object entityId, EntityFileType type) {
+
+    public static ResponseDocumentDto saveFile(MultipartFile file, Object entityId, EntityFileType type) {
         if (entityId == null || entityId.toString().trim().isEmpty()) {
             throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
         }
@@ -38,9 +36,20 @@ public class FilesHelp {
                     item.toFile().delete();
                 }
             }
+            String fileId = UUID.randomUUID().toString();
+            String uniqueFileName = fileId + "-" + file.getOriginalFilename().replaceAll("\\s+", "_");
+            
             Files.copy(file.getInputStream(),
-                    Paths.get(dir + "/" + getUniqueFileName(file.getOriginalFilename())),
+                    Paths.get(dir + "/" + uniqueFileName),
                     StandardCopyOption.REPLACE_EXISTING);
+
+            return ResponseDocumentDto.builder()
+                    .fileName(file.getOriginalFilename())
+                    .fileDownloadUri(dir + "/" + uniqueFileName)
+                    .fileType(file.getContentType())
+                    .fileId(fileId)
+                    .size(file.getSize())
+                    .build();       
         } catch (Exception e) {
             throw new AppException(ErrorCode.FILE_UPLOAD_ERROR);
         }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,7 @@ import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.AttributeDetailRepository;
 import store.chikendev._2tm.repository.CategoryRepository;
 import store.chikendev._2tm.repository.ConsignmentOrdersRepository;
+import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.ProductAttributeDetailRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateConsignmentOrderRepository;
@@ -43,7 +45,9 @@ import store.chikendev._2tm.utils.FilesHelp;
 
 @Service
 public class ConsignmentOrdersService {
-
+    @Autowired
+    ImageRepository imageRepository;
+    
     @Autowired
     private ProductRepository productRepository;
 

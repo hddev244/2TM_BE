@@ -27,7 +27,11 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String url;
+    private String fileName;
+    private String fileDownloadUri;
+    private String fileType;
+    private String fileId;
+    private long size;
 
     @OneToMany(mappedBy = "image")
     private List<Account> accounts;
