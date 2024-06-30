@@ -39,7 +39,7 @@ public class Order {
     @Column(updatable = false)
     private Date createdAt;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date completeAt;
 
     private Boolean paymentStatus;

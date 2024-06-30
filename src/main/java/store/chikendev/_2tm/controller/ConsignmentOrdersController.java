@@ -36,11 +36,11 @@ public class ConsignmentOrdersController {
 
     @PreAuthorize("hasAnyRole('ROLE_QTV', 'ROLE_QLCH', 'ROLE_CH', 'ROLE_NVCH','ROLE_NVGH')")
     @GetMapping
-    public ApiResponse<Page<ConsignmentOrdersResponse>> getByState(
+    public ApiResponse<Page<ConsignmentOrdersResponse>> getByStateOrAll(
             @RequestParam(required = false, name = "size") Optional<Integer> size,
             @RequestParam(required = false, name = "page") Optional<Integer> page,
             @RequestParam(required = false, name = "state") Long state) {
         return new ApiResponse<Page<ConsignmentOrdersResponse>>(200, null,
-                consignmentOrdersService.getByState(size.orElse(10), page.orElse(0), state));
+                consignmentOrdersService.getByStateOrAll(size.orElse(10), page.orElse(0), state));
     }
 }

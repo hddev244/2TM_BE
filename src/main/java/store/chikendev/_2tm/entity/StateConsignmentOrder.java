@@ -28,6 +28,7 @@ public class StateConsignmentOrder {
     public static final Long COMPLETED = 4L;
     public static final Long ORDER_FAILED = 5L;
     public static final Long REFUSE = 6L;
+    public static final Long CONFIRM = 7L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

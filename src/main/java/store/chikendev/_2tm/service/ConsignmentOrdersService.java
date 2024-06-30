@@ -147,7 +147,7 @@ public class ConsignmentOrdersService {
         return "Tạo vận đơn thành công, mã đơn hàng của bạn là: " + consignmentOrdersRepository.save(save).getId();
     }
 
-    public Page<ConsignmentOrdersResponse> getByState(int size, int page, Long stateId) {
+    public Page<ConsignmentOrdersResponse> getByStateOrAll(int size, int page, Long stateId) {
         Pageable pageable = PageRequest.of(page, size);
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
@@ -159,31 +159,37 @@ public class ConsignmentOrdersService {
                 .anyMatch(role -> role.getRole().getId().equals("NVGH"));
         if (checkStaff) {
             if (stateId == null) {
-                stateId = StateConsignmentOrder.IN_CONFIRM;
+                Page<ConsignmentOrders> response = consignmentOrdersRepository.findByDeliveryPerson(account, pageable);
+                return convertToResponse(response);
             }
             StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId).orElseThrow(() -> {
                 throw new AppException(ErrorCode.STATE_NOT_FOUND);
             });
-            Page<ConsignmentOrders> responce = consignmentOrdersRepository.findByDeliveryPersonAndStateId(account,
+            Page<ConsignmentOrders> response = consignmentOrdersRepository.findByDeliveryPersonAndStateId(account,
                     state, pageable);
-            return convertToResponse(responce);
+            return convertToResponse(response);
         } else {
+            // NVCH - QLCH
             if (stateId == null) {
-                stateId = StateConsignmentOrder.COMPLETED;
+                if (accountStore.isPresent()) {
+                    Page<ConsignmentOrders> response = consignmentOrdersRepository.findByStore(
+                            accountStore.get().getStore(),
+                            pageable);
+                    return convertToResponse(response);
+                }
             }
             StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId).orElseThrow(() -> {
                 throw new AppException(ErrorCode.STATE_NOT_FOUND);
             });
             if (accountStore.isPresent()) {
-                Page<ConsignmentOrders> responce = consignmentOrdersRepository
+                Page<ConsignmentOrders> response = consignmentOrdersRepository
                         .findByStoreAndStateId(accountStore.get().getStore(), state, pageable);
-                return convertToResponse(responce);
+                return convertToResponse(response);
             }
             throw new AppException(ErrorCode.STORE_NOT_FOUND);
 
         }
     }
-    // chưa test
 
     private Page<ConsignmentOrdersResponse> convertToResponse(Page<ConsignmentOrders> responce) {
         return responce.map(consignmentOrders -> {
@@ -200,6 +206,7 @@ public class ConsignmentOrdersService {
             response.setStateName(consignmentOrders.getStateId().getStatus());
             response.setAddress(getAddress(consignmentOrders));
             response.setPhone(consignmentOrders.getPhoneNumber());
+            response.setCompleteAt(consignmentOrders.getCompleteAt());
             response.setUrlImage(file.getFileDownloadUri());
             return response;
         });

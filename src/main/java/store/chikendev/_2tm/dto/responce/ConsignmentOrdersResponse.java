@@ -24,4 +24,5 @@ public class ConsignmentOrdersResponse {
     private String address;
     private String phone;
     private String urlImage;
+    private Date completeAt;
 }

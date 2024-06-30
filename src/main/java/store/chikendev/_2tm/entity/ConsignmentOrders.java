@@ -39,6 +39,9 @@ public class ConsignmentOrders {
 
     private String detailAddress;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date completeAt;
+
     @ManyToOne
     @JoinColumn(name = "ordererId")
     private Account ordererId;
