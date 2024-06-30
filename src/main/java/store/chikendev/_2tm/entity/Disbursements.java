@@ -27,7 +27,7 @@ public class Disbursements {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date payoutAt;
     private Boolean state;
     private Double commissionRate;

@@ -29,9 +29,11 @@ public class ConsignmentOrders {
     private Long id;
 
     @CreationTimestamp
-    @Temporal(TemporalType.DATE)
     @Column(updatable = false)
     private Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date completedAt;
 
     private String note;
 

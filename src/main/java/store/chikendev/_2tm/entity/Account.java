@@ -50,12 +50,10 @@ public class Account {
     private String email;
 
     @CreationTimestamp
-    @Temporal(TemporalType.DATE)
     @Column(updatable = false)
     private Date createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.DATE)
     private Date updatedAt;
 
     @ManyToOne

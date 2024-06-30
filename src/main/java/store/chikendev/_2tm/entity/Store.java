@@ -43,12 +43,10 @@ public class Store {
     private String description;
 
     @CreationTimestamp
-    @Temporal(TemporalType.DATE)
     @Column(updatable = false)
     private Date createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.DATE)
     private Date updatedAt;
 
     private boolean activeStatus;

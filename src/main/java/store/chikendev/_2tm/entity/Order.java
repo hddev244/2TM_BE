@@ -35,7 +35,6 @@ public class Order {
     private String note;
 
     @CreationTimestamp
-    @Temporal(TemporalType.DATE)
     @Column(updatable = false)
     private Date createdAt;
 

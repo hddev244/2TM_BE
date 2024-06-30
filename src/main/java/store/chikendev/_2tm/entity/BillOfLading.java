@@ -29,7 +29,6 @@ public class BillOfLading {
     private Long id;
 
     @CreationTimestamp
-    @Temporal(TemporalType.DATE)
     @Column(updatable = false)
     private Date createdAt;
 
