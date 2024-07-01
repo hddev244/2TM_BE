@@ -1,5 +1,6 @@
 package store.chikendev._2tm.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -102,6 +103,22 @@ public class AddressService {
                     addressProvince;
         }
         return "";
+
+    }
+
+    public List<AddressResponse> getAddressByUserId() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        List<Address> addresses = addressRepository.getAddressByAccountId(account.getId());
+        List<AddressResponse> responses = new ArrayList<>();
+        for (Address address : addresses) {
+            AddressResponse response = new AddressResponse();
+            response.setId(address.getId());
+            response.setName(getAddress(address));
+            responses.add(response);
+        }
+        return responses;
 
     }
 

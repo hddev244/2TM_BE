@@ -47,4 +47,9 @@ public class AddressController {
         return new ApiResponse<>(200, null, addressService.addAddress(request));
     }
 
+    @GetMapping("/account")
+    public ApiResponse<List<AddressResponse>> account() {
+        return new ApiResponse<List<AddressResponse>>(200, null, addressService.getAddressByUserId());
+    }
+
 }
