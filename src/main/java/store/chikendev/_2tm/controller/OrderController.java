@@ -26,8 +26,9 @@ public class OrderController {
         return new ApiResponse<>(200, null, orderService.addOrder(request));
     }
 
-    @PostMapping("/addOrderDetails")
-    public ApiResponse<OrderDetailsReponse> addOrderDetails(@RequestBody OrderDetailsRequest request) {
-        return new ApiResponse<>(200, null, orderService.addOrderDetails(request));
-    }
+    // @PostMapping("/addOrderDetails")
+    // public ApiResponse<OrderDetailsReponse> addOrderDetails(@RequestBody
+    // OrderDetailsRequest request) {
+    // return new ApiResponse<>(200, null, orderService.addOrderDetails(request));
+    // }
 }

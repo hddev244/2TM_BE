@@ -16,11 +16,12 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Entity
 @Table(name = "statesOrder")
 @Builder
+@Data
 public class StateOrder {
+    public static final Long IN_CONFIRM = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

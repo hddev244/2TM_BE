@@ -15,6 +15,8 @@ import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
+import store.chikendev._2tm.entity.Product;
+import store.chikendev._2tm.entity.StateOrder;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
@@ -64,22 +66,20 @@ public class OrderService {
                 Account account = accountRepository.findByEmail(email)
                                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
                 Order order = new Order();
+                order.setNote(request.getNote());
+                order.setDeliveryCost(request.getDeliveryCost());
                 order.setConsigneeName(request.getConsigneeName());
+                order.setPaymentStatus(false);
                 order.setConsigneePhoneNumber(request.getConsigneePhoneNumber());
                 order.setConsigneeDetailAddress(request.getConsigneeDetailAddress());
-                order.setDeliveryCost(request.getDeliveryCost());
-                order.setTotalPrice(request.getTotalPrice());
                 order.setNote(request.getNote());
-                order.setPaymentStatus(request.getPaymentStatus());
                 order.setAccount(account);
-                order.setStateOrder(stateOrderRepository.findById(request.getStateOrder())
-                                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND)));
-                order.setWard(wardRep.findById(request.getWard())
+                order.setStateOrder(stateOrderRepository.findById(StateOrder.IN_CONFIRM).get());
+                order.setWard(wardRep.findById(request.getWardId())
                                 .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND)));
                 Order save = orderRepository.save(order);
                 if (save != null) {
                         List<CartItems> items = cartItemsRep.getItemsByAccount(account.getId());
-                        cartItemsRep.deleteAll(items);
                 }
 
                 return OrderResponse.builder()
@@ -113,10 +113,12 @@ public class OrderService {
 
         }
 
-        public OrderDetailsReponse addOrderDetails(OrderDetailsRequest request) {
+        public OrderDetailsReponse addOrderDetails(CartItems request, Order order) {
                 OrderDetails orderDetails = new OrderDetails();
                 orderDetails.setQuantity(request.getQuantity());
-                orderDetails.setPrice(request.getPrice());
+                orderDetails.setPrice(request.getProduct().getPrice());
+                orderDetails.setProduct(request.getProduct());
+                orderDetails.setOrder(order);
                 OrderDetails saveOrD = orderDetailsRepository.save(orderDetails);
                 return OrderDetailsReponse.builder()
                                 .product(productService.getById(saveOrD.getProduct().getId()))

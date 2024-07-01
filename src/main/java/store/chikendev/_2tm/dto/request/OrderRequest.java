@@ -13,13 +13,9 @@ import lombok.NoArgsConstructor;
 public class OrderRequest {
     private Double deliveryCost;
     private String note;
-    private Boolean paymentStatus;
-    private String paymentId;
     private String consigneeDetailAddress;
     private String consigneeName;
     private String consigneePhoneNumber;
-    private Double totalPrice;
-    private Long stateOrder;
-    private Long paymentMethod;
-    private Long ward;
+    private Long paymentMethodId;
+    private Long wardId;
 }
