@@ -1,6 +1,8 @@
 package store.chikendev._2tm.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -275,4 +277,27 @@ public class ConsignmentOrdersService {
         throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
 
     }
+
+    public ConsignmentOrdersResponse updateConsignmentOrderStatus(Long id, MultipartFile file) {
+        ConsignmentOrders consignmentOrder = consignmentOrdersRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
+
+        StateConsignmentOrder stateConsignmentOrder = stateConsignmentOrderRepository
+                .findById(StateConsignmentOrder.ORDER_SUCCESSFULLY)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+
+        consignmentOrder.setStateId(stateConsignmentOrder);
+        consignmentOrder.setCompletedAt(new Date());
+
+        if (file != null && !file.isEmpty()) {
+            ResponseDocumentDto documentDto = FilesHelp.saveFile(file, id, EntityFileType.CONSIGNMENT_ORDER);
+            consignmentOrder.setImage(new Image(id, documentDto.getFileId(), documentDto.getFileDownloadUri(), null, null, id, null, null, null, null, null));
+        }
+
+        consignmentOrdersRepository.save(consignmentOrder);
+
+        return convertToResponse((Page<ConsignmentOrders>) Collections.singleton(consignmentOrder)).stream().findFirst().orElse(null);
+    }
+
+
 }
