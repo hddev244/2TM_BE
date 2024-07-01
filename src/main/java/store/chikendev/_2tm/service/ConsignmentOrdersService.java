@@ -19,6 +19,7 @@ import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Category;
 import store.chikendev._2tm.entity.ConsignmentOrders;
+import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.ProductAttributeDetail;
 import store.chikendev._2tm.entity.StateConsignmentOrder;
@@ -249,11 +250,24 @@ public class ConsignmentOrdersService {
                 if (file == null) {
                     throw new AppException(ErrorCode.FILE_NOT_FOUND);
                 }
-                FilesHelp.saveFile(file, consignmentOrders.getId(), EntityFileType.CONSIGNMENT_ORDER);
+                ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, consignmentOrders.getId(), EntityFileType.CONSIGNMENT_ORDER);
+                Image image = Image.builder()
+                        .fileId(fileSaved.getFileId())
+                        .fileName(fileSaved.getFileName())
+                        .fileDownloadUri(fileSaved.getFileDownloadUri())
+                        .fileType(fileSaved.getFileType())
+                        .size(fileSaved.getSize())
+                        .build();
+                Image imageSaved = imageRepository.save(image);
+
+                consignmentOrders.setCompleteAt(new java.util.Date());
+                consignmentOrders.setImage(imageSaved);
                 consignmentOrders.setStateId(state);
                 consignmentOrdersRepository.save(consignmentOrders);
                 return "Xác nhận thành công";
             }
+            
+            consignmentOrders.setCompleteAt(new java.util.Date());
             consignmentOrders.setStateId(state);
             consignmentOrdersRepository.save(consignmentOrders);
             return "Xác nhận thành công";

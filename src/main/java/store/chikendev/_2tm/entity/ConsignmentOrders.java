@@ -10,7 +10,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
@@ -47,6 +49,14 @@ public class ConsignmentOrders {
     @ManyToOne
     @JoinColumn(name = "ordererId")
     private Account ordererId;
+
+    @OneToOne
+    @JoinTable(
+        name = "consignment_orders_image",
+        joinColumns = @JoinColumn(name = "consignmentOrderId"),
+        inverseJoinColumns = @JoinColumn(name = "imageId")
+    )
+    private Image image;
 
     @ManyToOne
     @JoinColumn(name = "deliveryPerson")
