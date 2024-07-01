@@ -46,9 +46,9 @@ public class ConsignmentOrdersController {
 
     @PreAuthorize("hasRole('ROLE_NVGH')")
     @PostMapping(value = "update-status", consumes = "multipart/form-data")
-    public ApiResponse<String> updateStatus(@RequestPart("consignmentOrderId") Long id, @RequestPart("state") Long stateId,
-            @RequestPart(required = false, name = "images") MultipartFile images) {
-        return new ApiResponse<String>(200, null, consignmentOrdersService.confirmStatus(stateId, id, images));
+    public ApiResponse<String> updateStatus(@RequestPart("consignmentOrderId") Long id, @RequestPart("stateId") Long stateId,
+            @RequestPart(required = false, name = "image") MultipartFile image) {
+        return new ApiResponse<String>(200, null, consignmentOrdersService.confirmStatus(stateId, id, image));
     }
 
 }
