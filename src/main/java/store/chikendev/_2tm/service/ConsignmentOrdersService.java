@@ -277,4 +277,16 @@ public class ConsignmentOrdersService {
 
     }
 
+    public String successConsignmentOrders(Long idConsignmentOrders) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        });
+        ConsignmentOrders consignmentOrders = consignmentOrdersRepository.findById(idConsignmentOrders)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
+                });
+
+    }
+
 }
