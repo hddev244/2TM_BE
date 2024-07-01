@@ -1,7 +1,9 @@
 package store.chikendev._2tm.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
+import store.chikendev._2tm.entity.Image;
+import store.chikendev._2tm.entity.ProductImages;
+import store.chikendev._2tm.repository.ImageRepository;
+import store.chikendev._2tm.repository.ProductImagesRepository;
+import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,10 +27,45 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequestMapping("/api/uploadfile")
 public class TestUploadFileController {
 
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired  
+    private ImageRepository imageRepository;
+
+    @Autowired
+    private ProductImagesRepository productImagesRepository;
+
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(
             @RequestParam("entityId") String entityId) {
-        return new ApiResponse<>(200, null, FilesHelp.getDocuments(entityId, EntityFileType.PRODUCT));
+        List<ResponseDocumentDto> responseDocumentDtos = FilesHelp.getDocuments(entityId, EntityFileType.PRODUCT);
+        // Long id = Long.parseLong(entityId);
+        // var product = productRepository.findById(id).get();
+
+        // List<ProductImages> productImages = new ArrayList<>();
+
+        // for (ResponseDocumentDto fileSaved : responseDocumentDtos) {
+        //     Image image = Image.builder()
+        //             .fileId(fileSaved.getFileId())
+        //             .fileName(fileSaved.getFileName())
+        //             .fileDownloadUri(fileSaved.getFileDownloadUri())
+        //             .fileType(fileSaved.getFileType())
+        //             .size(fileSaved.getSize())
+        //             .build();
+        //     Image imageSaved = imageRepository.save(image);
+
+        //     ProductImages productImage = ProductImages.builder()
+        //             .product(product)
+        //             .image(imageSaved)
+        //             .build();
+        //     productImages.add(productImage);
+        // }
+
+        // productImagesRepository.saveAll(productImages);
+
+
+        return new ApiResponse<>(200, null, responseDocumentDtos);
     }
 
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
