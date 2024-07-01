@@ -159,10 +159,8 @@ public class ConsignmentOrdersService {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         });
         Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
-
-        final boolean checkStaff = account.getRoles().stream()
-                .anyMatch(role -> role.getRole().getId().equals("NVGH"));
-        if (checkStaff) {
+        if (account.getRoles().stream()
+                .anyMatch(role -> role.getRole().getId().equals("NVGH"))) {
             if (stateId == null) {
                 Page<ConsignmentOrders> response = consignmentOrdersRepository.findByDeliveryPerson(account, pageable);
                 return convertToResponse(response);
@@ -171,6 +169,18 @@ public class ConsignmentOrdersService {
                 throw new AppException(ErrorCode.STATE_NOT_FOUND);
             });
             Page<ConsignmentOrders> response = consignmentOrdersRepository.findByDeliveryPersonAndStateId(account,
+                    state, pageable);
+            return convertToResponse(response);
+        } else if (account.getRoles().stream()
+                .anyMatch(role -> role.getRole().getId().equals("CH"))) {
+            if (stateId == null) {
+                Page<ConsignmentOrders> response = consignmentOrdersRepository.findByOrdererId(account, pageable);
+                return convertToResponse(response);
+            }
+            StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId).orElseThrow(() -> {
+                throw new AppException(ErrorCode.STATE_NOT_FOUND);
+            });
+            Page<ConsignmentOrders> response = consignmentOrdersRepository.findByOrdererIdAndStateId(account,
                     state, pageable);
             return convertToResponse(response);
         } else {

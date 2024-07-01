@@ -19,6 +19,10 @@ public interface ConsignmentOrdersRepository extends JpaRepository<ConsignmentOr
         Page<ConsignmentOrders> findByDeliveryPersonAndStateId(@Param("deliveryPerson") Account deliveryPerson,
                         @Param("state") StateConsignmentOrder state, Pageable pageable);
 
+        @Query("SELECT co FROM ConsignmentOrders co WHERE co.ordererId = :ordererId AND co.stateId = :state")
+        Page<ConsignmentOrders> findByOrdererIdAndStateId(@Param("ordererId") Account ordererId,
+                        @Param("state") StateConsignmentOrder state, Pageable pageable);
+
         @Query("SELECT co FROM ConsignmentOrders co WHERE co.store = :store AND co.stateId = :state")
         Page<ConsignmentOrders> findByStoreAndStateId(@Param("store") Store store,
                         @Param("state") StateConsignmentOrder state, Pageable pageable);
@@ -26,4 +30,6 @@ public interface ConsignmentOrdersRepository extends JpaRepository<ConsignmentOr
         Page<ConsignmentOrders> findByDeliveryPerson(Account deliveryPerson, Pageable pageable);
 
         Page<ConsignmentOrders> findByStore(Store store, Pageable pageable);
+
+        Page<ConsignmentOrders> findByOrdererId(Account ordererId, Pageable pageable);
 }
