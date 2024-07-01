@@ -117,6 +117,7 @@ public class ProductService {
         product.setType(Product.TYPE_PRODUCT_OF_STORE);
         product.setCategory(category);
         product.setState(state);
+        product.setType(true);
         if (store.isPresent()) {
             product.setStore(store.get().getStore());
         } else {

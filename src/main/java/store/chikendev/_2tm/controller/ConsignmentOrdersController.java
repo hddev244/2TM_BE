@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -50,5 +51,11 @@ public class ConsignmentOrdersController {
             @RequestPart("stateId") Long stateId,
             @RequestPart(required = false, name = "image") MultipartFile image) {
         return new ApiResponse<String>(200, null, consignmentOrdersService.updateStatus(stateId, id, image));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_QLCH','ROLE_NVCH')")
+    @GetMapping("success/{consignmentOrderId}")
+    public ApiResponse<String> success(@PathVariable("consignmentOrderId") Long id) {
+        return new ApiResponse<String>(200, null, consignmentOrdersService.successConsignmentOrders(id));
     }
 }

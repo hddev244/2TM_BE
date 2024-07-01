@@ -108,10 +108,11 @@ public class ConsignmentOrdersService {
                 .state(stateProduct)
                 .store(store)
                 .ownerId(account)
+                .type(false)
                 .build();
 
-        // lưu ảnh
         Product saveProduct = productRepository.save(product);
+        // lưu ảnh
         for (MultipartFile file : files) {
             FilesHelp.saveFile(file, saveProduct.getId(), EntityFileType.PRODUCT);
         }
@@ -286,6 +287,29 @@ public class ConsignmentOrdersService {
                 .orElseThrow(() -> {
                     throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
                 });
+
+        if (consignmentOrders.getStore().getAccountStores().stream()
+                .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
+            if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.ORDER_SUCCESSFULLY) {
+                if (consignmentOrders.getImage() != null) {
+                    StateConsignmentOrder state = stateConsignmentOrderRepository
+                            .findById(StateConsignmentOrder.COMPLETED)
+                            .get();
+                    consignmentOrders.setStatusChangeDate(new java.util.Date());
+                    consignmentOrders.setStateId(state);
+                    consignmentOrdersRepository.save(consignmentOrders);
+                    Product product = consignmentOrders.getProduct();
+                    product.setState(stateProductRepository.findById(StateProduct.CONFIRM).get());
+                    product.setAccount(account);
+                    productRepository.save(product);
+                    return "Xác nhận thành công";
+                }
+                throw new AppException(ErrorCode.FILE_NOT_FOUND);
+
+            }
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
 
     }
 

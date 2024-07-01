@@ -34,9 +34,6 @@ public class ConsignmentOrders {
     @Column(updatable = false)
     private Date createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date completedAt;
-
     private String note;
 
     private String phoneNumber;
