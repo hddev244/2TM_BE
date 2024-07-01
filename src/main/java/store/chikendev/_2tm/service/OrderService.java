@@ -74,8 +74,6 @@ public class OrderService {
                 order.setAccount(account);
                 order.setStateOrder(stateOrderRepository.findById(request.getStateOrder())
                                 .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND)));
-                order.setPaymentMethod(paymentMethodRep.findById(request.getPaymentMethod())
-                                .orElseThrow(() -> new AppException(ErrorCode.PAY_MENT_METHOD_NOT_FOUND)));
                 order.setWard(wardRep.findById(request.getWard())
                                 .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND)));
                 Order save = orderRepository.save(order);
@@ -117,10 +115,6 @@ public class OrderService {
 
         public OrderDetailsReponse addOrderDetails(OrderDetailsRequest request) {
                 OrderDetails orderDetails = new OrderDetails();
-                orderDetails.setProduct(productRepository.findById(request.getProduct())
-                                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND)));
-                orderDetails.setOrder(orderRepository.findById(request.getOrder())
-                                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND)));
                 orderDetails.setQuantity(request.getQuantity());
                 orderDetails.setPrice(request.getPrice());
                 OrderDetails saveOrD = orderDetailsRepository.save(orderDetails);
