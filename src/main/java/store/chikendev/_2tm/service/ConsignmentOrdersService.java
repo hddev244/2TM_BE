@@ -1,8 +1,6 @@
 package store.chikendev._2tm.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -212,7 +210,7 @@ public class ConsignmentOrdersService {
             response.setStateName(consignmentOrders.getStateId().getStatus());
             response.setAddress(getAddress(consignmentOrders));
             response.setPhone(consignmentOrders.getPhoneNumber());
-            response.setCompleteAt(consignmentOrders.getCompleteAt());
+            response.setStatusChangeDate(consignmentOrders.getStatusChangeDate());
             response.setUrlImage(file.getFileDownloadUri());
             return response;
         });
@@ -235,7 +233,7 @@ public class ConsignmentOrdersService {
 
     }
 
-    public String confirmStatus(Long idStatus, Long idConsignmentOrders, MultipartFile file) {
+    public String updateStatus(Long idStatus, Long idConsignmentOrders, MultipartFile file) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
@@ -252,7 +250,8 @@ public class ConsignmentOrdersService {
                 if (file == null) {
                     throw new AppException(ErrorCode.FILE_NOT_FOUND);
                 }
-                ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, consignmentOrders.getId(), EntityFileType.CONSIGNMENT_ORDER);
+                ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, consignmentOrders.getId(),
+                        EntityFileType.CONSIGNMENT_ORDER);
                 Image image = Image.builder()
                         .fileId(fileSaved.getFileId())
                         .fileName(fileSaved.getFileName())
@@ -262,14 +261,14 @@ public class ConsignmentOrdersService {
                         .build();
                 Image imageSaved = imageRepository.save(image);
 
-                consignmentOrders.setCompleteAt(new java.util.Date());
+                consignmentOrders.setStatusChangeDate(new java.util.Date());
                 consignmentOrders.setImage(imageSaved);
                 consignmentOrders.setStateId(state);
                 consignmentOrdersRepository.save(consignmentOrders);
                 return "Xác nhận thành công";
             }
-            
-            consignmentOrders.setCompleteAt(new java.util.Date());
+
+            consignmentOrders.setStatusChangeDate(new java.util.Date());
             consignmentOrders.setStateId(state);
             consignmentOrdersRepository.save(consignmentOrders);
             return "Xác nhận thành công";
@@ -277,27 +276,5 @@ public class ConsignmentOrdersService {
         throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
 
     }
-
-    public ConsignmentOrdersResponse updateConsignmentOrderStatus(Long id, MultipartFile file) {
-        ConsignmentOrders consignmentOrder = consignmentOrdersRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
-
-        StateConsignmentOrder stateConsignmentOrder = stateConsignmentOrderRepository
-                .findById(StateConsignmentOrder.ORDER_SUCCESSFULLY)
-                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
-
-        consignmentOrder.setStateId(stateConsignmentOrder);
-        consignmentOrder.setCompletedAt(new Date());
-
-        if (file != null && !file.isEmpty()) {
-            ResponseDocumentDto documentDto = FilesHelp.saveFile(file, id, EntityFileType.CONSIGNMENT_ORDER);
-            consignmentOrder.setImage(new Image(id, documentDto.getFileId(), documentDto.getFileDownloadUri(), null, null, id, null, null, null, null, null));
-        }
-
-        consignmentOrdersRepository.save(consignmentOrder);
-
-        return convertToResponse((Page<ConsignmentOrders>) Collections.singleton(consignmentOrder)).stream().findFirst().orElse(null);
-    }
-
 
 }

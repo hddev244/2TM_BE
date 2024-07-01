@@ -4,12 +4,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -49,16 +46,9 @@ public class ConsignmentOrdersController {
 
     @PreAuthorize("hasRole('ROLE_NVGH')")
     @PostMapping(value = "update-status", consumes = "multipart/form-data")
-    public ApiResponse<String> updateStatus(@RequestPart("consignmentOrderId") Long id, @RequestPart("stateId") Long stateId,
+    public ApiResponse<String> updateStatus(@RequestPart("consignmentOrderId") Long id,
+            @RequestPart("stateId") Long stateId,
             @RequestPart(required = false, name = "image") MultipartFile image) {
-        return new ApiResponse<String>(200, null, consignmentOrdersService.confirmStatus(stateId, id, image));
-    }
-
-    @PutMapping("/status-success/{id}")
-    public ApiResponse<ConsignmentOrdersResponse> updateConsignmentOrderStatus(
-            @PathVariable Long id, 
-            @RequestParam("file") MultipartFile file) {
-        ConsignmentOrdersResponse response = consignmentOrdersService.updateConsignmentOrderStatus(id, file);
-            return new ApiResponse<ConsignmentOrdersResponse>(200, null, response);
+        return new ApiResponse<String>(200, null, consignmentOrdersService.updateStatus(stateId, id, image));
     }
 }

@@ -44,18 +44,14 @@ public class ConsignmentOrders {
     private String detailAddress;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date completeAt;
+    private Date statusChangeDate;
 
     @ManyToOne
     @JoinColumn(name = "ordererId")
     private Account ordererId;
 
     @OneToOne
-    @JoinTable(
-        name = "consignment_orders_image",
-        joinColumns = @JoinColumn(name = "consignmentOrderId"),
-        inverseJoinColumns = @JoinColumn(name = "imageId")
-    )
+    @JoinTable(name = "consignment_orders_image", joinColumns = @JoinColumn(name = "consignmentOrderId"), inverseJoinColumns = @JoinColumn(name = "imageId"))
     private Image image;
 
     @ManyToOne

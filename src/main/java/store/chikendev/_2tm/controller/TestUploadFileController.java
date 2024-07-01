@@ -30,7 +30,7 @@ public class TestUploadFileController {
     @Autowired
     private ProductRepository productRepository;
 
-    @Autowired  
+    @Autowired
     private ImageRepository imageRepository;
 
     @Autowired
@@ -46,24 +46,23 @@ public class TestUploadFileController {
         // List<ProductImages> productImages = new ArrayList<>();
 
         // for (ResponseDocumentDto fileSaved : responseDocumentDtos) {
-        //     Image image = Image.builder()
-        //             .fileId(fileSaved.getFileId())
-        //             .fileName(fileSaved.getFileName())
-        //             .fileDownloadUri(fileSaved.getFileDownloadUri())
-        //             .fileType(fileSaved.getFileType())
-        //             .size(fileSaved.getSize())
-        //             .build();
-        //     Image imageSaved = imageRepository.save(image);
+        // Image image = Image.builder()
+        // .fileId(fileSaved.getFileId())
+        // .fileName(fileSaved.getFileName())
+        // .fileDownloadUri(fileSaved.getFileDownloadUri())
+        // .fileType(fileSaved.getFileType())
+        // .size(fileSaved.getSize())
+        // .build();
+        // Image imageSaved = imageRepository.save(image);
 
-        //     ProductImages productImage = ProductImages.builder()
-        //             .product(product)
-        //             .image(imageSaved)
-        //             .build();
-        //     productImages.add(productImage);
+        // ProductImages productImage = ProductImages.builder()
+        // .product(product)
+        // .image(imageSaved)
+        // .build();
+        // productImages.add(productImage);
         // }
 
         // productImagesRepository.saveAll(productImages);
-
 
         return new ApiResponse<>(200, null, responseDocumentDtos);
     }
