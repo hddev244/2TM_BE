@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,7 +46,7 @@ import store.chikendev._2tm.utils.FilesHelp;
 public class ConsignmentOrdersService {
     @Autowired
     ImageRepository imageRepository;
-    
+
     @Autowired
     private ProductRepository productRepository;
 
@@ -230,6 +229,36 @@ public class ConsignmentOrdersService {
                     addressProvince;
         }
         return "";
+
+    }
+
+    public String confirmStatus(Long idStatus, Long idConsignmentOrders, MultipartFile file) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        });
+        ConsignmentOrders consignmentOrders = consignmentOrdersRepository.findById(idConsignmentOrders)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
+                });
+        StateConsignmentOrder state = stateConsignmentOrderRepository.findById(idStatus).orElseThrow(() -> {
+            throw new AppException(ErrorCode.STATE_NOT_FOUND);
+        });
+        if (consignmentOrders.getDeliveryPerson().getId().equals(account.getId())) {
+            if (idStatus == StateConsignmentOrder.ORDER_SUCCESSFULLY) {
+                if (file == null) {
+                    throw new AppException(ErrorCode.FILE_NOT_FOUND);
+                }
+                FilesHelp.saveFile(file, consignmentOrders.getId(), EntityFileType.CONSIGNMENT_ORDER);
+                consignmentOrders.setStateId(state);
+                consignmentOrdersRepository.save(consignmentOrders);
+                return "Xác nhận thành công";
+            }
+            consignmentOrders.setStateId(state);
+            consignmentOrdersRepository.save(consignmentOrders);
+            return "Xác nhận thành công";
+        }
+        throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
 
     }
 }
