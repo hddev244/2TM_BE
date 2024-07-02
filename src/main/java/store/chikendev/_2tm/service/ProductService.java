@@ -120,7 +120,6 @@ public class ProductService {
         product.setType(Product.TYPE_PRODUCT_OF_STORE);
         product.setCategory(category);
         product.setState(state);
-        product.setType(true);
         if (store.isPresent()) {
             product.setStore(store.get().getStore());
         } else {
@@ -128,7 +127,8 @@ public class ProductService {
         }
         // lưu ảnh
         Product save = productRepository.save(product);
-        saveProductImages(save, files);
+        List<ProductImages> images = saveProductImages(save, files);
+        save.setImages(images);
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
         request.getIdAttributeDetail().forEach(id -> {
@@ -155,7 +155,6 @@ public class ProductService {
                 EntityFileType.STORE_LOGO);
         responseStore.setUrlImage(imageStore.getFileDownloadUri());
         responseStore.setStreetAddress(getStoreAddress(save.getStore()));
-
         // product response
         ProductResponse response = convertToResponse(save);
         response.setIdCategory(product.getCategory().getId());
@@ -399,8 +398,8 @@ public class ProductService {
         // lưu ảnh
         Product saveProduct = productRepository.save(product);
 
-        saveProductImages(saveProduct, images);
-
+        List<ProductImages> imagesSave = saveProductImages(saveProduct, images);
+        saveProduct.setImages(imagesSave);
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
         request.getIdAttributeDetail().forEach(id -> {
@@ -431,28 +430,11 @@ public class ProductService {
         consignmentOrdersRepository.save(save);
 
         ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(save);
-        
+
         return response;
     }
 
-    private String getAddress(ConsignmentOrders consignmentOrders) {
-        if (consignmentOrders == null) {
-            return "";
-        }
-        if (consignmentOrders.getWard() != null) {
-            String addressWard = consignmentOrders.getWard().getName();
-            String addressDistrict = consignmentOrders.getWard().getDistrict().getName();
-            String addressProvince = consignmentOrders.getWard().getDistrict().getProvinceCity().getName();
-            String addressAddress = consignmentOrders.getDetailAddress() == null ? ""
-                    : consignmentOrders.getDetailAddress() + ", ";
-            return addressAddress + addressWard + ", " + addressDistrict + ", " +
-                    addressProvince;
-        }
-        return "";
-
-    }
-
-    private void saveProductImages(Product product, MultipartFile[] images) {
+    private List<ProductImages> saveProductImages(Product product, MultipartFile[] images) {
         List<ProductImages> productImages = new ArrayList<>();
         for (MultipartFile file : images) {
             ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, product.getId(), EntityFileType.PRODUCT);
@@ -471,6 +453,7 @@ public class ProductService {
                     .build();
             productImages.add(productImage);
         }
-        productImagesRepository.saveAll(productImages);
+        System.out.println(productImages.get(0).getImage().getFileDownloadUri());
+        return productImagesRepository.saveAll(productImages);
     }
 }
