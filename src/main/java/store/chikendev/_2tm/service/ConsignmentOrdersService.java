@@ -211,7 +211,7 @@ public class ConsignmentOrdersService {
 
     private Page<ConsignmentOrdersResponse> convertToResponse(Page<ConsignmentOrders> responce) {
         return responce.map(consignmentOrders -> {
-            return  convertToConsignmentOrdersResponse(consignmentOrders);
+            return convertToConsignmentOrdersResponse(consignmentOrders);
         });
     }
 
@@ -229,16 +229,19 @@ public class ConsignmentOrdersService {
                 .fullName(consignmentOrders.getDeliveryPerson().getFullName())
                 .phoneNumber(consignmentOrders.getDeliveryPerson().getPhoneNumber())
                 .build());
-        ResponseDocumentDto thumbnail = consignmentOrders.getProduct().getImages().stream()
-                .map(img -> ResponseDocumentDto.builder()
-                        .fileId(img.getImage().getFileId())
-                        .fileName(img.getImage().getFileName())
-                        .fileDownloadUri(img.getImage().getFileDownloadUri())
-                        .fileType(img.getImage().getFileType())
-                        .size(img.getImage().getSize())
-                        .build())
-                .findFirst()
-                .orElse(null);
+        ResponseDocumentDto thumbnail = null;
+        if (consignmentOrders.getProduct().getImages() != null) {
+            thumbnail = consignmentOrders.getProduct().getImages().stream()
+                    .map(img -> ResponseDocumentDto.builder()
+                            .fileId(img.getImage().getFileId())
+                            .fileName(img.getImage().getFileName())
+                            .fileDownloadUri(img.getImage().getFileDownloadUri())
+                            .fileType(img.getImage().getFileType())
+                            .size(img.getImage().getSize())
+                            .build())
+                    .findFirst()
+                    .orElse(null);
+        }
         response.setProduct(ProductResponse.builder()
                 .id(consignmentOrders.getProduct().getId())
                 .name(consignmentOrders.getProduct().getName())
