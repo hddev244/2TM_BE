@@ -211,56 +211,60 @@ public class ConsignmentOrdersService {
 
     private Page<ConsignmentOrdersResponse> convertToResponse(Page<ConsignmentOrders> responce) {
         return responce.map(consignmentOrders -> {
-            ConsignmentOrdersResponse response = new ConsignmentOrdersResponse();
-            response.setId(consignmentOrders.getId());
-            response.setNote(consignmentOrders.getNote());
-            response.setCreatedAt(consignmentOrders.getCreatedAt());
-            response.setOrderer(AccountResponse.builder()
-                    .id(consignmentOrders.getOrdererId().getId())
-                    .fullName(consignmentOrders.getOrdererId().getFullName())
-                    .build());
-            response.setDeliveryPerson(AccountResponse.builder()
-                    .id(consignmentOrders.getDeliveryPerson().getId())
-                    .fullName(consignmentOrders.getDeliveryPerson().getFullName())
-                    .phoneNumber(consignmentOrders.getDeliveryPerson().getPhoneNumber())
-                    .build());
-            ResponseDocumentDto thumbnail = consignmentOrders.getProduct().getImages().stream()
-                    .map(img -> ResponseDocumentDto.builder()
-                            .fileId(img.getImage().getFileId())
-                            .fileName(img.getImage().getFileName())
-                            .fileDownloadUri(img.getImage().getFileDownloadUri())
-                            .fileType(img.getImage().getFileType())
-                            .size(img.getImage().getSize())
-                            .build())
-                    .findFirst()
-                    .orElse(null);
-            response.setProduct(ProductResponse.builder()
-                    .id(consignmentOrders.getProduct().getId())
-                    .name(consignmentOrders.getProduct().getName())
-                    .price(consignmentOrders.getProduct().getPrice())
-                    .quantity(consignmentOrders.getProduct().getQuantity())
-                    .description(consignmentOrders.getProduct().getDescription())
-                    .thumbnail(thumbnail)
-                    .build());
-            response.setStore(
-                    StoreResponse.builder()
-                            .id(consignmentOrders.getStore().getId())
-                            .name(consignmentOrders.getStore().getName())
-                            .build());
-            response.setStateName(consignmentOrders.getStateId().getStatus());
-            response.setAddress(getAddress(consignmentOrders));
-            response.setPhone(consignmentOrders.getPhoneNumber());
-            response.setStatusChangeDate(consignmentOrders.getStatusChangeDate());
-            response.setImage(consignmentOrders.getImage() == null ? null
-                    : ResponseDocumentDto.builder()
-                            .fileId(consignmentOrders.getImage().getFileId())
-                            .fileName(consignmentOrders.getImage().getFileName())
-                            .fileDownloadUri(consignmentOrders.getImage().getFileDownloadUri())
-                            .fileType(consignmentOrders.getImage().getFileType())
-                            .size(consignmentOrders.getImage().getSize())
-                            .build());
-            return response;
+            return  convertToConsignmentOrdersResponse(consignmentOrders);
         });
+    }
+
+    public ConsignmentOrdersResponse convertToConsignmentOrdersResponse(ConsignmentOrders consignmentOrders) {
+        ConsignmentOrdersResponse response = new ConsignmentOrdersResponse();
+        response.setId(consignmentOrders.getId());
+        response.setNote(consignmentOrders.getNote());
+        response.setCreatedAt(consignmentOrders.getCreatedAt());
+        response.setOrderer(AccountResponse.builder()
+                .id(consignmentOrders.getOrdererId().getId())
+                .fullName(consignmentOrders.getOrdererId().getFullName())
+                .build());
+        response.setDeliveryPerson(AccountResponse.builder()
+                .id(consignmentOrders.getDeliveryPerson().getId())
+                .fullName(consignmentOrders.getDeliveryPerson().getFullName())
+                .phoneNumber(consignmentOrders.getDeliveryPerson().getPhoneNumber())
+                .build());
+        ResponseDocumentDto thumbnail = consignmentOrders.getProduct().getImages().stream()
+                .map(img -> ResponseDocumentDto.builder()
+                        .fileId(img.getImage().getFileId())
+                        .fileName(img.getImage().getFileName())
+                        .fileDownloadUri(img.getImage().getFileDownloadUri())
+                        .fileType(img.getImage().getFileType())
+                        .size(img.getImage().getSize())
+                        .build())
+                .findFirst()
+                .orElse(null);
+        response.setProduct(ProductResponse.builder()
+                .id(consignmentOrders.getProduct().getId())
+                .name(consignmentOrders.getProduct().getName())
+                .price(consignmentOrders.getProduct().getPrice())
+                .quantity(consignmentOrders.getProduct().getQuantity())
+                .description(consignmentOrders.getProduct().getDescription())
+                .thumbnail(thumbnail)
+                .build());
+        response.setStore(
+                StoreResponse.builder()
+                        .id(consignmentOrders.getStore().getId())
+                        .name(consignmentOrders.getStore().getName())
+                        .build());
+        response.setStateName(consignmentOrders.getStateId().getStatus());
+        response.setAddress(getAddress(consignmentOrders));
+        response.setPhone(consignmentOrders.getPhoneNumber());
+        response.setStatusChangeDate(consignmentOrders.getStatusChangeDate());
+        response.setImage(consignmentOrders.getImage() == null ? null
+                : ResponseDocumentDto.builder()
+                        .fileId(consignmentOrders.getImage().getFileId())
+                        .fileName(consignmentOrders.getImage().getFileName())
+                        .fileDownloadUri(consignmentOrders.getImage().getFileDownloadUri())
+                        .fileType(consignmentOrders.getImage().getFileType())
+                        .size(consignmentOrders.getImage().getSize())
+                        .build());
+        return response;
     }
 
     private String getAddress(ConsignmentOrders consignmentOrders) {

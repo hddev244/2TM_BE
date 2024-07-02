@@ -87,6 +87,9 @@ public class ProductService {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private ConsignmentOrdersService consignmentOrdersService;
+
+    @Autowired
     private StateProductRepository stateProductRepository;
 
     @Autowired
@@ -427,19 +430,8 @@ public class ProductService {
 
         consignmentOrdersRepository.save(save);
 
-        ConsignmentOrdersResponse response = ConsignmentOrdersResponse.builder()
-                .id(save.getId())
-                .note(save.getNote())
-                .createdAt(save.getCreatedAt())
-                .ordererName(save.getOrdererId().getFullName())
-                .deliveryPersonName(save.getDeliveryPerson().getFullName())
-                .productName(save.getProduct().getName())
-                .storeName(save.getStore().getName())
-                .stateName(save.getStateId().getStatus())
-                .address(getAddress(save))
-                .phone(save.getPhoneNumber())
-                .build();
-
+        ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(save);
+        
         return response;
     }
 
