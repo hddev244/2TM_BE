@@ -12,6 +12,7 @@ import lombok.Getter;
 public enum ErrorCode {
 
     // AUTH
+    ADDRESS_NOT_FOUND(450, "Không tìm thấy địa chỉ", HttpStatus.BAD_REQUEST),
     EMAIL_PHONE_EXISTED(411, "Email hoặc số điện thoại đã tồn tại", HttpStatus.BAD_REQUEST),
     USER_EXISTED(412, "Username đã tồn tại", HttpStatus.BAD_REQUEST),
     ACCOUNT_BLOCKED(413, "Tài khoản của bạn đã bị khóa do vi phạm chính sách", HttpStatus.BAD_REQUEST),
