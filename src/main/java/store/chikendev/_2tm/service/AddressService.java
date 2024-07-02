@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -142,6 +145,21 @@ public class AddressService {
         response.setName(newPrimaryAddress.getStreetAddress());
 
         return response;
+    }
+
+    public Page<AddressResponse> getUserAddresses(int pageNo, int pageSize, String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Address> addressPage = addressRepository.findByAccount(account, pageable);
+
+        return addressPage.map(address -> {
+            AddressResponse response = new AddressResponse();
+            response.setId(address.getId());
+            response.setName(address.getStreetAddress());
+            return response;
+        });
     }
 
 }

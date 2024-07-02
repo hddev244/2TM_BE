@@ -3,6 +3,7 @@ package store.chikendev._2tm.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import store.chikendev._2tm.dto.responce.WardResponse;
 import store.chikendev._2tm.service.AddressService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import store.chikendev._2tm.dto.request.AddressRequest;
 import store.chikendev._2tm.dto.responce.AddressResponse;
@@ -60,6 +62,16 @@ public class AddressController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         AddressResponse response = addressService.updatePrimaryAddress(email, request);
         return new ApiResponse<AddressResponse>(200, null, response);
+    }
+
+        @GetMapping("/user")
+    public ApiResponse<Page<AddressResponse>> getUserAddresses(
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Page<AddressResponse> addresses = addressService.getUserAddresses(pageNo, pageSize, email);
+        return new ApiResponse<Page<AddressResponse>>(200, null, addresses); 
     }
 
 }
