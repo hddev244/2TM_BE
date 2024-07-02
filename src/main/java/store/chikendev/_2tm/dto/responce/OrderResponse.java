@@ -1,6 +1,7 @@
 package store.chikendev._2tm.dto.responce;
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,4 +18,14 @@ public class OrderResponse {
     private String note;
     private Date createdAt;
     private Date completeAt;
+    private Boolean paymentStatus;
+    private String paymentId;
+    private String address;
+    private String consigneeName;
+    private String consigneePhoneNumber;
+    private Double totalPrice;
+    private String accountName;
+    private String state;
+    private String paymentMethodName;
+    private List<OrderDetailResponse> detail;
 }
