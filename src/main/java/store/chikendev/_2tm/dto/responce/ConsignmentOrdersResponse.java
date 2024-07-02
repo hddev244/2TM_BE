@@ -16,13 +16,13 @@ public class ConsignmentOrdersResponse {
     private Long id;
     private Date createdAt;
     private String note;
-    private String ordererName;
-    private String deliveryPersonName;
-    private String productName;
-    private String storeName;
+    private AccountResponse orderer;
+    private AccountResponse deliveryPerson;
+    private ProductResponse product;
+    private StoreResponse store;
     private String stateName;
     private String address;
     private String phone;
-    private String urlImage;
+    private ResponseDocumentDto image;
     private Date statusChangeDate;
 }
