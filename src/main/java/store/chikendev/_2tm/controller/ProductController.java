@@ -109,11 +109,11 @@ public class ProductController {
         return new ApiResponse<ConsignmentOrdersResponse>(200, null,
                 productService.ownerCreateProduct(request, images));
     }
-    
+
     @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
     @PutMapping("/update/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
+    public ApiResponse<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
         ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
-        return ResponseEntity.ok(updatedProduct);
+        return new ApiResponse<ProductResponse>(200, null, updatedProduct);
     }
 }
