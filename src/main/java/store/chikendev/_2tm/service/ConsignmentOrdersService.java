@@ -1,6 +1,7 @@
 package store.chikendev._2tm.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -151,6 +152,7 @@ public class ConsignmentOrdersService {
                 .detailAddress(request.getDetailAddress())
                 .ward(ward)
                 .deliveryPerson(deliveryPerson.get())
+                .statusChangeDate(new Date())
                 .build();
         return "Tạo vận đơn thành công, mã đơn hàng của bạn là: " + consignmentOrdersRepository.save(save).getId();
     }
