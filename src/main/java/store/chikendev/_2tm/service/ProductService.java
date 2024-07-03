@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.ConsignmentOrdersRequest;
 import store.chikendev._2tm.dto.request.CreateProductRequest;
+import store.chikendev._2tm.dto.request.ProductRequest;
 import store.chikendev._2tm.dto.responce.AttributeProductResponse;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
@@ -29,6 +30,7 @@ import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.ProductAttributeDetail;
 import store.chikendev._2tm.entity.ProductImages;
+import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.StateConsignmentOrder;
 import store.chikendev._2tm.entity.StateProduct;
 import store.chikendev._2tm.entity.Store;
@@ -44,6 +46,7 @@ import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.ProductAttributeDetailRepository;
 import store.chikendev._2tm.repository.ProductImagesRepository;
 import store.chikendev._2tm.repository.ProductRepository;
+import store.chikendev._2tm.repository.RoleRepository;
 import store.chikendev._2tm.repository.StateConsignmentOrderRepository;
 import store.chikendev._2tm.repository.StateProductRepository;
 import store.chikendev._2tm.repository.StoreRepository;
@@ -97,6 +100,9 @@ public class ProductService {
 
     @Autowired
     private AttributeDetailRepository attributeDetailRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
@@ -455,5 +461,44 @@ public class ProductService {
         }
         System.out.println(productImages.get(0).getImage().getFileDownloadUri());
         return productImagesRepository.saveAll(productImages);
+    }
+
+        public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Role role = roleRepository.findByAccountId(account.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.LOGIN_ROLE_REQUIRED));
+        if (!role.getName().equals(Role.ROLE_STORE_MANAGER) && !role.getName().equals(Role.ROLE_PRODUCT_OWNER)) {
+            throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+        }
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        Store store = product.getStore();
+        if (store == null || !isManagerOfStore(account, store)) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+
+        product.setName(productRequest.getName());
+        product.setPrice(productRequest.getPrice());
+        product.setQuantity(productRequest.getQuantity());
+        product.setDescription(productRequest.getDescription());
+
+        if (productRequest.getCategoryId() != null) {
+            Category category = categoryRepository.findById(productRequest.getCategoryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+            product.setCategory(category);
+        }
+
+        product = productRepository.save(product);
+        return convertToResponse(product);
+    }
+
+    private boolean isManagerOfStore(Account account, Store store) {
+        return store.getAccountStores().stream()
+                .anyMatch(accountStore -> accountStore.getAccount().equals(account));
     }
 }

@@ -12,13 +12,16 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.ConsignmentOrdersRequest;
 import store.chikendev._2tm.dto.request.CreateProductRequest;
+import store.chikendev._2tm.dto.request.ProductRequest;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
@@ -105,5 +108,12 @@ public class ProductController {
 
         return new ApiResponse<ConsignmentOrdersResponse>(200, null,
                 productService.ownerCreateProduct(request, images));
+    }
+    
+    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
+        ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
+        return ResponseEntity.ok(updatedProduct);
     }
 }
