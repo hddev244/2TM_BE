@@ -265,6 +265,26 @@ public class AccountService {
         return response;
     }
 
+    public String updateRoleNV(String idAccount, String idRole) {
+        Account account = accountRepository.findById(idAccount)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Role role = roleRepository.findById(idRole)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        List<RoleAccount> allRole = roleAccountRepository.findByAccount(account);
+        allRole.forEach(roleAccount -> {
+            if (roleAccount.getRole().getId().equals("NVCH") || roleAccount.getRole().getId().equals("NVGH")
+                    || roleAccount.getRole().getId().equals("QLCH")) {
+                roleAccountRepository.delete(roleAccount);
+            }
+        });
+        RoleAccount roleAccount = RoleAccount.builder()
+                .account(account)
+                .role(role)
+                .build();
+        roleAccountRepository.save(roleAccount);
+        return "Cập nhật thành công";
+    }
+
     public AccountResponse lockAccount(String id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
