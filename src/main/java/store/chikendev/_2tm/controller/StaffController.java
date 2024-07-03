@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -52,4 +53,13 @@ public class StaffController {
         AccountResponse updatedAccount = accountService.lockAccount(id);
         return new ApiResponse<AccountResponse>(200, null, updatedAccount);
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_QTV')")
+    @PostMapping("update-role")
+    public ApiResponse<String> updateRole(@RequestParam("idAccount") String idAccount,
+            @RequestParam("idRole") String idRole) {
+        String updatedAccount = accountService.updateRoleNV(idAccount, idRole);
+        return new ApiResponse<String>(200, null, updatedAccount);
+    }
+
 }

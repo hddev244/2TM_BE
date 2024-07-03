@@ -42,6 +42,11 @@ public class AccountController {
     @Autowired
     private HttpServletResponse response;
 
+    @GetMapping
+    public ApiResponse<AccountResponse> getAccount() {
+        return new ApiResponse<AccountResponse>(200, null, accountService.getAccountByToken());
+    }
+
     @PostMapping("register")
     public ApiResponse<AccountResponse> register(@RequestBody @Valid AccountRequest request) {
         AccountResponse response = accountService.register(request);
