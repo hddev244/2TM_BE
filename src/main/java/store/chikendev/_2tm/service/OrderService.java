@@ -29,6 +29,7 @@ import store.chikendev._2tm.repository.CartItemsRepository;
 import store.chikendev._2tm.repository.OrderDetailsRepository;
 import store.chikendev._2tm.repository.OrderRepository;
 import store.chikendev._2tm.repository.PaymentMethodsRepository;
+import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.repository.WardRepository;
 
@@ -56,6 +57,9 @@ public class OrderService {
     @Autowired
     private WardRepository wardRepository;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     public OrderResponse createOrder(OrderRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
@@ -67,6 +71,10 @@ public class OrderService {
         Ward ward = wardRepository.findById(request.getWardId()).orElseThrow(() -> {
             throw new AppException(ErrorCode.WARD_NOT_FOUND);
         });
+        List<CartItems> cartItem = cartItemsRepository.getItemsByAccount(account.getId());
+        if (cartItem.isEmpty()) {
+            throw new AppException(ErrorCode.CART_EMPTY);
+        }
         Order order = Order.builder()
                 .deliveryCost(request.getDeliveryCost() == null ? 0 : request.getDeliveryCost())
                 .note(request.getNote())
@@ -80,7 +88,7 @@ public class OrderService {
                 .ward(ward)
                 .build();
         Order save1 = orderRepository.save(order);
-        List<CartItems> cartItem = cartItemsRepository.getItemsByAccount(account.getId());
+
         List<OrderDetails> details = new ArrayList<>();
         Double totalPrice = 0.0;
         for (CartItems item : cartItem) {
@@ -91,12 +99,17 @@ public class OrderService {
                     .order(save1)
                     .build();
             details.add(detail);
+            Product product = detail.getProduct();
+            product.setQuantity(product.getQuantity() - detail.getQuantity());
+            System.out.println(product.getQuantity() - detail.getQuantity());
+            productRepository.save(product);
             totalPrice += detail.getPrice() * detail.getQuantity();
         }
         orderDetailRepository.saveAll(details);
         cartItemsRepository.deleteAll(cartItem);
         save1.setTotalPrice(totalPrice);
         Order save2 = orderRepository.save(save1);
+        save2.setDetails(details);
         return convertToOrderResponse(save2);
 
     }

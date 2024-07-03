@@ -35,6 +35,7 @@ public enum ErrorCode {
     CONSIGNMENT_ORDER_NOT_FOUND(440, "Không tìm thấy vận đơn", HttpStatus.BAD_REQUEST),
     STATE_ERROR(441, "Trạng thái không phù hợp để thay đổi", HttpStatus.BAD_REQUEST),
     PAYMENT_METHOD_NOT_FOUND(442, "không tìm thấy phương thức thanh toán", HttpStatus.BAD_REQUEST),
+    CART_EMPTY(443, "không tìm thấy sản phẩm trong giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
 
     // File
     ROLE_NOT_FOUND(420, "Không tìm thấy vai trò", HttpStatus.BAD_REQUEST),
