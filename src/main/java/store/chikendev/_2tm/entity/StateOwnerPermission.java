@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "statesProduct")
+@Table(name = "StateOwnerPermission")
 @Builder
 public class StateOwnerPermission {
     public static final Long IN_CONFIRM = 1L;
