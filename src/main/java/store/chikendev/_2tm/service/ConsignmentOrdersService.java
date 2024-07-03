@@ -111,7 +111,7 @@ public class ConsignmentOrdersService {
                 .state(stateProduct)
                 .store(store)
                 .ownerId(account)
-                .type(false)
+                .type(Product.TYPE_PRODUCT_OF_ACCOUNT)
                 .build();
 
         Product saveProduct = productRepository.save(product);
@@ -209,8 +209,8 @@ public class ConsignmentOrdersService {
         }
     }
 
-    private Page<ConsignmentOrdersResponse> convertToResponse(Page<ConsignmentOrders> responce) {
-        return responce.map(consignmentOrders -> {
+    private Page<ConsignmentOrdersResponse> convertToResponse(Page<ConsignmentOrders> response) {
+        return response.map(consignmentOrders -> {
             return convertToConsignmentOrdersResponse(consignmentOrders);
         });
     }

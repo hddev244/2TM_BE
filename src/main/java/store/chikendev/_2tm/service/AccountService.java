@@ -268,11 +268,11 @@ public class AccountService {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-            StateAccount lockedState = new StateAccount();
-            lockedState.setId(StateAccount.LOCKED);  // Set trạng thái là 5 (bị khóa)
-            account.setState(lockedState);
-            accountRepository.save(account);
-            return mapper.map(account, AccountResponse.class);
+        StateAccount lockedState = new StateAccount();
+        lockedState.setId(StateAccount.LOCKED); // Set trạng thái là 5 (bị khóa)
+        account.setState(lockedState);
+        accountRepository.save(account);
+        return mapper.map(account, AccountResponse.class);
     }
 
     @SuppressWarnings("static-access")
