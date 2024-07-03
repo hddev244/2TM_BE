@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +40,9 @@ public class OwnerPermission {
     @Column(length = 100)
     private String accountHolderName;
 
-    private Boolean status;
+    @ManyToOne
+    @JoinColumn(name = "stateId")
+    private StateOwnerPermission state;
 
     @OneToOne
     @JoinColumn(name = "accountId")
