@@ -1,7 +1,5 @@
 package store.chikendev._2tm.dto.request;
 
-import java.util.List;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -29,7 +27,7 @@ public class CreateStaffRequest {
     @Email(message = "Định dạng email không chính xác")
     private String email;
     @NotNull(message = "Bạn cần phân quyền cho nhân viên")
-    private List<String> roles;
+    private String roleId;
     private Long storeId;
 
 }

@@ -1,7 +1,6 @@
 package store.chikendev._2tm.service;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -138,20 +137,17 @@ public class AccountService {
         account.setState(state);
         Account savedAccount = accountRepository.save(account);
 
-        List<RoleAccount> roles = new ArrayList<>();
-        for (String roleId : request.getRoles()) {
-            Role role = roleRepository.findById(roleId).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
-            RoleAccount roleAccount = RoleAccount.builder()
-                    .account(savedAccount)
-                    .role(role)
-                    .build();
-            roles.add(roleAccount);
-        }
-
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        RoleAccount roleAccount = RoleAccount.builder()
+                .account(savedAccount)
+                .role(role)
+                .build();
+        roleAccountRepository.save(roleAccount);
         CreateStaffResponse response = mapper.map(savedAccount, CreateStaffResponse.class);
         response.setStateName(savedAccount.getState().getName());
-        response.setRoles(roleAccountRepository.saveAll(roles).stream()
-                .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
+        response.setRoles(roleAccountRepository.findByAccount(savedAccount).stream()
+                .map(roleStaff -> mapper.map(roleStaff.getRole(), RoleResponse.class)).toList());
 
         if (request.getStoreId() != null) {
             System.out.println(request.getStoreId());
@@ -226,24 +222,28 @@ public class AccountService {
         account.setUsername(request.getUsername());
         Account savedAccount = accountRepository.save(account);
 
-        if (request.getRoles().size() > 0) {
+        if (request.getRoleId() != null) {
             List<RoleAccount> allRole = roleAccountRepository.findByAccount(savedAccount);
-            roleAccountRepository.deleteAll(allRole);
+            allRole.forEach(role -> {
+                if (role.getRole().getId().equals("NVCH") || role.getRole().getId().equals("NVGH")
+                        || role.getRole().getId().equals("QLCH")) {
+                    roleAccountRepository.delete(role);
+                }
+            });
         }
-        List<RoleAccount> roles = new ArrayList<>();
-        for (String roleId : request.getRoles()) {
-            Role role = roleRepository.findById(roleId).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
-            RoleAccount roleAccount = RoleAccount.builder()
-                    .account(savedAccount)
-                    .role(role)
-                    .build();
-            roles.add(roleAccount);
-        }
+
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        RoleAccount roleAccount = RoleAccount.builder()
+                .account(savedAccount)
+                .role(role)
+                .build();
+        roleAccountRepository.save(roleAccount);
 
         CreateStaffResponse response = mapper.map(savedAccount, CreateStaffResponse.class);
         response.setStateName(savedAccount.getState().getName());
-        response.setRoles(roleAccountRepository.saveAll(roles).stream()
-                .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
+        response.setRoles(roleAccountRepository.findByAccount(savedAccount).stream()
+                .map(roleStaff -> mapper.map(roleStaff.getRole(), RoleResponse.class)).toList());
 
         if (request.getStoreId() != null) {
             Optional<AccountStore> storeOld = accountStoreRepository.findByAccount(savedAccount);
