@@ -31,6 +31,7 @@ import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.ProductAttributeDetail;
 import store.chikendev._2tm.entity.ProductImages;
 import store.chikendev._2tm.entity.Role;
+import store.chikendev._2tm.entity.RoleAccount;
 import store.chikendev._2tm.entity.StateConsignmentOrder;
 import store.chikendev._2tm.entity.StateProduct;
 import store.chikendev._2tm.entity.Store;
@@ -46,7 +47,7 @@ import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.ProductAttributeDetailRepository;
 import store.chikendev._2tm.repository.ProductImagesRepository;
 import store.chikendev._2tm.repository.ProductRepository;
-import store.chikendev._2tm.repository.RoleRepository;
+import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.StateConsignmentOrderRepository;
 import store.chikendev._2tm.repository.StateProductRepository;
 import store.chikendev._2tm.repository.StoreRepository;
@@ -102,7 +103,7 @@ public class ProductService {
     private AttributeDetailRepository attributeDetailRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleAccountRepository roleAccountRepository;
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
@@ -463,16 +464,18 @@ public class ProductService {
         return productImagesRepository.saveAll(productImages);
     }
 
-        public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
+    public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        Role role = roleRepository.findByAccountId(account.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.LOGIN_ROLE_REQUIRED));
-        if (!role.getName().equals(Role.ROLE_STORE_MANAGER) && !role.getName().equals(Role.ROLE_PRODUCT_OWNER)) {
-            throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
-        }
+        List<RoleAccount> allRole = roleAccountRepository.findByAccount(account);
+        allRole.forEach(roleAccount -> {
+            if (!roleAccount.getRole().getId().equals(Role.ROLE_STORE_MANAGER)
+                    && !roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)) {
+                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+            }
+        });
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));

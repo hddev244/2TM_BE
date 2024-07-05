@@ -71,7 +71,16 @@ public class OrderService {
         Ward ward = wardRepository.findById(request.getWardId()).orElseThrow(() -> {
             throw new AppException(ErrorCode.WARD_NOT_FOUND);
         });
-        List<CartItems> cartItem = cartItemsRepository.getItemsByAccount(account.getId());
+        List<CartItems> cartItem = new ArrayList<>();
+        for (Long id : request.getCartItemId()) {
+            CartItems item = cartItemsRepository.findById(id).orElseThrow(() -> {
+                throw new AppException(ErrorCode.CART_EMPTY);
+            });
+            if (!item.getAccount().getId().equals(account.getId())) {
+                throw new AppException(ErrorCode.CART_EMPTY);
+            }
+            cartItem.add(item);
+        }
         if (cartItem.isEmpty()) {
             throw new AppException(ErrorCode.CART_EMPTY);
         }

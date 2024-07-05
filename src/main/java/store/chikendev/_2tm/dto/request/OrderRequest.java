@@ -1,5 +1,7 @@
 package store.chikendev._2tm.dto.request;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -25,5 +27,6 @@ public class OrderRequest {
     private Long paymentMethodId;
     @NotNull(message = "Không bỏ trống quận, huyện nơi giao hàng")
     private Long wardId;
+    private List<Long> cartItemId;
 
 }
