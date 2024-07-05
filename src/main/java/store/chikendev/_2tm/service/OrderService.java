@@ -100,8 +100,13 @@ public class OrderService {
                     .build();
             details.add(detail);
             Product product = detail.getProduct();
-            product.setQuantity(product.getQuantity() - detail.getQuantity());
-            System.out.println(product.getQuantity() - detail.getQuantity());
+            Integer quanTity = product.getQuantity() - detail.getQuantity();
+            if (quanTity < 0) {
+                orderRepository.delete(save1);
+                throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
+            }
+            product.setQuantity(quanTity);
+            System.out.println(quanTity);
             productRepository.save(product);
             totalPrice += detail.getPrice() * detail.getQuantity();
         }
