@@ -168,9 +168,15 @@ public class CartService {
 
     // Xóa sản phẩm khỏi giỏ hàng
     public void removeProductFromCart(Long productId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         CartItems cartItem = cartItemsRepository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng"));
-        cartItemsRepository.delete(cartItem);
+        if (cartItem.getAccount().getId().equals(account.getId())) {
+            cartItemsRepository.delete(cartItem);
+        }
+        throw new AppException(ErrorCode.CART_EMPTY);
     }
 
 }
