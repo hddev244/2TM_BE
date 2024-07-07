@@ -21,6 +21,7 @@ import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
+import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.service.AccountService;
 import store.chikendev._2tm.service.AuthenticationService;
@@ -135,9 +136,9 @@ public class AccountController {
     }
 
     @PostMapping(value = "updateImage", consumes = "multipart/form-data")
-    public ApiResponse<String> updateImage(@RequestPart("id") String id,
+    public ApiResponse<ResponseDocumentDto> updateImage(@RequestPart("id") String id,
             @RequestPart("image") MultipartFile image) {
-        return new ApiResponse<String>(200, null, accountService.updateImage(id, image));
+        return new ApiResponse<ResponseDocumentDto>(200, null, accountService.updateImage(id, image));
     }
 
     @PutMapping("/{id}")

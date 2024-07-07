@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import store.chikendev._2tm.dto.responce.RoleResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Address;
+import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.RoleAccount;
 import store.chikendev._2tm.entity.StateAccount;
@@ -33,6 +35,7 @@ import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.AccountStoreRepository;
+import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.RoleRepository;
 import store.chikendev._2tm.repository.StateAccountRepository;
@@ -40,9 +43,13 @@ import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.SendEmail;
+import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class AccountService {
+
+    @Autowired
+    private ImageRepository imageReponsitory;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -297,13 +304,27 @@ public class AccountService {
     }
 
     @SuppressWarnings("static-access")
-    public String updateImage(String id, MultipartFile file) {
+    public ResponseDocumentDto updateImage(String id, MultipartFile file) {
         Account account = accountRepository.findById(id).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         });
-        filesHelp.saveFile(file, account.getId(), EntityFileType.USER_AVATAR);
-        List<ResponseDocumentDto> imageNew = filesHelp.getDocuments(id, EntityFileType.USER_AVATAR);
-        return imageNew.get(0).getFileDownloadUri();
+        Image avatar = account.getImage();
+        if (avatar != null) {
+            filesHelp.deleteFile(account.getId(), avatar.getFileId(), EntityFileType.USER_AVATAR);
+        } else {
+            avatar = new Image();
+        }
+        var fileSaved = filesHelp.saveFile(file, account.getId(), EntityFileType.USER_AVATAR);
+        
+        avatar.setFileId(fileSaved.getFileId());
+        avatar.setFileName(fileSaved.getFileName());
+        avatar.setFileType(fileSaved.getFileType());
+        avatar.setSize(fileSaved.getSize());
+        avatar.setFileDownloadUri(fileSaved.getFileDownloadUri());
+
+        imageReponsitory.save(avatar);
+
+        return ImageDtoUtil.convertToImageResponse(avatar);
     }
 
     // random pass

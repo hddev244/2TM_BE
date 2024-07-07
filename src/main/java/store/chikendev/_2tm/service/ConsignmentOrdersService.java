@@ -46,6 +46,7 @@ import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
+import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class ConsignmentOrdersService {
@@ -234,13 +235,7 @@ public class ConsignmentOrdersService {
         ResponseDocumentDto thumbnail = null;
         if (consignmentOrders.getProduct().getImages() != null) {
             thumbnail = consignmentOrders.getProduct().getImages().stream()
-                    .map(img -> ResponseDocumentDto.builder()
-                            .fileId(img.getImage().getFileId())
-                            .fileName(img.getImage().getFileName())
-                            .fileDownloadUri(img.getImage().getFileDownloadUri())
-                            .fileType(img.getImage().getFileType())
-                            .size(img.getImage().getSize())
-                            .build())
+                    .map(img -> ImageDtoUtil.convertToImageResponse(img.getImage()))
                     .findFirst()
                     .orElse(null);
         }
@@ -262,13 +257,7 @@ public class ConsignmentOrdersService {
         response.setPhone(consignmentOrders.getPhoneNumber());
         response.setStatusChangeDate(consignmentOrders.getStatusChangeDate());
         response.setImage(consignmentOrders.getImage() == null ? null
-                : ResponseDocumentDto.builder()
-                        .fileId(consignmentOrders.getImage().getFileId())
-                        .fileName(consignmentOrders.getImage().getFileName())
-                        .fileDownloadUri(consignmentOrders.getImage().getFileDownloadUri())
-                        .fileType(consignmentOrders.getImage().getFileType())
-                        .size(consignmentOrders.getImage().getSize())
-                        .build());
+                : ImageDtoUtil.convertToImageResponse(consignmentOrders.getImage()));
         return response;
     }
 
