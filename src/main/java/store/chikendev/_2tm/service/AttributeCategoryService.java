@@ -32,11 +32,12 @@ public class AttributeCategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         List<AttributeCategory> attributeCategories = attributeCategoryRepositosy.findByCategory(category);
+        
         return attributeCategories.stream().map(attributeCategory -> ProductAttributeResponse.builder()
                 .id(attributeCategory.getAttribute().getId())
                 .name(attributeCategory.getAttribute().getName())
-                .detail(attributeCategory.getAttribute().getDetails().stream()
-                        .map(detail -> mapper.map(detail, AttributeDetailResponse.class)).toList())
+                .detail(attributeCategory.getAttributeDetails().stream()
+                .map(detail -> mapper.map(detail, AttributeDetailResponse.class)).toList())
                 .build()).collect(Collectors.toList());
     }
 }
