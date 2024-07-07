@@ -54,6 +54,7 @@ import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
+import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class ProductService {
@@ -179,13 +180,7 @@ public class ProductService {
             // thay đổi ảnh thumbnail bằng image từ db
             if (product.getImages().size() > 0) {
                 var image = product.getImages().get(0).getImage();
-                thumbnail = ResponseDocumentDto.builder()
-                        .fileId(image.getFileId())
-                        .fileName(image.getFileName())
-                        .fileDownloadUri(image.getFileDownloadUri())
-                        .fileType(image.getFileType())
-                        .size(image.getSize())
-                        .build();
+                thumbnail = ImageDtoUtil.convertToImageResponse(image);
             }
 
             var address = getStoreAddress(product.getStore());
@@ -250,13 +245,7 @@ public class ProductService {
 
         List<ResponseDocumentDto> responseDocument = product.getImages().stream().map(img -> {
             Image image = img.getImage();
-            return ResponseDocumentDto.builder()
-                    .fileId(image.getFileId())
-                    .fileName(image.getFileName())
-                    .fileDownloadUri(image.getFileDownloadUri())
-                    .fileType(image.getFileType())
-                    .size(image.getSize())
-                    .build();
+            return ImageDtoUtil.convertToImageResponse(image);
         }).toList();
         response.setImages(responseDocument);
         return response;

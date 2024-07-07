@@ -32,6 +32,7 @@ import store.chikendev._2tm.repository.PaymentMethodsRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.repository.WardRepository;
+import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class OrderService {
@@ -167,13 +168,7 @@ public class OrderService {
 
         List<ResponseDocumentDto> responseDocument = product.getImages().stream().map(img -> {
             Image image = img.getImage();
-            return ResponseDocumentDto.builder()
-                    .fileId(image.getFileId())
-                    .fileName(image.getFileName())
-                    .fileDownloadUri(image.getFileDownloadUri())
-                    .fileType(image.getFileType())
-                    .size(image.getSize())
-                    .build();
+            return ImageDtoUtil.convertToImageResponse(image);
         }).toList();
         response.setImages(responseDocument);
         return response;
