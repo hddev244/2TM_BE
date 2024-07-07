@@ -15,19 +15,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig  implements WebMvcConfigurer  {
+public class SecurityConfig implements WebMvcConfigurer {
 
     @Autowired
     private CustomJWTDecoder customJWTDecoder;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
-                    "http://localhost:3000",
-                    "https://2tm.store",
-                    "http://2tm.store"
-                    )
+                        "http://localhost:3000",
+                        "https://2tm.store",
+                        "http://2tm.store")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
@@ -44,6 +46,9 @@ public class SecurityConfig  implements WebMvcConfigurer  {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.csrf(c -> c.disable());
+        httpSecurity.cors(c -> c.disable());
+        
         httpSecurity.authorizeHttpRequests(request -> {
             // request.requestMatchers("/register", "/login", "/profile/**", "district/**",
             // "/upload/cloud", "/files/**",
@@ -62,11 +67,8 @@ public class SecurityConfig  implements WebMvcConfigurer  {
         httpSecurity.oauth2ResourceServer(oauth2 -> {
             oauth2.jwt(jwtConfig -> jwtConfig.decoder(customJWTDecoder)
                     .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                    .authenticationEntryPoint(new JwtAuthenticationEntryPoint());
+                    .authenticationEntryPoint(jwtAuthenticationEntryPoint);
         });
-
-        httpSecurity.csrf(c -> c.disable());
-        httpSecurity.cors(c -> c.disable());
 
         return httpSecurity.build();
     }
