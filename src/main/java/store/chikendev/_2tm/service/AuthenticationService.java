@@ -114,7 +114,7 @@ public class AuthenticationService {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
         }
-        
+
         if (LOGIN_ROLE_USER.equals(role_login)) {
             boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_USER)
                     || role.getRole().getId().equals(Role.ROLE_CUSTOMER)
@@ -221,7 +221,7 @@ public class AuthenticationService {
     }
 
     // kiem tra token
-    public SignedJWT verifyToken(String token, boolean isRefresh) throws ParseException, JOSEException {
+    public SignedJWT verifyToken(String token, boolean isRefresh) throws ParseException, JOSEException,AppException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
 
@@ -233,12 +233,14 @@ public class AuthenticationService {
         } else {
             expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         }
+
         var verified = signedJWT.verify(verifier);
 
         if (!verified)
             throw new AppException(ErrorCode.UNAUTHORIZED);
         if (expiryTime.before(new Date()))
             throw new AppException(ErrorCode.UNAUTHORIZED);
+
         if (invaLidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
@@ -246,7 +248,7 @@ public class AuthenticationService {
     }
 
     // lam moi token
-    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException, AppException {
         SignedJWT verify = this.verifyToken(request.getToken(), true);
         String id = verify.getJWTClaimsSet().getJWTID();
         Date expiryTime = verify.getJWTClaimsSet().getExpirationTime();
