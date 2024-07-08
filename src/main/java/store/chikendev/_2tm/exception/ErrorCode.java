@@ -58,6 +58,7 @@ public enum ErrorCode {
     FILE_UPLOAD_ERROR(428, "Lỗi khi tải file lên", HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR(500, "Lỗi máy chủ", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHORIZED(401, "Thông tin xác nhận không hợp lệ", HttpStatus.UNAUTHORIZED),
+    TOKEN_EXPIRED(402, "Phiên đăng nhập đã hết hạn", HttpStatus.UNAUTHORIZED),
     FILE_NOT_FOUND(429, "Bạn không thể bỏ trống ảnh trong mục này", HttpStatus.BAD_REQUEST);
 
     private int code;

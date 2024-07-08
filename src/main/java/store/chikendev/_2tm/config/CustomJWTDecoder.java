@@ -3,7 +3,6 @@ package store.chikendev._2tm.config;
 import java.util.Objects;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -12,10 +11,8 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
+
 import lombok.experimental.NonFinal;
-import store.chikendev._2tm.exception.AppException;
-import store.chikendev._2tm.exception.ErrorCode;
-import store.chikendev._2tm.service.AuthenticationService;
 
 @Component
 public class CustomJWTDecoder implements JwtDecoder {
@@ -24,19 +21,10 @@ public class CustomJWTDecoder implements JwtDecoder {
     @Value("${jwt.signerKey}")
     private String SIGNER_KEY;
 
-    @Autowired
-    private AuthenticationService authenticationService;
-
     private NimbusJwtDecoder nimbusJwtDecoder = null;
 
     @Override
     public Jwt decode(String token) throws JwtException {
-        try {
-            authenticationService.verifyToken(token, false);
-        } catch (Exception e) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-
         if (Objects.isNull(nimbusJwtDecoder)) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(SIGNER_KEY.getBytes(), "HS512");
             nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)

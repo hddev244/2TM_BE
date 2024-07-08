@@ -32,6 +32,8 @@ public class AttributeCategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         List<AttributeCategory> attributeCategories = attributeCategoryRepositosy.findByCategory(category);
+
+        System.out.println("attributeCategories: " + category.getAttributes().get(0).getAttributeDetails().size());
         
         return attributeCategories.stream().map(attributeCategory -> ProductAttributeResponse.builder()
                 .id(attributeCategory.getAttribute().getId())

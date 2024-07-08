@@ -26,6 +26,7 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.LogoutRequest;
@@ -114,7 +115,7 @@ public class AuthenticationService {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
         }
-        
+
         if (LOGIN_ROLE_USER.equals(role_login)) {
             boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_USER)
                     || role.getRole().getId().equals(Role.ROLE_CUSTOMER)
@@ -205,48 +206,60 @@ public class AuthenticationService {
 
     // đăng xuất
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
-        try {
-            SignedJWT signToken = verifyToken(request.getToken(), true);
+        SignedJWT signToken = verifyToken(request.getToken(), true);
 
-            String jwtId = signToken.getJWTClaimsSet().getJWTID();
-            Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
-            InvaLidatedToken invaLidatedToken = InvaLidatedToken.builder()
-                    .id(jwtId)
-                    .expiryTime(expiryTime)
-                    .build();
-            invaLidatedTokenRepository.save(invaLidatedToken);
-        } catch (Exception e) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);// TODO: handle exception
-        }
+        String jwtId = signToken.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+        InvaLidatedToken invaLidatedToken = InvaLidatedToken.builder()
+                .id(jwtId)
+                .expiryTime(expiryTime)
+                .build();
+        invaLidatedTokenRepository.save(invaLidatedToken);
+
     }
 
     // kiem tra token
-    public SignedJWT verifyToken(String token, boolean isRefresh) throws ParseException, JOSEException {
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
-        SignedJWT signedJWT = SignedJWT.parse(token);
-
+    public SignedJWT verifyToken(String token, boolean isRefresh) throws AppException {
+        JWSVerifier verifier;
+        SignedJWT signedJWT;
+        var verified = false;
         Date expiryTime;
 
-        if (isRefresh) {
-            expiryTime = new Date(signedJWT.getJWTClaimsSet().getIssueTime().toInstant()
-                    .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli());
-        } else {
-            expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-        }
-        var verified = signedJWT.verify(verifier);
+        try {
+            signedJWT = SignedJWT.parse(token);
+            verifier = new MACVerifier(SIGNER_KEY.getBytes());
+            verified = signedJWT.verify(verifier);
+            if (isRefresh) {
+                expiryTime = new Date(signedJWT.getJWTClaimsSet().getIssueTime().toInstant()
+                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli());
+            } else {
+                expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+            }
 
-        if (!verified)
+            if (invaLidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+        } catch (JOSEException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (signedJWT == null || verifier == null) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
-        if (expiryTime.before(new Date()))
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        if (invaLidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+        } else {
+
+            if (!verified)
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+
+            if (expiryTime.before(new Date()))
+                throw new AppException(ErrorCode.TOKEN_EXPIRED);
+
+        }
 
         return signedJWT;
     }
 
     // lam moi token
-    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request)
+            throws ParseException, JOSEException, AppException {
         SignedJWT verify = this.verifyToken(request.getToken(), true);
         String id = verify.getJWTClaimsSet().getJWTID();
         Date expiryTime = verify.getJWTClaimsSet().getExpirationTime();
@@ -268,5 +281,15 @@ public class AuthenticationService {
                 .build();
 
     }
+
+    public String getTokenFromRequest(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        return token.substring(7);
+    }
+
+   
 
 }

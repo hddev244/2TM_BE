@@ -395,7 +395,6 @@ public class ProductService {
         Product saveProduct = productRepository.save(product);
 
         List<ProductImages> imagesSave = saveProductImages(saveProduct, images);
-        saveProduct.setImages(imagesSave);
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
         request.getIdAttributeDetail().forEach(id -> {
@@ -411,7 +410,7 @@ public class ProductService {
 
         StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.IN_CONFIRM).get();
 
-        ConsignmentOrders save = ConsignmentOrders.builder()
+        ConsignmentOrders consignmentOrderSaved = ConsignmentOrders.builder()
                 .note(request.getNote())
                 .ordererId(account)
                 .product(saveProduct)
@@ -423,9 +422,12 @@ public class ProductService {
                 .deliveryPerson(deliveryPerson.get())
                 .build();
 
-        consignmentOrdersRepository.save(save);
+        consignmentOrdersRepository.save(consignmentOrderSaved);
 
-        ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(save);
+        saveProduct.setImages(imagesSave);
+        consignmentOrderSaved.setProduct(saveProduct);
+        ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(consignmentOrderSaved);
+
 
         return response;
     }
