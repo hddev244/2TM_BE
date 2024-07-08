@@ -109,6 +109,7 @@ public class AddressService {
 
     }
 
+    // xem theo account
     public List<AddressResponse> getAddressByUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
