@@ -50,19 +50,9 @@ public class SecurityConfig implements WebMvcConfigurer {
         httpSecurity.cors(c -> c.disable());
         
         httpSecurity.authorizeHttpRequests(request -> {
-            // request.requestMatchers("/register", "/login", "/profile/**", "district/**",
-            // "/upload/cloud", "/files/**",
-            // "province/**", "ward/**", "/account/logout", "/account/refresh",
-            // "exportToExcel")
-            // .permitAll()
-            // .requestMatchers(HttpMethod.GET, "file/**").permitAll()
-            // .requestMatchers(HttpMethod.GET, "/articleCategory/**",
-            // "courseCategories/**", "QuestionType/**",
-            // "role/**")
-            // .hasRole("ADMIN")
-            // .anyRequest().authenticated();
             request.anyRequest().permitAll();
         });
+        
 
         httpSecurity.oauth2ResourceServer(oauth2 -> {
             oauth2.jwt(jwtConfig -> jwtConfig.decoder(customJWTDecoder)
