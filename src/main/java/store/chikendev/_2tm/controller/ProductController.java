@@ -115,5 +115,15 @@ public class ProductController {
     public ApiResponse<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
         ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
         return new ApiResponse<ProductResponse>(200, null, updatedProduct);
+    }  
+    
+    @PreAuthorize("hasRole('ROLE_CH')")
+    @GetMapping("/consignment")
+    public ApiResponse<Page<ProductResponse>> getConsignmentProductsByState(
+            @RequestParam(required = false, name = "stateId") Long stateId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<ProductResponse> products = productService.getConsignmentProductsByOwnerAndState(stateId, page, size);
+        return new ApiResponse<Page<ProductResponse>>(200, null, products);
     }
 }
