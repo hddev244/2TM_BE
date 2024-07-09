@@ -156,7 +156,7 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<AccountResponse> getAccountById(@PathVariable String id) {
+    public ApiResponse<AccountResponse> getAccountById(@PathVariable(name = "id") String id) {
         AccountResponse accountResponse = accountService.getStaffById(id);
         return new ApiResponse<AccountResponse>(200, null, accountResponse);
     }
