@@ -1,7 +1,6 @@
 package store.chikendev._2tm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -150,10 +149,9 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<AccountResponse> getAccountById(@PathVariable Long id) {
+    public ApiResponse<AccountResponse> getAccountById(@PathVariable String id) {
         AccountResponse accountResponse = accountService.getStaffById(id);
-        return new ApiResponse<AccountResponse>(200,null, accountResponse);
+        return new ApiResponse<AccountResponse>(200, null, accountResponse);
     }
-    
 
 }

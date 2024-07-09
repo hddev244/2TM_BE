@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -315,7 +314,7 @@ public class AccountService {
             avatar = new Image();
         }
         var fileSaved = filesHelp.saveFile(file, account.getId(), EntityFileType.USER_AVATAR);
-        
+
         avatar.setFileId(fileSaved.getFileId());
         avatar.setFileName(fileSaved.getFileName());
         avatar.setFileType(fileSaved.getFileType());
@@ -377,25 +376,25 @@ public class AccountService {
                 .build();
     }
 
-public AccountResponse getStaffById(Long id){
-    Account account = accountRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-    ResponseDocumentDto image = FilesHelp.getOneDocument(account.getId(), EntityFileType.USER_AVATAR);
-    return AccountResponse.builder()
-           .id(account.getId())
-           .username(account.getUsername())
-           .fullName(account.getFullName())
-           .phoneNumber(account.getPhoneNumber())
-           .email(account.getEmail())
-           .roles(roleAccountRepository.findByAccount(account).stream()
-                   .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList())
-           .address(getAddress(account.getAddress()))
-           .violationPoints(account.getViolationPoints())
-           .createdAt(account.getCreatedAt())
-           .updatedAt(account.getUpdatedAt())
-           .stateName(account.getState().getName())
-           .image(image)
-           .build();
-}
+    public AccountResponse getStaffById(String id) {
+        Account account = accountRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        ResponseDocumentDto image = FilesHelp.getOneDocument(account.getId(), EntityFileType.USER_AVATAR);
+        return AccountResponse.builder()
+                .id(account.getId())
+                .username(account.getUsername())
+                .fullName(account.getFullName())
+                .phoneNumber(account.getPhoneNumber())
+                .email(account.getEmail())
+                .roles(roleAccountRepository.findByAccount(account).stream()
+                        .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList())
+                .address(getAddress(account.getAddress()))
+                .violationPoints(account.getViolationPoints())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
+                .stateName(account.getState().getName())
+                .image(image)
+                .build();
+    }
 
     // Lấy địa chỉ
     public String getAddress(Address address) {
