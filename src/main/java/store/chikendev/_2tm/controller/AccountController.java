@@ -131,14 +131,21 @@ public class AccountController {
     }
 
     @PostMapping("change-password")
-    public ApiResponse<AccountResponse> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
-        return new ApiResponse<AccountResponse>(200, null, accountService.changePassword(request));
+    public ApiResponse<String> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
+        return new ApiResponse<String>(200, null, accountService.changePassword(request) ? "Đổi mật khẩu thành công"
+                : "Đổi mật khẩu thất bại");
     }
 
     @PostMapping(value = "updateImage", consumes = "multipart/form-data")
     public ApiResponse<ResponseDocumentDto> updateImage(@RequestPart("id") String id,
             @RequestPart("image") MultipartFile image) {
         return new ApiResponse<ResponseDocumentDto>(200, null, accountService.updateImage(id, image));
+    }
+
+    @PostMapping(value = "changeAvatar", consumes = "multipart/form-data")
+    public ApiResponse<ResponseDocumentDto> updateImagePersonal(
+            @RequestPart("image") MultipartFile image) {
+        return new ApiResponse<ResponseDocumentDto>(200, null, accountService.changeAvatar(image));
     }
 
     @PutMapping("/{id}")

@@ -200,7 +200,7 @@ public class AccountService {
         });
     }
 
-    public AccountResponse changePassword(ChangePasswordRequest request) {
+    public boolean changePassword(ChangePasswordRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -208,10 +208,8 @@ public class AccountService {
         if (checkPass) {
             if (request.getPasswordNew().equals(request.getPasswordConfirm())) {
                 account.setPassword(passwordEncoder.encode(request.getPasswordNew()));
-                AccountResponse response = mapper.map(accountRepository.save(account), AccountResponse.class);
-                response.setRoles(roleAccountRepository.findByAccount(account).stream()
-                        .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class)).toList());
-                return response;
+                accountRepository.save(account);
+                return true;
             } else {
                 throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
             }
@@ -411,6 +409,30 @@ public class AccountService {
         }
         return "";
 
+    }
+
+    public ResponseDocumentDto changeAvatar(MultipartFile image) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Image avatar = account.getImage();
+        if (avatar != null) {
+            filesHelp.deleteFile(account.getId(), avatar.getFileId(), EntityFileType.USER_AVATAR);
+        } else {
+            avatar = new Image();
+        }
+        var fileSaved = filesHelp.saveFile(image, account.getId(), EntityFileType.USER_AVATAR);
+        avatar.setFileId(fileSaved.getFileId());
+        avatar.setFileName(fileSaved.getFileName());
+        avatar.setFileType(fileSaved.getFileType());
+        avatar.setSize(fileSaved.getSize());
+        avatar.setFileDownloadUri(fileSaved.getFileDownloadUri());
+
+        var avatarUpdate = imageReponsitory.save(avatar);
+        account.setImage(avatar);
+        accountRepository.save(account);
+
+        return ImageDtoUtil.convertToImageResponse(avatar);
     }
 
 }

@@ -35,8 +35,9 @@ public class StaffController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_QTV')")
-    @GetMapping("staff/{page}")
-    public ApiResponse<Page<CreateStaffResponse>> getStaff(@PathVariable("page") Optional<Integer> pageNo) {
+    @GetMapping("staff")
+    public ApiResponse<Page<CreateStaffResponse>> getStaff(@RequestParam(name = "pageNo" , required = false) Optional<Integer> pageNo) {
+       
         return new ApiResponse<Page<CreateStaffResponse>>(200, null, accountService.getAllStaff(pageNo));
     }
 
