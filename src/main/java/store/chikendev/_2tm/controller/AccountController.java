@@ -1,6 +1,7 @@
 package store.chikendev._2tm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -154,7 +155,7 @@ public class AccountController {
         Account updatedAccount = accountService.updateAccountById(id, updateAccountRequest);
         return new ApiResponse<Account>(200, null, updatedAccount);
     }
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/{id}")
     public ApiResponse<AccountResponse> getAccountById(@PathVariable(name = "id") String id) {
         AccountResponse accountResponse = accountService.getStaffById(id);
