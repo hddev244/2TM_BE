@@ -1,10 +1,13 @@
 package store.chikendev._2tm.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Component
 public class SendEmail {
@@ -14,8 +17,8 @@ public class SendEmail {
     // @Async
     public String sendMail(String to, String subject, String message) {
         System.out.println("Sending email...");
-       sendMailAsync(to, subject, message);
-       System.out.println("Email sent");
+        sendMailAsync(to, subject, message);
+        System.out.println("Email sent");
 
         return "Email đã được gửi vui lòng đợi trong giây lát";
     }
@@ -23,11 +26,18 @@ public class SendEmail {
     @Async("asyncExecutor")
     public void sendMailAsync(String to, String subject, String message) {
         Thread thread = new Thread(() -> {
-            SimpleMailMessage msg = new SimpleMailMessage();
-            msg.setTo(to);
-            msg.setSubject(subject);
-            msg.setText(message);
-            sender.send(msg);
+            try {
+                MimeMessage messages = sender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(messages, true, "UTF-8");
+
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(message, true);
+
+                sender.send(messages);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         });
         thread.start();
     }

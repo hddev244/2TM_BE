@@ -32,6 +32,7 @@ import store.chikendev._2tm.repository.PaymentMethodsRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.repository.WardRepository;
+import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
@@ -60,6 +61,9 @@ public class OrderService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private SendEmail sendEmail;
 
     public OrderResponse createOrder(OrderRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -127,6 +131,27 @@ public class OrderService {
         save2.setDetails(details);
         return convertToOrderResponse(save2);
 
+    }
+
+    private String generateOrderDetailsHtml(Order order) {
+        String httt = order.getPaymentMethod().getId() == PaymentMethods.PAYMENT_ON_DELIVERY
+                ? "Thanh toán khi nhận hàng"
+                : "Thanh toán bằng VNPAY";
+        // Tạo HTML chi tiết đơn hàng từ thông tin order
+        return "<html><body>" +
+                "<h1>Tạo thành công hóa đơn</h1>" +
+                "<p>Cảm ơn bạn đã đặt hàng của chúng tôi!</p>" +
+                "<p>Mã hóa đơn: " + order.getId() + "</p>" +
+                "<p>Ngày tạo hóa đơn: " + order.getCreatedAt() + "</p>" +
+                "<p>Hình thức thanh toán:" + httt + "</p>" +
+                "<p>Sản phẩm đã đặt:</p>" +
+                "<ul>" +
+                order.getDetails().stream()
+                        .map(item -> "<li>" + item.getProduct().getName() + " - " + item.getQuantity() + "</li>")
+                        .collect(Collectors.joining())
+                +
+                "</ul>" +
+                "</body></html>";
     }
 
     private String getAddress(Order order) {

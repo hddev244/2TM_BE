@@ -24,9 +24,9 @@ public class OrderController {
         return new ApiResponse<OrderResponse>(200, null, orderService.createOrder(request));
     }
 
-    @GetMapping
-    public OrderRequest demo() {
-        return new OrderRequest();
-    }
+    // @GetMapping
+    // public String demo() {
+    // return orderService.sendEmail();
+    // }
 
 }

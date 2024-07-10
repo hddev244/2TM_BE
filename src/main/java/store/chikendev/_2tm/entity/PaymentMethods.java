@@ -19,6 +19,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Builder
 public class PaymentMethods {
+
+    public static final Long PAYMENT_ON_DELIVERY = 1L;
+    public static final Long PAYMENT_ONLINE_VNPAY = 3L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
