@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -46,7 +47,7 @@ public class ConsignmentOrdersController {
     }
 
     @PreAuthorize("hasRole('ROLE_NVGH')")
-    @PostMapping(value = "update-status", consumes = "multipart/form-data")
+    @PutMapping(value = "update-status", consumes = "multipart/form-data")
     public ApiResponse<String> updateStatus(@RequestPart("consignmentOrderId") Long id,
             @RequestPart("stateId") Long stateId,
             @RequestPart(required = false, name = "image") MultipartFile image) {
