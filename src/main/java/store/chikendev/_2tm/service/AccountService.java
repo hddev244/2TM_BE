@@ -174,6 +174,7 @@ public class AccountService {
         response.setStateName(savedAccount.getState().getName());
         response.setRoles(roleAccountRepository.findByAccount(savedAccount).stream()
                 .map(roleStaff -> mapper.map(roleStaff.getRole(), RoleResponse.class)).toList());
+        response.setAddress(getAddress(savedAccount.getAddress()));
 
         if (request.getStoreId() != null) {
             System.out.println(request.getStoreId());
