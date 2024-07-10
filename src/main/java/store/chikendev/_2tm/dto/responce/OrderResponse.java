@@ -27,5 +27,6 @@ public class OrderResponse {
     private String accountName;
     private String state;
     private String paymentMethodName;
+    private String storeName;
     private List<OrderDetailResponse> detail;
 }

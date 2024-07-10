@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import store.chikendev._2tm.dto.request.OrderInformation;
 import store.chikendev._2tm.dto.request.OrderRequest;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
@@ -21,6 +22,7 @@ import store.chikendev._2tm.entity.OrderDetails;
 import store.chikendev._2tm.entity.PaymentMethods;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.StateOrder;
+import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.entity.Ward;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
@@ -31,6 +33,7 @@ import store.chikendev._2tm.repository.OrderRepository;
 import store.chikendev._2tm.repository.PaymentMethodsRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
+import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
@@ -65,7 +68,10 @@ public class OrderService {
     @Autowired
     private SendEmail sendEmail;
 
-    public OrderResponse createOrder(OrderRequest request) {
+    @Autowired
+    private StoreRepository storeRepository;
+
+    public List<OrderResponse> createOrder(OrderInformation request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
@@ -76,61 +82,75 @@ public class OrderService {
         Ward ward = wardRepository.findById(request.getWardId()).orElseThrow(() -> {
             throw new AppException(ErrorCode.WARD_NOT_FOUND);
         });
-        List<CartItems> cartItem = new ArrayList<>();
-        for (Long id : request.getCartItemId()) {
-            CartItems item = cartItemsRepository.findById(id).orElseThrow(() -> {
-                throw new AppException(ErrorCode.CART_EMPTY);
-            });
-            if (!item.getAccount().getId().equals(account.getId())) {
-                throw new AppException(ErrorCode.CART_EMPTY);
-            }
-            cartItem.add(item);
-        }
-        if (cartItem.isEmpty()) {
+        if (request.getDetails().size() <= 0) {
             throw new AppException(ErrorCode.CART_EMPTY);
         }
-        Order order = Order.builder()
-                .deliveryCost(request.getDeliveryCost() == null ? 0 : request.getDeliveryCost())
-                .note(request.getNote())
-                .paymentStatus(false)
-                .consigneeDetailAddress(request.getConsigneeDetailAddress())
-                .consigneeName(request.getConsigneeName())
-                .consigneePhoneNumber(request.getConsigneePhoneNumber())
-                .account(account)
-                .stateOrder(stateOrderRepository.findById(StateOrder.IN_CONFIRM).get())
-                .paymentMethod(methods)
-                .ward(ward)
-                .build();
-        Order save1 = orderRepository.save(order);
-
-        List<OrderDetails> details = new ArrayList<>();
-        Double totalPrice = 0.0;
-        for (CartItems item : cartItem) {
-            OrderDetails detail = OrderDetails.builder()
-                    .price(item.getProduct().getPrice())
-                    .quantity(item.getQuantity())
-                    .product(item.getProduct())
-                    .order(save1)
-                    .build();
-            details.add(detail);
-            Product product = detail.getProduct();
-            Integer quanTity = product.getQuantity() - detail.getQuantity();
-            if (quanTity < 0) {
-                orderRepository.delete(save1);
-                throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
+        List<OrderResponse> orders = new ArrayList<>();
+        for (OrderRequest detailRequest : request.getDetails()) {
+            Store store = storeRepository.findById(detailRequest.getStoreId()).orElseThrow(() -> {
+                throw new AppException(ErrorCode.STORE_NOT_FOUND);
+            });
+            List<CartItems> cartItem = new ArrayList<>();
+            for (Long id : detailRequest.getCartItemId()) {
+                CartItems item = cartItemsRepository.findById(id).orElseThrow(() -> {
+                    throw new AppException(ErrorCode.CART_EMPTY);
+                });
+                if (!item.getAccount().getId().equals(account.getId())) {
+                    throw new AppException(ErrorCode.CART_EMPTY);
+                }
+                if (item.getProduct().getStore().getId() != detailRequest.getStoreId()) {
+                    throw new AppException(ErrorCode.CART_EMPTY);
+                }
+                cartItem.add(item);
             }
-            product.setQuantity(quanTity);
-            System.out.println(quanTity);
-            productRepository.save(product);
-            totalPrice += detail.getPrice() * detail.getQuantity();
-        }
-        orderDetailRepository.saveAll(details);
-        cartItemsRepository.deleteAll(cartItem);
-        save1.setTotalPrice(totalPrice);
-        Order save2 = orderRepository.save(save1);
-        save2.setDetails(details);
-        return convertToOrderResponse(save2);
+            if (cartItem.isEmpty()) {
+                throw new AppException(ErrorCode.CART_EMPTY);
+            }
+            Order order = Order.builder()
+                    .deliveryCost(request.getDeliveryCost() == null ? 0 : request.getDeliveryCost())
+                    .note(request.getNote())
+                    .paymentStatus(false)
+                    .consigneeDetailAddress(request.getConsigneeDetailAddress())
+                    .consigneeName(request.getConsigneeName())
+                    .consigneePhoneNumber(request.getConsigneePhoneNumber())
+                    .account(account)
+                    .stateOrder(stateOrderRepository.findById(StateOrder.IN_CONFIRM).get())
+                    .paymentMethod(methods)
+                    .ward(ward)
+                    .store(store)
+                    .build();
+            Order save1 = orderRepository.save(order);
 
+            List<OrderDetails> details = new ArrayList<>();
+            Double totalPrice = 0.0;
+            for (CartItems item : cartItem) {
+                OrderDetails detail = OrderDetails.builder()
+                        .price(item.getProduct().getPrice())
+                        .quantity(item.getQuantity())
+                        .product(item.getProduct())
+                        .order(save1)
+                        .build();
+                details.add(detail);
+                Product product = detail.getProduct();
+                Integer quanTity = product.getQuantity() - detail.getQuantity();
+                if (quanTity < 0) {
+                    orderRepository.delete(save1);
+                    throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
+                }
+                product.setQuantity(quanTity);
+                System.out.println(quanTity);
+                productRepository.save(product);
+                totalPrice += detail.getPrice() * detail.getQuantity();
+            }
+            orderDetailRepository.saveAll(details);
+            cartItemsRepository.deleteAll(cartItem);
+            save1.setTotalPrice(totalPrice);
+            Order save2 = orderRepository.save(save1);
+            save2.setDetails(details);
+            OrderResponse response = convertToOrderResponse(save2);
+            orders.add(response);
+        }
+        return orders;
     }
 
     private String generateOrderDetailsHtml(Order order) {
@@ -218,6 +238,7 @@ public class OrderService {
                 .detail(order.getDetails().stream().map(detail -> {
                     return convertToOrderDetailResponse(detail);
                 }).collect(Collectors.toList()))
+                .storeName(order.getStore().getName())
                 .build();
     }
 }
