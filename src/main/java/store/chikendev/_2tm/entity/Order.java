@@ -61,6 +61,10 @@ public class Order {
     private StateOrder stateOrder;
 
     @ManyToOne
+    @JoinColumn(name = "StoreId")
+    private Store store;
+
+    @ManyToOne
     @JoinColumn(name = "paymentMethodId")
     private PaymentMethods paymentMethod;
 
