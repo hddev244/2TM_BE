@@ -29,5 +29,7 @@ public class CreateStaffRequest {
     @NotNull(message = "Bạn cần phân quyền cho nhân viên")
     private String roleId;
     private Long storeId;
+    private String Address;
+    private Long idWard;
 
 }

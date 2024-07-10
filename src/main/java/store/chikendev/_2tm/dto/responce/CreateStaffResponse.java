@@ -25,4 +25,5 @@ public class CreateStaffResponse {
     private ResponseDocumentDto urlImage;
     private List<RoleResponse> roles;
     private String nameStore;
+    private String address;
 }

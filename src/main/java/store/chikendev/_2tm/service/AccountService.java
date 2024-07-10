@@ -30,15 +30,18 @@ import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.RoleAccount;
 import store.chikendev._2tm.entity.StateAccount;
 import store.chikendev._2tm.entity.Store;
+import store.chikendev._2tm.entity.Ward;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.AccountStoreRepository;
+import store.chikendev._2tm.repository.AddressRepository;
 import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.RoleRepository;
 import store.chikendev._2tm.repository.StateAccountRepository;
 import store.chikendev._2tm.repository.StoreRepository;
+import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.SendEmail;
@@ -79,6 +82,12 @@ public class AccountService {
 
     @Autowired
     private FilesHelp filesHelp;
+
+    @Autowired
+    private AddressRepository addressRepository;
+
+    @Autowired
+    private WardRepository wardRepository;
 
     private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private final int PASSWORD_LENGTH = 6;
@@ -134,6 +143,9 @@ public class AccountService {
         if (username.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
+        Ward ward = wardRepository.findById(request.getIdWard()).orElseThrow(() -> {
+            throw new AppException(ErrorCode.WARD_NOT_FOUND);
+        });
 
         StateAccount state = stateAccountRepository.findById(StateAccount.ACTIVE)
                 .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
@@ -143,6 +155,13 @@ public class AccountService {
         account.setViolationPoints(100);
         account.setState(state);
         Account savedAccount = accountRepository.save(account);
+        Address address = Address.builder()
+                .account(savedAccount)
+                .ward(ward)
+                .streetAddress(request.getAddress())
+                .build();
+        savedAccount.setAddress(addressRepository.save(address));
+        accountRepository.save(savedAccount);
 
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
@@ -411,6 +430,7 @@ public class AccountService {
 
     }
 
+    @SuppressWarnings("static-access")
     public ResponseDocumentDto changeAvatar(MultipartFile image) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
@@ -429,6 +449,7 @@ public class AccountService {
         avatar.setFileDownloadUri(fileSaved.getFileDownloadUri());
 
         var avatarUpdate = imageReponsitory.save(avatar);
+        System.out.println(avatarUpdate.getFileDownloadUri());
         account.setImage(avatar);
         accountRepository.save(account);
 
