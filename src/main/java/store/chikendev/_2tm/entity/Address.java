@@ -2,6 +2,9 @@ package store.chikendev._2tm.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,6 +27,9 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String streetAddress;
+    
+    @Column(length = 10)
+    private String phoneNumber;
 
     @ManyToOne
     @JoinColumn(name = "accountId")
@@ -33,6 +39,7 @@ public class Address {
     @JoinColumn(name = "wardId")
     private Ward ward;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "address")
     private List<Account> accounts;
 

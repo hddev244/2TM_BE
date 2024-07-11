@@ -32,6 +32,7 @@ import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.LogoutRequest;
 import store.chikendev._2tm.dto.request.RefreshTokenRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
+import store.chikendev._2tm.dto.responce.AddressResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
 import store.chikendev._2tm.dto.responce.RoleResponse;
 import store.chikendev._2tm.entity.Account;
@@ -159,6 +160,12 @@ public class AuthenticationService {
                                 .phoneNumber(user.getPhoneNumber())
                                 .email(user.getEmail())
                                 .image(image)
+                                .primaryAddress(
+                                        user.getAddress() != null ? AddressResponse.builder()
+                                                .id(user.getAddress().getId())
+                                                .name(user.getAddress().getStreetAddress())
+                                                .wardId(user.getAddress().getWard().getId())
+                                                .build() : null)
                                 .build())
                 .token(token)
                 .build();
@@ -289,7 +296,5 @@ public class AuthenticationService {
         }
         return token.substring(7);
     }
-
-   
 
 }

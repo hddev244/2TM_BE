@@ -30,4 +30,5 @@ public class AccountResponse {
     private String stateName;
     private ResponseDocumentDto image;
     private StateAccount state;
+    private AddressResponse primaryAddress;
 }

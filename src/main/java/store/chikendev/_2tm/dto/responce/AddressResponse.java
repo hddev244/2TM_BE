@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class AddressResponse {
     private Long id;
     private String name;
+    private Long wardId;
 }
