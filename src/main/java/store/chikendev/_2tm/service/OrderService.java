@@ -2,6 +2,7 @@ package store.chikendev._2tm.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,41 +74,48 @@ public class OrderService {
 
     public List<OrderResponse> createOrder(OrderInformation request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
-        });
-        PaymentMethods methods = methodsRepository.findById(request.getPaymentMethodId()).orElseThrow(() -> {
-            throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_FOUND);
-        });
-        Ward ward = wardRepository.findById(request.getWardId()).orElseThrow(() -> {
-            throw new AppException(ErrorCode.WARD_NOT_FOUND);
-        });
-        if (request.getDetails().size() <= 0) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        PaymentMethods methods = methodsRepository.findById(request.getPaymentMethodId())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
+
+        Ward ward = wardRepository.findById(request.getWardId())
+                .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
+
+        if (request.getDetails().isEmpty()) {
             throw new AppException(ErrorCode.CART_EMPTY);
         }
+
         List<OrderResponse> orders = new ArrayList<>();
+
         for (OrderRequest detailRequest : request.getDetails()) {
-            Store store = storeRepository.findById(detailRequest.getStoreId()).orElseThrow(() -> {
-                throw new AppException(ErrorCode.STORE_NOT_FOUND);
-            });
-            List<CartItems> cartItem = new ArrayList<>();
+            Store store = storeRepository.findById(detailRequest.getStoreId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+
+            List<CartItems> cartItems = new ArrayList<>();
+
             for (Long id : detailRequest.getCartItemId()) {
-                CartItems item = cartItemsRepository.findById(id).orElseThrow(() -> {
-                    throw new AppException(ErrorCode.CART_EMPTY);
-                });
+                CartItems item = cartItemsRepository.findById(id)
+                        .orElseThrow(() -> new AppException(ErrorCode.CART_EMPTY));
+
                 if (!item.getAccount().getId().equals(account.getId())) {
                     throw new AppException(ErrorCode.CART_EMPTY);
                 }
-                if (item.getProduct().getStore().getId() != detailRequest.getStoreId()) {
+
+                if (!item.getProduct().getStore().getId().equals(detailRequest.getStoreId())) {
                     throw new AppException(ErrorCode.CART_EMPTY);
                 }
-                cartItem.add(item);
+
+                cartItems.add(item);
             }
-            if (cartItem.isEmpty()) {
+
+            if (cartItems.isEmpty()) {
                 throw new AppException(ErrorCode.CART_EMPTY);
             }
+
             Order order = Order.builder()
-                    .deliveryCost(request.getDeliveryCost() == null ? 0 : request.getDeliveryCost())
+                    .deliveryCost(Optional.ofNullable(request.getDeliveryCost()).orElse((double) 0))
                     .note(request.getNote())
                     .paymentStatus(false)
                     .consigneeDetailAddress(request.getConsigneeDetailAddress())
@@ -119,37 +127,46 @@ public class OrderService {
                     .ward(ward)
                     .store(store)
                     .build();
-            Order save1 = orderRepository.save(order);
+
+            Order savedOrder = orderRepository.save(order);
 
             List<OrderDetails> details = new ArrayList<>();
-            Double totalPrice = 0.0;
-            for (CartItems item : cartItem) {
+            double totalPrice = 0.0;
+
+            for (CartItems item : cartItems) {
                 OrderDetails detail = OrderDetails.builder()
                         .price(item.getProduct().getPrice())
                         .quantity(item.getQuantity())
                         .product(item.getProduct())
-                        .order(save1)
+                        .order(savedOrder)
                         .build();
+
                 details.add(detail);
+
                 Product product = detail.getProduct();
-                Integer quanTity = product.getQuantity() - detail.getQuantity();
-                if (quanTity < 0) {
-                    orderRepository.delete(save1);
+                int remainingQuantity = product.getQuantity() - detail.getQuantity();
+
+                if (remainingQuantity < 0) {
+                    orderRepository.delete(savedOrder);
                     throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
                 }
-                product.setQuantity(quanTity);
-                System.out.println(quanTity);
+
+                product.setQuantity(remainingQuantity);
                 productRepository.save(product);
                 totalPrice += detail.getPrice() * detail.getQuantity();
             }
+
             orderDetailRepository.saveAll(details);
-            cartItemsRepository.deleteAll(cartItem);
-            save1.setTotalPrice(totalPrice);
-            Order save2 = orderRepository.save(save1);
-            save2.setDetails(details);
-            OrderResponse response = convertToOrderResponse(save2);
+            cartItemsRepository.deleteAll(cartItems);
+
+            savedOrder.setTotalPrice(totalPrice);
+            savedOrder.setDetails(details);
+            orderRepository.save(savedOrder);
+
+            OrderResponse response = convertToOrderResponse(savedOrder);
             orders.add(response);
         }
+
         return orders;
     }
 
