@@ -166,29 +166,12 @@ public class OrderService {
             OrderResponse response = convertToOrderResponse(savedOrder);
             orders.add(response);
         }
+        if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
+            String htmlContent = generateOrdersSummaryHtml(orders);
+            sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
+        }
 
         return orders;
-    }
-
-    private String generateOrderDetailsHtml(Order order) {
-        String httt = order.getPaymentMethod().getId() == PaymentMethods.PAYMENT_ON_DELIVERY
-                ? "Thanh toán khi nhận hàng"
-                : "Thanh toán bằng VNPAY";
-        // Tạo HTML chi tiết đơn hàng từ thông tin order
-        return "<html><body>" +
-                "<h1>Tạo thành công hóa đơn</h1>" +
-                "<p>Cảm ơn bạn đã đặt hàng của chúng tôi!</p>" +
-                "<p>Mã hóa đơn: " + order.getId() + "</p>" +
-                "<p>Ngày tạo hóa đơn: " + order.getCreatedAt() + "</p>" +
-                "<p>Hình thức thanh toán:" + httt + "</p>" +
-                "<p>Sản phẩm đã đặt:</p>" +
-                "<ul>" +
-                order.getDetails().stream()
-                        .map(item -> "<li>" + item.getProduct().getName() + " - " + item.getQuantity() + "</li>")
-                        .collect(Collectors.joining())
-                +
-                "</ul>" +
-                "</body></html>";
     }
 
     private String getAddress(Order order) {
@@ -258,4 +241,60 @@ public class OrderService {
                 .storeName(order.getStore().getName())
                 .build();
     }
+
+    private String generateOrdersSummaryHtml(List<OrderResponse> orders) {
+        StringBuilder htmlBuilder = new StringBuilder();
+
+        double grandTotal = 0;
+
+        htmlBuilder.append("<html>")
+                .append("<head>")
+                .append("<style>")
+                .append("body { font-family: Arial, sans-serif; margin: 20px; }")
+                .append(".order-summary { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; }")
+                .append(".order-header { background-color: #f2f2f2; padding: 10px; font-size: 18px; }")
+                .append(".order-details { margin-top: 10px; }")
+                .append("table { width: 100%; border-collapse: collapse; }")
+                .append("th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }")
+                .append(".total-price, .grand-total { font-weight: bold; margin-top: 10px; }")
+                .append(".grand-total { font-size: 20px; margin-top: 20px; }")
+                .append("</style>")
+                .append("</head>")
+                .append("<body>")
+                .append("<h1>Tạo thành công các hóa đơn</h1>")
+                .append("<p>Cảm ơn bạn đã đặt hàng của chúng tôi!</p>");
+
+        for (OrderResponse order : orders) {
+            htmlBuilder.append("<div class='order-summary'>")
+                    .append("<div class='order-header'>Hóa đơn: ").append(order.getId()).append("</div>")
+                    .append("<div class='order-details'>")
+                    .append("<p>Ngày tạo hóa đơn: ").append(order.getCreatedAt()).append("</p>")
+                    .append("<p>Hình thức thanh toán: ").append(order.getPaymentMethodName()).append("</p>")
+                    .append("<p>Địa chỉ nhận hàng: ").append(order.getAddress()).append("</p>")
+                    .append("<p>Sản phẩm đã đặt:</p>")
+                    .append("<table>")
+                    .append("<tr><th>Tên sản phẩm</th><th>Số lượng</th><th>Đơn giá (VND)</th><th>Tổng tiền (VND)</th></tr>")
+                    .append(order.getDetail().stream()
+                            .map(item -> "<tr>"
+                                    + "<td>" + item.getProduct().getName() + "</td>"
+                                    + "<td>" + item.getQuantity() + "</td>"
+                                    + "<td>" + item.getPrice() + "</td>"
+                                    + "<td>" + (item.getQuantity() * item.getPrice()) + "</td>"
+                                    + "</tr>")
+                            .collect(Collectors.joining()))
+                    .append("</table>")
+                    .append("<p class='total-price'>Tổng giá trị: ").append(order.getTotalPrice()).append(" VND</p>")
+                    .append("</div>")
+                    .append("</div>");
+
+            grandTotal += order.getTotalPrice();
+        }
+
+        htmlBuilder.append("<div class='grand-total'>Tổng tiền của tất cả hóa đơn: ").append(grandTotal)
+                .append(" VND</div>")
+                .append("</body></html>");
+
+        return htmlBuilder.toString();
+    }
+
 }
