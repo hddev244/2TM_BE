@@ -126,24 +126,23 @@ public class AddressService {
 
     }
 
-    public AddressResponse updatePrimaryAddress(String email, AddressRequest request) {
+    public AddressResponse updatePrimaryAddress(Long addressId) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        List<Address> addresses = addressRepository.findByAccount(account);
-        if (addresses.isEmpty()) {
-            throw new AppException(ErrorCode.ADDRESS_NOT_FOUND);
-        }
-
-        Address newPrimaryAddress = addressRepository.findById(request.getWardId())
+        Address addressFound = addressRepository.findById(addressId)
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        account.setAddress(newPrimaryAddress);
+        account.setAddress(addressFound);
         accountRepository.save(account);
 
-        AddressResponse response = new AddressResponse();
-        response.setId(newPrimaryAddress.getId());
-        response.setName(newPrimaryAddress.getStreetAddress());
+        AddressResponse response = AddressResponse.builder()
+                .id(addressFound.getId())
+                .name(getAddress(addressFound))
+                .wardId(addressFound.getWard().getId())
+                .build();
 
         return response;
     }

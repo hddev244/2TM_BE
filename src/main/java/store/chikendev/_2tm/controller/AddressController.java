@@ -56,10 +56,9 @@ public class AddressController {
         return new ApiResponse<List<AddressResponse>>(200, null, addressService.getAddressByUserId());
     }
 
-    @PutMapping("/primary")
-    public ApiResponse<AddressResponse> updatePrimaryAddress(@RequestBody AddressRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        AddressResponse response = addressService.updatePrimaryAddress(email, request);
+    @PutMapping("/primary/account")
+    public ApiResponse<AddressResponse> updatePrimaryAddress(@RequestParam(name="addressId" ,required = true) Long addressId) {
+        AddressResponse response = addressService.updatePrimaryAddress(addressId);
         return new ApiResponse<AddressResponse>(200, null, response);
     }
 
