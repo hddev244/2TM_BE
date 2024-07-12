@@ -123,6 +123,8 @@ public class AddressService {
             AddressResponse response = new AddressResponse();
             response.setId(address.getId());
             response.setName(getAddress(address));
+            response.setWardId(address.getWard().getId());
+            response.setPhoneNumber(address.getPhoneNumber());
             responses.add(response);
         }
         return responses;
