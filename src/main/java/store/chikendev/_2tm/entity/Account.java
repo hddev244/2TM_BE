@@ -105,4 +105,7 @@ public class Account {
     @OneToMany(mappedBy = "account")
     private List<CartItems> CartItems;
 
+    @OneToMany(mappedBy = "account")
+    private List<PaymentRecords> paymentRecords;
+
 }
