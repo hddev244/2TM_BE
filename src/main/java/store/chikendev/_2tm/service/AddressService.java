@@ -83,12 +83,15 @@ public class AddressService {
         address.setStreetAddress(request.getStreetAddress());
         address.setWard(ward);
         address.setAccount(account);
+        address.setPhoneNumber(request.getPhoneNumber());
 
         Address save = addressRepository.save(address);
 
         AddressResponse response = new AddressResponse();
         response.setId(save.getId());
         response.setName(getAddress(save));
+        response.setWardId(save.getWard().getId());
+        response.setPhoneNumber(save.getPhoneNumber());
 
         return response;
     }
@@ -142,6 +145,7 @@ public class AddressService {
                 .id(addressFound.getId())
                 .name(getAddress(addressFound))
                 .wardId(addressFound.getWard().getId())
+                .phoneNumber(addressFound.getPhoneNumber())
                 .build();
 
         return response;
@@ -157,7 +161,9 @@ public class AddressService {
         return addressPage.map(address -> {
             AddressResponse response = new AddressResponse();
             response.setId(address.getId());
-            response.setName(address.getStreetAddress());
+            response.setName(getAddress(address));
+            response.setWardId(address.getWard().getId());
+            response.setPhoneNumber(address.getPhoneNumber());
             return response;
         });
     }

@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class AddressRequest {
     private String streetAddress;
     private Long wardId;
+    private String phoneNumber;
 }

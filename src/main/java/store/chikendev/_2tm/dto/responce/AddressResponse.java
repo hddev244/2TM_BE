@@ -13,4 +13,5 @@ public class AddressResponse {
     private Long id;
     private String name;
     private Long wardId;
+    private String phoneNumber;
 }
