@@ -115,7 +115,7 @@ public class AccountService {
         }
         Optional<Account> username = accountRepository.findByUsername(request.getUsername());
         if (username.isPresent()) {
-            throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
+            throw new AppException(ErrorCode.USER_EXISTED);
         }
         StateAccount state = stateAccountRepository.findById(StateAccount.VERIFICATION_REQUIRED).get();
         Account account = mapper.map(request, Account.class);
