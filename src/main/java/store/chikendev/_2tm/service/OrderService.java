@@ -1,5 +1,6 @@
 package store.chikendev._2tm.service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import store.chikendev._2tm.dto.request.OrderInformation;
 import store.chikendev._2tm.dto.request.OrderRequest;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
+import store.chikendev._2tm.dto.responce.OrderPaymentResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
@@ -36,6 +38,7 @@ import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
+import store.chikendev._2tm.utils.Payment;
 import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
@@ -72,7 +75,10 @@ public class OrderService {
     @Autowired
     private StoreRepository storeRepository;
 
-    public List<OrderResponse> createOrder(OrderInformation request) {
+    @Autowired
+    private Payment payment;
+
+    public OrderPaymentResponse createOrder(OrderInformation request) throws UnsupportedEncodingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -88,6 +94,7 @@ public class OrderService {
         }
 
         List<OrderResponse> orders = new ArrayList<>();
+        Long sumTotalPrice = 0L;
 
         for (OrderRequest detailRequest : request.getDetails()) {
             Store store = storeRepository.findById(detailRequest.getStoreId())
@@ -164,14 +171,22 @@ public class OrderService {
             orderRepository.save(savedOrder);
 
             OrderResponse response = convertToOrderResponse(savedOrder);
+            sumTotalPrice += response.getTotalPrice().longValue();
             orders.add(response);
         }
-        if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
-            String htmlContent = generateOrdersSummaryHtml(orders);
-            sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
-        }
+        OrderPaymentResponse orderPaymentResponse = new OrderPaymentResponse();
+        orderPaymentResponse.setOrders(orders);
 
-        return orders;
+        String htmlContent = generateOrdersSummaryHtml(orders);
+        sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
+        if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
+            orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
+            orderPaymentResponse.setPaymentLink(methods.getName());
+        } else {
+            orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
+            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice));
+        }
+        return orderPaymentResponse;
     }
 
     private String getAddress(Order order) {

@@ -22,13 +22,9 @@ import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.OtpRepository;
 import store.chikendev._2tm.repository.StateAccountRepository;
 import store.chikendev._2tm.utils.SendEmail;
-import store.chikendev._2tm.utils.SendOtp;
 
 @Service
 public class OtpService {
-
-    @Autowired
-    private SendOtp otpPhone;
 
     @Autowired
     private SendEmail otpEmail;
@@ -43,9 +39,7 @@ public class OtpService {
     private AccountRepository accountRepository;
 
     private static final String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-    private static final String VIETNAM_PHONE_REGEX = "^0\\d{9}$";
     private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
-    private static final Pattern PHONE_PATTERN = Pattern.compile(VIETNAM_PHONE_REGEX);
 
     public OtpResponse sendOtp(String input) {
         if (EMAIL_PATTERN.matcher(input).matches()) {
@@ -53,26 +47,15 @@ public class OtpService {
             Account account = accountRepository.findByEmail(input).orElseThrow(() -> {
                 throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
             });
+            List<Otp> otps = otpRepository.findByAccount(account);
+            if (otps.size() > 0) {
+                otpRepository.deleteAllInBatch(otps);
+            }
             Otp save = create(account, otp);
             String subject = "2TM Xin chào bạn";
             String message = "Mã OTP của bạn là: " + save.getTokenCode();
             return OtpResponse.builder()
                     .success(otpEmail.sendMail(input, subject, message))
-                    .input(input)
-                    .build();
-        } else if (PHONE_PATTERN.matcher(input).matches()) {
-            String otp = generateOtp();
-            String phoneNumber = input;
-
-            Account account = accountRepository.findByPhoneNumber(input).orElseThrow(() -> {
-                throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
-            });
-            Otp save = create(account, otp);
-            if (phoneNumber.startsWith("0")) {
-                phoneNumber = "84" + input.substring(1);
-            }
-            return OtpResponse.builder()
-                    .success(otpPhone.sendOtp(phoneNumber, save.getTokenCode()))
                     .input(input)
                     .build();
         } else {
@@ -101,29 +84,9 @@ public class OtpService {
             if (otps.get(0).getTokenCode().equals(otp.getOtp())) {
                 boolean validateDate = isWithinFiveMinutes(otps.get(0).getCreatedAt());
                 if (validateDate) {
+                    otpRepository.deleteAllInBatch(otps);
                     account.setState(stateAccountRepository.findById(StateAccount.ACTIVE).get());
                     accountRepository.saveAndFlush(account);
-                    otpRepository.delete(otps.get(0));
-                    return "Xác thực thành công";
-                }
-                throw new AppException(ErrorCode.OTP_EXPIRED);
-            } else {
-                throw new AppException(ErrorCode.OTP_INVALID);
-            }
-        } else if (PHONE_PATTERN.matcher(otp.getInput()).matches()) {
-            Account account = accountRepository.findByPhoneNumber(otp.getInput()).orElseThrow(() -> {
-                throw new AppException(ErrorCode.OTP_INFO_INVALID);
-            });
-            List<Otp> otps = otpRepository.findByAccount(account);
-            if (otps.size() == 0) {
-                throw new AppException(ErrorCode.OTP_REQUEST_NOT_FOUND);
-            }
-            if (otps.get(0).getTokenCode().equals(otp.getOtp())) {
-                boolean validateDate = isWithinFiveMinutes(otps.get(0).getCreatedAt());
-                if (validateDate) {
-                    account.setState(stateAccountRepository.findById(Long.valueOf(1)).get());
-                    accountRepository.save(account);
-                    otpRepository.delete(otps.get(0));
                     return "Xác thực thành công";
                 }
                 throw new AppException(ErrorCode.OTP_EXPIRED);

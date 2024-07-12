@@ -1,4 +1,4 @@
-package store.chikendev._2tm.service;
+package store.chikendev._2tm.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -13,16 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import store.chikendev._2tm.config.VNPTConfig;
 
-@Service
-public class PaymentService {
-
+@Component
+public class Payment {
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public String createVNPT(Integer amountOder) throws UnsupportedEncodingException {
+    public String createVNPT(Long sumTotalPrice) throws UnsupportedEncodingException {
         String orderType = "other";
-        long amount = amountOder * 100;
+        long amount = sumTotalPrice * 100;
         String vnp_TxnRef = VNPTConfig.getRandomNumber(8);
         String vnp_IpAddr = "127.0.0.1";
         String vnp_TmnCode = VNPTConfig.vnp_TmnCode;
@@ -33,9 +32,9 @@ public class PaymentService {
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
         vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
-        vnp_Params.put("vnp_BankCode", "NCB");
+        // vnp_Params.put("vnp_BankCode", "NCB");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
+        vnp_Params.put("vnp_OrderInfo", "thanh toan hoa don:" + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", "http://localhost:8080/api/payment/success");
