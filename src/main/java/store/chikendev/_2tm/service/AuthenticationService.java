@@ -54,6 +54,8 @@ public class AuthenticationService {
     public static final String LOGIN_ROLE_STAFF = "ROLE_STAFF";
     public static final String LOGIN_ROLE_USER = "ROLE_USER";
     public static final String LOGIN_ROLE_DELIVERY = "ROLE_DELIVERY";
+    @Autowired
+    private AddressService addressService;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -163,7 +165,8 @@ public class AuthenticationService {
                                 .primaryAddress(
                                         user.getAddress() != null ? AddressResponse.builder()
                                                 .id(user.getAddress().getId())
-                                                .name(user.getAddress().getStreetAddress())
+                                                .name(addressService.getAddress(user.getAddress()))
+                                                .phoneNumber(user.getAddress().getPhoneNumber())
                                                 .wardId(user.getAddress().getWard().getId())
                                                 .build() : null)
                                 .build())
