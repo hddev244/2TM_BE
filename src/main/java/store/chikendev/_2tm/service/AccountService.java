@@ -19,9 +19,11 @@ import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.CreateStaffRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
+import store.chikendev._2tm.dto.responce.AddressResponse;
 import store.chikendev._2tm.dto.responce.CreateStaffResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.RoleResponse;
+import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Address;
@@ -49,6 +51,9 @@ import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class AccountService {
+
+    @Autowired
+    private AddressService addressService;
 
     @Autowired
     private ImageRepository imageReponsitory;
@@ -397,6 +402,10 @@ public class AccountService {
     public AccountResponse getStaffById(String id) {
         Account account = accountRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         ResponseDocumentDto image = FilesHelp.getOneDocument(account.getId(), EntityFileType.USER_AVATAR);
+
+        AccountStore accountStore = accountStoreRepository.findByAccount(account).orElse(null);
+        Store store = accountStore == null ? null : accountStore.getStore();
+
         return AccountResponse.builder()
                 .id(account.getId())
                 .username(account.getUsername())
@@ -410,7 +419,29 @@ public class AccountService {
                 .createdAt(account.getCreatedAt())
                 .updatedAt(account.getUpdatedAt())
                 .stateName(account.getState().getName())
+                .primaryAddress(
+                        account.getAddress() != null ? addressService.convertAddressToAddressResponse(account.getAddress())
+                                : null)
+                .store(convertStoreTStoreResponse(store))
                 .image(image)
+                .build();
+    }
+
+
+    public StoreResponse convertStoreTStoreResponse(Store store) {
+        if (store == null) {
+            return null;
+        }
+        return StoreResponse.builder()
+                .id(store.getId())
+                .name(store.getName())
+                .postalCode(store.getPostalCode())
+                .phone(store.getPhone())
+                .email(store.getEmail())
+                .streetAddress(store.getStreetAddress())
+                .description(store.getDescription())
+                .urlImage(store.getImage() != null ? store.getImage().getFileDownloadUri() : null)
+                .activeStatus(store.isActiveStatus())
                 .build();
     }
 

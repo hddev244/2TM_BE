@@ -29,4 +29,5 @@ public class AccountResponse {
     private String stateName;
     private ResponseDocumentDto image;
     private AddressResponse primaryAddress;
+    private StoreResponse store;
 }

@@ -122,7 +122,7 @@ public class OrderService {
             }
 
             Order order = Order.builder()
-                    .deliveryCost(Optional.ofNullable(request.getDeliveryCost()).orElse((double) 0))
+                    .deliveryCost(Optional.ofNullable(detailRequest.getDeliveryCost()).orElse((double) 0))
                     .note(request.getNote())
                     .paymentStatus(false)
                     .consigneeDetailAddress(request.getConsigneeDetailAddress())

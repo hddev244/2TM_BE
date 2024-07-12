@@ -13,5 +13,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class OrderRequest {
     private Long storeId;
+    private Double deliveryCost;
     private List<Long> cartItemId;
 }
