@@ -101,7 +101,6 @@ public class OrderService {
                     .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
             List<CartItems> cartItems = new ArrayList<>();
-
             for (Long id : detailRequest.getCartItemId()) {
                 CartItems item = cartItemsRepository.findById(id)
                         .orElseThrow(() -> new AppException(ErrorCode.CART_EMPTY));
@@ -110,7 +109,7 @@ public class OrderService {
                     throw new AppException(ErrorCode.CART_EMPTY);
                 }
 
-                if (!item.getProduct().getStore().getId().equals(detailRequest.getStoreId())) {
+                if (item.getProduct().getStore().getId() != detailRequest.getStoreId()) {
                     throw new AppException(ErrorCode.CART_EMPTY);
                 }
 
@@ -141,6 +140,7 @@ public class OrderService {
             double totalPrice = 0.0;
 
             for (CartItems item : cartItems) {
+                System.out.println("sdfasfsdf");
                 OrderDetails detail = OrderDetails.builder()
                         .price(item.getProduct().getPrice())
                         .quantity(item.getQuantity())

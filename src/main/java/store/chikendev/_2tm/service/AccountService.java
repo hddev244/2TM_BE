@@ -19,7 +19,6 @@ import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.CreateStaffRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
-import store.chikendev._2tm.dto.responce.AddressResponse;
 import store.chikendev._2tm.dto.responce.CreateStaffResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.RoleResponse;
@@ -420,13 +419,13 @@ public class AccountService {
                 .updatedAt(account.getUpdatedAt())
                 .stateName(account.getState().getName())
                 .primaryAddress(
-                        account.getAddress() != null ? addressService.convertAddressToAddressResponse(account.getAddress())
+                        account.getAddress() != null
+                                ? addressService.convertAddressToAddressResponse(account.getAddress())
                                 : null)
                 .store(convertStoreTStoreResponse(store))
                 .image(image)
                 .build();
     }
-
 
     public StoreResponse convertStoreTStoreResponse(Store store) {
         if (store == null) {
