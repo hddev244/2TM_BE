@@ -24,7 +24,7 @@ public class SecurityConfig implements WebMvcConfigurer {
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(CorsRegistry registry) {    
         registry.addMapping("/**")
                 .allowedOrigins(
                         "http://localhost:3000",
@@ -33,6 +33,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "http://192.168.1.197:3001",
                         "https://test-onserver.2tm.store",
                         "http://test-onserver.2tm.store",
+                        "https://api.2tm.store",
+                        "http://api.2tm.store",
                         "https://2tm.store",
                         "http://2tm.store")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
