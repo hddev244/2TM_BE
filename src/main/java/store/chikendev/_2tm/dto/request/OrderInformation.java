@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class OrderInformation {
-    private Double deliveryCost;
     private String note;
     @NotBlank(message = "Không bỏ trống địa chỉ giao hàng chi tiết")
     private String consigneeDetailAddress;
