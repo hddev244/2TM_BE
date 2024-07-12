@@ -31,4 +31,5 @@ public class AccountResponse {
     private ResponseDocumentDto image;
     private StateAccount state;
     private AddressResponse primaryAddress;
+    private StoreResponse store;
 }

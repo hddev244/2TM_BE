@@ -87,13 +87,7 @@ public class AddressService {
 
         Address save = addressRepository.save(address);
 
-        AddressResponse response = new AddressResponse();
-        response.setId(save.getId());
-        response.setName(getAddress(save));
-        response.setWardId(save.getWard().getId());
-        response.setPhoneNumber(save.getPhoneNumber());
-
-        return response;
+        return convertAddressToAddressResponse(save);
     }
 
     public String getAddress(Address address) {
@@ -120,11 +114,7 @@ public class AddressService {
         List<Address> addresses = addressRepository.getAddressByAccountId(account.getId());
         List<AddressResponse> responses = new ArrayList<>();
         for (Address address : addresses) {
-            AddressResponse response = new AddressResponse();
-            response.setId(address.getId());
-            response.setName(getAddress(address));
-            response.setWardId(address.getWard().getId());
-            response.setPhoneNumber(address.getPhoneNumber());
+            AddressResponse response = convertAddressToAddressResponse(address);
             responses.add(response);
         }
         return responses;
@@ -143,14 +133,7 @@ public class AddressService {
         account.setAddress(addressFound);
         accountRepository.save(account);
 
-        AddressResponse response = AddressResponse.builder()
-                .id(addressFound.getId())
-                .name(getAddress(addressFound))
-                .wardId(addressFound.getWard().getId())
-                .phoneNumber(addressFound.getPhoneNumber())
-                .build();
-
-        return response;
+        return convertAddressToAddressResponse(addressFound);
     }
 
     public Page<AddressResponse> getUserAddresses(int pageNo, int pageSize, String email) {
@@ -161,13 +144,23 @@ public class AddressService {
         Page<Address> addressPage = addressRepository.findByAccount(account, pageable);
 
         return addressPage.map(address -> {
-            AddressResponse response = new AddressResponse();
-            response.setId(address.getId());
-            response.setName(getAddress(address));
-            response.setWardId(address.getWard().getId());
-            response.setPhoneNumber(address.getPhoneNumber());
-            return response;
+            return convertAddressToAddressResponse(address);
         });
+    }
+
+    public AddressResponse convertAddressToAddressResponse(Address address) {
+        if (address == null) {
+            return null;
+        }
+        return AddressResponse.builder()
+                .id(address.getId())
+                .fullAddress(getAddress(address))
+                .streetAddress(address.getStreetAddress())
+                .districtId(address.getWard().getDistrict().getId())
+                .provinceId(address.getWard().getDistrict().getProvinceCity().getId())
+                .wardId(address.getWard().getId())
+                .phoneNumber(address.getPhoneNumber())
+                .build();
     }
 
 }

@@ -155,7 +155,7 @@ public class AccountController {
         Account updatedAccount = accountService.updateAccountById(id, updateAccountRequest);
         return new ApiResponse<Account>(200, null, updatedAccount);
     }
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_QTV')")
     @GetMapping("/{id}")
     public ApiResponse<AccountResponse> getAccountById(@PathVariable(name = "id") String id) {
         AccountResponse accountResponse = accountService.getStaffById(id);

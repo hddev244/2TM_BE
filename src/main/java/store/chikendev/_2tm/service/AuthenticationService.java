@@ -165,7 +165,7 @@ public class AuthenticationService {
                                 .primaryAddress(
                                         user.getAddress() != null ? AddressResponse.builder()
                                                 .id(user.getAddress().getId())
-                                                .name(addressService.getAddress(user.getAddress()))
+                                                .fullAddress(addressService.getAddress(user.getAddress()))
                                                 .phoneNumber(user.getAddress().getPhoneNumber())
                                                 .wardId(user.getAddress().getWard().getId())
                                                 .build() : null)
