@@ -162,13 +162,7 @@ public class AuthenticationService {
                                 .phoneNumber(user.getPhoneNumber())
                                 .email(user.getEmail())
                                 .image(image)
-                                .primaryAddress(
-                                        user.getAddress() != null ? AddressResponse.builder()
-                                                .id(user.getAddress().getId())
-                                                .fullAddress(addressService.getAddress(user.getAddress()))
-                                                .phoneNumber(user.getAddress().getPhoneNumber())
-                                                .wardId(user.getAddress().getWard().getId())
-                                                .build() : null)
+                                .primaryAddress(addressService.convertAddressToAddressResponse(user.getAddress()))
                                 .build())
                 .token(token)
                 .build();
