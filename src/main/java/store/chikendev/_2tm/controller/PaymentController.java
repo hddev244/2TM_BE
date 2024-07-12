@@ -24,9 +24,8 @@ public class PaymentController {
     // return new ApiResponse<>(200, null, paymentService.createVNPT(amount));
     // }
 
-    // @GetMapping("success")
-    // public ApiResponse<String> success(@RequestParam("vnp_ResponseCode") String
-    // status) {
-    // return new ApiResponse<>(200, null, "Thanh toán thành công");
-    // }
+    @GetMapping("success")
+    public ApiResponse<String> success(@RequestParam("vnp_ResponseCode") String status) {
+        return new ApiResponse<>(200, null, "Thanh toán thành công");
+    }
 }
