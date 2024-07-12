@@ -140,7 +140,6 @@ public class OrderService {
             double totalPrice = 0.0;
 
             for (CartItems item : cartItems) {
-                System.out.println("sdfasfsdf");
                 OrderDetails detail = OrderDetails.builder()
                         .price(item.getProduct().getPrice())
                         .quantity(item.getQuantity())
@@ -161,6 +160,10 @@ public class OrderService {
                 product.setQuantity(remainingQuantity);
                 productRepository.save(product);
                 totalPrice += detail.getPrice() * detail.getQuantity();
+            }
+            if (detailRequest.getCartItemId().size() != details.size()) {
+                orderRepository.delete(savedOrder);
+                throw new AppException(ErrorCode.CART_EMPTY);
             }
 
             orderDetailRepository.saveAll(details);
