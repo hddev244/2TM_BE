@@ -157,6 +157,7 @@ public class OrderService {
                 productRepository.save(product);
                 totalPrice += detail.getPrice() * detail.getQuantity();
             }
+            totalPrice += savedOrder.getDeliveryCost();
 
             orderDetailRepository.saveAll(details);
             cartItemsRepository.deleteAll(cartItems);
@@ -281,6 +282,7 @@ public class OrderService {
                     .append("<p>Ngày tạo hóa đơn: ").append(order.getCreatedAt()).append("</p>")
                     .append("<p>Hình thức thanh toán: ").append(order.getPaymentMethodName()).append("</p>")
                     .append("<p>Địa chỉ nhận hàng: ").append(order.getAddress()).append("</p>")
+                    .append("<p>Phí ship: ").append(order.getDeliveryCost()).append("</p>")
                     .append("<p>Sản phẩm đã đặt:</p>")
                     .append("<table>")
                     .append("<tr><th>Tên sản phẩm</th><th>Số lượng</th><th>Đơn giá (VND)</th><th>Tổng tiền (VND)</th></tr>")
