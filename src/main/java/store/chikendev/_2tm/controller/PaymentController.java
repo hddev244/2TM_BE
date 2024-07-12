@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,8 +25,9 @@ public class PaymentController {
     // return new ApiResponse<>(200, null, paymentService.createVNPT(amount));
     // }
 
-    @GetMapping("success")
-    public ApiResponse<String> success(@RequestParam("vnp_ResponseCode") String status) {
+    @GetMapping("success/{id}")
+    public ApiResponse<String> success(@RequestParam("vnp_ResponseCode") String status, @PathVariable("id") String id) {
+        System.out.println(id);
         return new ApiResponse<>(200, null, "Thanh toán thành công");
     }
 }

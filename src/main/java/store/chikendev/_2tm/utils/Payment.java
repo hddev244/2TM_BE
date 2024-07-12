@@ -19,7 +19,7 @@ import store.chikendev._2tm.config.VNPTConfig;
 @Component
 public class Payment {
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public String createVNPT(Long sumTotalPrice) throws UnsupportedEncodingException {
+    public String createVNPT(Long sumTotalPrice, String accountId) throws UnsupportedEncodingException {
         String orderType = "other";
         long amount = sumTotalPrice * 100;
         String vnp_TxnRef = VNPTConfig.getRandomNumber(8);
@@ -37,7 +37,7 @@ public class Payment {
         vnp_Params.put("vnp_OrderInfo", "thanh toan hoa don:" + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", "http://localhost:8080/api/payment/success");
+        vnp_Params.put("vnp_ReturnUrl", "http://localhost:8080/api/payment/success/" + accountId);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));

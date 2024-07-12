@@ -179,7 +179,7 @@ public class OrderService {
             orderPaymentResponse.setPaymentLink(methods.getName());
         } else {
             orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
-            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice));
+            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, account.getId()));
         }
         return orderPaymentResponse;
     }
