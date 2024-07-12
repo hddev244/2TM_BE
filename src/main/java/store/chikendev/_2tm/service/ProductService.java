@@ -247,7 +247,10 @@ public class ProductService {
             Image image = img.getImage();
             return ImageDtoUtil.convertToImageResponse(image);
         }).toList();
-        response.setImages(responseDocument);
+        
+        if (!responseDocument.isEmpty()) {
+            response.setThumbnail(responseDocument.get(0));
+        }        
         return response;
     }
 
@@ -281,13 +284,20 @@ public class ProductService {
 
     }
 
-    public Page<ProductResponse> getByNameAndDescription(String value) {
-        Pageable pageable = PageRequest.of(0, 20);
+    public Page<ProductResponse> getByNameAndDescription(String value, Integer pageIndex, Integer size) {
+        if (pageIndex == null) {
+            pageIndex = 0;
+        }
+        if (size == null) {
+            size = 8;
+        }
+    
+        Pageable pageable = PageRequest.of(pageIndex, size);
         Page<Product> products = productRepository.findProductsBySearchTerm(value, pageable);
-        System.out.println(products.getContent().size());
+    
         Page<ProductResponse> productResponses = products.map(product -> {
             List<AttributeProductResponse> attrs = new ArrayList<>();
-            if (product.getAttributes().size() > 0) {
+            if (!product.getAttributes().isEmpty()) {
                 product.getAttributes().forEach(att -> {
                     attrs.add(AttributeProductResponse.builder()
                             .id(att.getAttributeDetail().getAttribute().getId())
@@ -296,23 +306,30 @@ public class ProductService {
                             .build());
                 });
             }
+    
             StoreResponse store = null;
             if (product.getStore() != null) {
                 store = mapper.map(product.getStore(), StoreResponse.class);
-                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(),
-                        EntityFileType.STORE_LOGO);
+                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
                 store.setUrlImage(imageStore.getFileDownloadUri());
                 store.setStreetAddress(getStoreAddress(product.getStore()));
             }
+    
             ProductResponse response = convertToResponse(product);
             response.setAttributes(attrs);
             response.setStore(store);
             response.setIdCategory(product.getCategory().getId());
-
+            
+            // Set thumbnail
+            if (!product.getImages().isEmpty()) {
+                Image thumbnailImage = product.getImages().get(0).getImage();
+                response.setThumbnail(ImageDtoUtil.convertToImageResponse(thumbnailImage));
+            }
+    
             return response;
         });
+    
         return productResponses;
-
     }
 
     public Page<ProductResponse> getAvailableProductsByCategory(Long categoryId, int page, int size) {

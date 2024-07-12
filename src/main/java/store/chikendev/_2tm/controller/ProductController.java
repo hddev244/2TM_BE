@@ -75,12 +75,15 @@ public class ProductController {
         return new ApiResponse<ProductResponse>(200, null, product);
     }
 
-    @GetMapping("search")
+    @GetMapping("/search")
     public ApiResponse<Page<ProductResponse>> searchProducts(
-            @RequestParam(required = false, name = "value") String value) {
-        Page<ProductResponse> products = productService.getByNameAndDescription(value);
+            @RequestParam(required = false, name = "value") String value,
+            @RequestParam(required = false, name = "pageIndex", defaultValue = "0") Integer pageIndex,
+            @RequestParam(required = false, name = "size", defaultValue = "8") Integer size) {
+        
+        Page<ProductResponse> products = productService.getByNameAndDescription(value, pageIndex, size);
         System.out.println(products.getSize());
-        return new ApiResponse<Page<ProductResponse>>(200, null, products);
+        return new ApiResponse<>(200, null, products);
     }
 
     @GetMapping("category/{categoryId}")
