@@ -105,11 +105,11 @@ public class OrderService {
                         .orElseThrow(() -> new AppException(ErrorCode.CART_EMPTY));
 
                 if (!item.getAccount().getId().equals(account.getId())) {
-                    throw new AppException(ErrorCode.CART_EMPTY);
+                    break;
                 }
 
                 if (item.getProduct().getStore().getId() != detailRequest.getStoreId()) {
-                    throw new AppException(ErrorCode.CART_EMPTY);
+                    break;
                 }
                 cartItems.add(item);
             }
