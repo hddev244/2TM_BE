@@ -92,7 +92,6 @@ public class OrderService {
         if (request.getDetails().isEmpty()) {
             throw new AppException(ErrorCode.CART_EMPTY);
         }
-
         List<OrderResponse> orders = new ArrayList<>();
         Long sumTotalPrice = 0L;
 
@@ -112,14 +111,11 @@ public class OrderService {
                 if (item.getProduct().getStore().getId() != detailRequest.getStoreId()) {
                     throw new AppException(ErrorCode.CART_EMPTY);
                 }
-
                 cartItems.add(item);
             }
-
-            if (cartItems.isEmpty()) {
+            if (cartItems.isEmpty() || detailRequest.getCartItemId().size() != cartItems.size()) {
                 throw new AppException(ErrorCode.CART_EMPTY);
             }
-
             Order order = Order.builder()
                     .deliveryCost(Optional.ofNullable(detailRequest.getDeliveryCost()).orElse((double) 0))
                     .note(request.getNote())
@@ -160,10 +156,6 @@ public class OrderService {
                 product.setQuantity(remainingQuantity);
                 productRepository.save(product);
                 totalPrice += detail.getPrice() * detail.getQuantity();
-            }
-            if (detailRequest.getCartItemId().size() != details.size()) {
-                orderRepository.delete(savedOrder);
-                throw new AppException(ErrorCode.CART_EMPTY);
             }
 
             orderDetailRepository.saveAll(details);
