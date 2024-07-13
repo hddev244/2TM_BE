@@ -101,13 +101,15 @@ public class OrderService {
 
     public OrderPaymentResponse createOrder(OrderInformation request) throws UnsupportedEncodingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        String idPaymentRecords = generateRandomId();
+        String idPaymentRecords = "";
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         PaymentMethods methods = methodsRepository.findById(request.getPaymentMethodId())
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
-
+        if (methods.getId() != PaymentMethods.PAYMENT_ON_DELIVERY) {
+            idPaymentRecords = generateRandomId();
+        }
         Ward ward = wardRepository.findById(request.getWardId())
                 .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
 
@@ -181,14 +183,16 @@ public class OrderService {
             }
 
             totalPrice += savedOrder.getDeliveryCost();
-            Optional<PaymentRecords> paymentRecords = paymentRecordsRepository.findById(idPaymentRecords);
-            if (!paymentRecords.isPresent()) {
-                paymentRecordsRepository.save(
-                        PaymentRecords.builder()
-                                .id(idPaymentRecords)
-                                .account(account)
-                                .status(false)
-                                .build());
+            if (!idPaymentRecords.equals("")) {
+                Optional<PaymentRecords> paymentRecords = paymentRecordsRepository.findById(idPaymentRecords);
+                if (!paymentRecords.isPresent()) {
+                    paymentRecordsRepository.save(
+                            PaymentRecords.builder()
+                                    .id(idPaymentRecords)
+                                    .account(account)
+                                    .status(false)
+                                    .build());
+                }
             }
 
             orderDetailRepository.saveAll(details);
