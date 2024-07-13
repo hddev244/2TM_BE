@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.security.SecureRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
 import store.chikendev._2tm.entity.PaymentMethods;
+import store.chikendev._2tm.entity.PaymentRecords;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.StateOrder;
 import store.chikendev._2tm.entity.Store;
@@ -82,8 +84,24 @@ public class OrderService {
     @Autowired
     private PaymentRecordsRepository paymentRecordsRepository;
 
+    private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private final int ID_LENGTH = 10;
+
+    // random id
+    private String generateRandomId() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder(ID_LENGTH);
+
+        for (int i = 0; i < ID_LENGTH; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            password.append(CHARACTERS.charAt(index));
+        }
+        return password.toString();
+    }
+
     public OrderPaymentResponse createOrder(OrderInformation request) throws UnsupportedEncodingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String idPaymentRecords = generateRandomId();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -161,7 +179,17 @@ public class OrderService {
                 productRepository.save(product);
                 totalPrice += detail.getPrice() * detail.getQuantity();
             }
+
             totalPrice += savedOrder.getDeliveryCost();
+            Optional<PaymentRecords> paymentRecords = paymentRecordsRepository.findById(idPaymentRecords);
+            if (!paymentRecords.isPresent()) {
+                paymentRecordsRepository.save(
+                        PaymentRecords.builder()
+                                .id(idPaymentRecords)
+                                .account(account)
+                                .status(false)
+                                .build());
+            }
 
             orderDetailRepository.saveAll(details);
             cartItemsRepository.deleteAll(cartItems);
@@ -184,7 +212,7 @@ public class OrderService {
             orderPaymentResponse.setPaymentLink(methods.getName());
         } else {
             orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
-            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, account.getId()));
+            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, idPaymentRecords));
         }
         return orderPaymentResponse;
     }
