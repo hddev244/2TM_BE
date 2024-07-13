@@ -206,6 +206,7 @@ public class ProductService {
                     .name(product.getName())
                     .price(product.getPrice())
                     .quantity(product.getQuantity())
+                    .description(product.getDescription())
                     .typeProduct(type)
                     .attributes(attrs)
                     .store(
