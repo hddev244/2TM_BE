@@ -23,7 +23,6 @@ import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
 import store.chikendev._2tm.entity.PaymentMethods;
-import store.chikendev._2tm.entity.PaymentRecords;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.StateOrder;
 import store.chikendev._2tm.entity.Store;
@@ -180,15 +179,12 @@ public class OrderService {
 
         String htmlContent = generateOrdersSummaryHtml(orders);
         sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
-        PaymentRecords paymentRecord = paymentRecordsRepository.save(PaymentRecords.builder()
-                .account(account)
-                .build());
         if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
             orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
             orderPaymentResponse.setPaymentLink(methods.getName());
         } else {
             orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
-            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, paymentRecord.getId()));
+            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, account.getId()));
         }
         return orderPaymentResponse;
     }
