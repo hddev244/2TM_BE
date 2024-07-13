@@ -3,7 +3,6 @@ package store.chikendev._2tm.controller;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,11 +24,6 @@ public class OrderController {
     public ApiResponse<OrderPaymentResponse> createOder(@RequestBody @Valid OrderInformation request)
             throws UnsupportedEncodingException {
         return new ApiResponse<OrderPaymentResponse>(200, null, orderService.createOrder(request));
-    }
-
-    @GetMapping
-    public OrderInformation demo() {
-        return new OrderInformation();
     }
 
 }

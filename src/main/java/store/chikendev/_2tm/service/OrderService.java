@@ -23,6 +23,7 @@ import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
 import store.chikendev._2tm.entity.PaymentMethods;
+import store.chikendev._2tm.entity.PaymentRecords;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.StateOrder;
 import store.chikendev._2tm.entity.Store;
@@ -34,6 +35,7 @@ import store.chikendev._2tm.repository.CartItemsRepository;
 import store.chikendev._2tm.repository.OrderDetailsRepository;
 import store.chikendev._2tm.repository.OrderRepository;
 import store.chikendev._2tm.repository.PaymentMethodsRepository;
+import store.chikendev._2tm.repository.PaymentRecordsRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.repository.StoreRepository;
@@ -77,6 +79,9 @@ public class OrderService {
 
     @Autowired
     private Payment payment;
+
+    @Autowired
+    private PaymentRecordsRepository paymentRecordsRepository;
 
     public OrderPaymentResponse createOrder(OrderInformation request) throws UnsupportedEncodingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -175,12 +180,15 @@ public class OrderService {
 
         String htmlContent = generateOrdersSummaryHtml(orders);
         sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
+        PaymentRecords paymentRecord = paymentRecordsRepository.save(PaymentRecords.builder()
+                .account(account)
+                .build());
         if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
             orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
             orderPaymentResponse.setPaymentLink(methods.getName());
         } else {
             orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
-            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, account.getId()));
+            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, paymentRecord.getId()));
         }
         return orderPaymentResponse;
     }
