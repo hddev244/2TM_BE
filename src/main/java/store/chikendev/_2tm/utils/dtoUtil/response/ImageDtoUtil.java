@@ -5,6 +5,9 @@ import store.chikendev._2tm.entity.Image;
 
 public class ImageDtoUtil {
     public static ResponseDocumentDto convertToImageResponse(Image image) {
+        if (image == null) {
+            return null;
+        }
         return ResponseDocumentDto.builder()
                 .fileId(image.getFileId())
                 .fileName(image.getFileName())

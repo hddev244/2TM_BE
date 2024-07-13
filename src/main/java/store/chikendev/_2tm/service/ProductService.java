@@ -272,9 +272,14 @@ public class ProductService {
             });
         }
         StoreResponse store = mapper.map(product.getStore(), StoreResponse.class);
-        ResponseDocumentDto imageStore = ImageDtoUtil
-                .convertToImageResponse(product.getStore() != null ? product.getStore().getImage() : null);
-        store.setUrlImage(imageStore.getFileDownloadUri());
+        if(store != null) {
+            var image = product.getStore().getImage();
+            if(image != null) {
+                ResponseDocumentDto imageStore = ImageDtoUtil
+                        .convertToImageResponse(image);
+                store.setUrlImage(imageStore.getFileDownloadUri());
+            }
+        }
         store.setStreetAddress(getStoreAddress(product.getStore()));
 
         ProductResponse response = convertToResponse(product);
