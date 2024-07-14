@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.security.SecureRandom;
+import java.text.DecimalFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -359,6 +360,7 @@ public class OrderService {
 
     private String generateOrdersSummaryHtml(List<OrderResponse> orders) {
         StringBuilder htmlBuilder = new StringBuilder();
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
 
         double grandTotal = 0;
 
@@ -395,18 +397,20 @@ public class OrderService {
                                     + "<td>" + item.getProduct().getName() + "</td>"
                                     + "<td>" + item.getQuantity() + "</td>"
                                     + "<td>" + item.getPrice() + "</td>"
-                                    + "<td>" + (item.getQuantity() * item.getPrice()) + "</td>"
+                                    + "<td>" + decimalFormat.format((item.getQuantity() * item.getPrice())) + "</td>"
                                     + "</tr>")
                             .collect(Collectors.joining()))
                     .append("</table>")
-                    .append("<p class='total-price'>Tổng giá trị: ").append(order.getTotalPrice()).append(" VND</p>")
+                    .append("<p class='total-price'>Tổng giá trị: ").append(decimalFormat.format(order.getTotalPrice()))
+                    .append(" VND</p>")
                     .append("</div>")
                     .append("</div>");
 
             grandTotal += order.getTotalPrice();
         }
 
-        htmlBuilder.append("<div class='grand-total'>Tổng tiền của tất cả hóa đơn: ").append(grandTotal)
+        htmlBuilder.append("<div class='grand-total'>Tổng tiền của tất cả hóa đơn: ")
+                .append(decimalFormat.format(grandTotal))
                 .append(" VND</div>")
                 .append("</body></html>");
 
