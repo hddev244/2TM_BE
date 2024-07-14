@@ -65,6 +65,8 @@ public enum ErrorCode {
     FILE_NOT_FOUND(429, "Bạn không thể bỏ trống ảnh trong mục này", HttpStatus.BAD_REQUEST),
     ORDER_ERROR(447, "Order xảy ra lỗi, vui lòng thử lại sau!", HttpStatus.BAD_REQUEST),
     INVALID_QUANTITY(448, "Số lượng không hợp lệ", HttpStatus.BAD_REQUEST),
+    CART_DELETED(449, "Sản phẩm đã được xóa khỏi giỏ hàng", HttpStatus.BAD_REQUEST),
+    CART_QTY_BIGGER_THAN_PRODUCT(450, "Số lượng sản phẩm trong giỏ hàng lớn hơn số lượng sản phẩm tồn kho", HttpStatus.BAD_REQUEST),
     ;
 
 

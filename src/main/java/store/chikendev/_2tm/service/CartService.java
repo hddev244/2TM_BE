@@ -57,31 +57,38 @@ public class CartService {
                 throw new AppException(ErrorCode.INVALID_QUANTITY);
             }
 
-            if (product.getQuantity() >= quantityRequest) {
-                cartItem.setQuantity(quantityRequest);
-            } else {
-                cartItem.setQuantity(product.getQuantity());
-            }
             cartItem.setProduct(product);
             cartItem.setAccount(account);
-            cartItemsRepository.save(cartItem);
+
+            if (product.getQuantity() >= quantityRequest) {
+                cartItem.setQuantity(quantityRequest);
+                cartItemsRepository.save(cartItem);
+
+            } else {
+                cartItem.setQuantity(product.getQuantity());
+                cartItemsRepository.save(cartItem);
+
+                throw new AppException(ErrorCode.CART_QTY_BIGGER_THAN_PRODUCT);
+            }
+
             return;
         } else {
             int quantity = cartItemFound.getQuantity() + quantityRequest;
 
-            if(quantity <= 0){
+            if (quantity <= 0) {
                 cartItemsRepository.delete(cartItemFound);
-                return;
+                throw new AppException(ErrorCode.CART_DELETED);
             }
 
             if (product.getQuantity() >= quantity) {
                 cartItemFound.setQuantity(quantity);
+                cartItemsRepository.save(cartItemFound);
+                return;
             } else {
                 cartItemFound.setQuantity(product.getQuantity());
+                throw new AppException(ErrorCode.CART_QTY_BIGGER_THAN_PRODUCT);
             }
 
-            cartItemsRepository.save(cartItemFound);
-            return;
         }
     }
 
