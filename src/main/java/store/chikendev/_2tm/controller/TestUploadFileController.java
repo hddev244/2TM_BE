@@ -21,11 +21,15 @@ import store.chikendev._2tm.repository.ProductImagesRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
+import store.chikendev._2tm.utils.Payment;
+
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
-@RequestMapping("/api/uploadfile")
+@RequestMapping("/api/test")
 public class TestUploadFileController {
+    @Autowired
+    private Payment payment;
 
     @Autowired
     private ProductRepository productRepository;
@@ -35,6 +39,13 @@ public class TestUploadFileController {
 
     @Autowired
     private ProductImagesRepository productImagesRepository;
+
+    @GetMapping("vnpay-create-payment")
+    public String getMethodName()
+            throws Exception {
+        return new String(payment.createVNPT(12200000L,
+                "11111"));
+    }
 
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(
