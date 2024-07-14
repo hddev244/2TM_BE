@@ -38,6 +38,7 @@ public enum ErrorCode {
     PAYMENT_METHOD_NOT_FOUND(442, "không tìm thấy phương thức thanh toán", HttpStatus.BAD_REQUEST),
     CART_EMPTY(443, "không tìm thấy sản phẩm trong giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_ENOUGH(444, "Số lượng sản phẩm tồn kho không đủ", HttpStatus.BAD_REQUEST),
+    PAYMENT_RECORD_NOT_FOUND(445, "Không tìm thấy hóa đơn thanh toán", HttpStatus.BAD_REQUEST),
 
     // File
     ROLE_NOT_FOUND(420, "Không tìm thấy vai trò", HttpStatus.BAD_REQUEST),

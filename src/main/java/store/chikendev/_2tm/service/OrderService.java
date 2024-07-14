@@ -90,58 +90,56 @@ public class OrderService {
     // random id
     private String generateRandomId() {
         SecureRandom random = new SecureRandom();
-        StringBuilder password = new StringBuilder(ID_LENGTH);
+        StringBuilder idPaymentRecord = new StringBuilder(ID_LENGTH);
 
         for (int i = 0; i < ID_LENGTH; i++) {
             int index = random.nextInt(CHARACTERS.length());
-            password.append(CHARACTERS.charAt(index));
+            idPaymentRecord.append(CHARACTERS.charAt(index));
         }
-        return password.toString();
+        return idPaymentRecord.toString();
     }
 
-    public OrderPaymentResponse createOrder(OrderInformation request) throws UnsupportedEncodingException {
+    public OrderPaymentResponse createOrder(OrderInformation request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        String idPaymentRecords = "";
+        String idPaymentRecords = generateRandomId();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         PaymentMethods methods = methodsRepository.findById(request.getPaymentMethodId())
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
-        if (methods.getId() != PaymentMethods.PAYMENT_ON_DELIVERY) {
-            idPaymentRecords = generateRandomId();
-        }
         Ward ward = wardRepository.findById(request.getWardId())
                 .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
-
-        if (request.getDetails().isEmpty()) {
-            throw new AppException(ErrorCode.CART_EMPTY);
-        }
         List<OrderResponse> orders = new ArrayList<>();
-        Long sumTotalPrice = 0L;
-
-        for (OrderRequest detailRequest : request.getDetails()) {
-            Store store = storeRepository.findById(detailRequest.getStoreId())
+        request.getDetails().forEach(detail -> {
+            Store store = storeRepository.findById(detail.getStoreId())
                     .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
-
-            List<CartItems> cartItems = new ArrayList<>();
-            for (Long id : detailRequest.getCartItemId()) {
-                CartItems item = cartItemsRepository.findById(id)
-                        .orElseThrow(() -> new AppException(ErrorCode.CART_EMPTY));
-
-                if (!item.getAccount().getId().equals(account.getId())) {
-                    break;
-                }
-
-                if (item.getProduct().getStore().getId() != detailRequest.getStoreId()) {
-                    break;
-                }
-                cartItems.add(item);
-            }
-            if (cartItems.isEmpty() || detailRequest.getCartItemId().size() != cartItems.size()) {
+            List<CartItems> cartItems = cartItemsRepository.findAllById(detail.getCartItemId());
+            if (cartItems.isEmpty() || cartItems.size() != detail.getCartItemId().size()) {
                 throw new AppException(ErrorCode.CART_EMPTY);
             }
+            cartItems.forEach(item -> {
+                if (!item.getAccount().getId().equals(account.getId())) {
+                    throw new AppException(ErrorCode.CART_EMPTY);
+                }
+                if (item.getProduct().getStore().getId() != store.getId()) {
+                    throw new AppException(ErrorCode.CART_EMPTY);
+                }
+            });
+            PaymentRecords record;
+            Optional<PaymentRecords> findRecord = paymentRecordsRepository.findById(idPaymentRecords);
+            if (findRecord.isPresent()) {
+                record = findRecord.get();
+            } else {
+                record = PaymentRecords.builder()
+                        .id(idPaymentRecords)
+                        .account(account)
+                        .status(false)
+                        .build();
+                paymentRecordsRepository.save(record);
+            }
+
             Order order = Order.builder()
-                    .deliveryCost(Optional.ofNullable(detailRequest.getDeliveryCost()).orElse((double) 0))
+                    .deliveryCost(Optional.ofNullable(detail.getDeliveryCost()).orElse((double) 0))
                     .note(request.getNote())
                     .paymentStatus(false)
                     .consigneeDetailAddress(request.getConsigneeDetailAddress())
@@ -153,49 +151,34 @@ public class OrderService {
                     .ward(ward)
                     .store(store)
                     .build();
-
             Order savedOrder = orderRepository.save(order);
 
             List<OrderDetails> details = new ArrayList<>();
-            double totalPrice = 0.0;
-
+            List<Product> products = new ArrayList<>();
+            Double totalPrice = 0.0;
             for (CartItems item : cartItems) {
-                OrderDetails detail = OrderDetails.builder()
+                OrderDetails orderDetails = OrderDetails.builder()
                         .price(item.getProduct().getPrice())
                         .quantity(item.getQuantity())
                         .product(item.getProduct())
                         .order(savedOrder)
                         .build();
 
-                details.add(detail);
-
-                Product product = detail.getProduct();
-                int remainingQuantity = product.getQuantity() - detail.getQuantity();
+                details.add(orderDetails);
+                Product product = orderDetails.getProduct();
+                int remainingQuantity = product.getQuantity() - orderDetails.getQuantity();
 
                 if (remainingQuantity < 0) {
                     orderRepository.delete(savedOrder);
                     throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
                 }
-
                 product.setQuantity(remainingQuantity);
-                productRepository.save(product);
-                totalPrice += detail.getPrice() * detail.getQuantity();
+                products.add(product);
+                totalPrice += orderDetails.getPrice() * orderDetails.getQuantity();
             }
-
-            totalPrice += savedOrder.getDeliveryCost();
-            if (!idPaymentRecords.equals("")) {
-                Optional<PaymentRecords> paymentRecords = paymentRecordsRepository.findById(idPaymentRecords);
-                if (!paymentRecords.isPresent()) {
-                    paymentRecordsRepository.save(
-                            PaymentRecords.builder()
-                                    .id(idPaymentRecords)
-                                    .account(account)
-                                    .status(false)
-                                    .build());
-                }
-            }
-
+            totalPrice += detail.getDeliveryCost();
             orderDetailRepository.saveAll(details);
+            productRepository.saveAll(products);
             cartItemsRepository.deleteAll(cartItems);
 
             savedOrder.setTotalPrice(totalPrice);
@@ -203,21 +186,13 @@ public class OrderService {
             orderRepository.save(savedOrder);
 
             OrderResponse response = convertToOrderResponse(savedOrder);
-            sumTotalPrice += response.getTotalPrice().longValue();
             orders.add(response);
-        }
-        OrderPaymentResponse orderPaymentResponse = new OrderPaymentResponse();
-        orderPaymentResponse.setOrders(orders);
 
-        String htmlContent = generateOrdersSummaryHtml(orders);
-        sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
-        if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
-            orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
-            orderPaymentResponse.setPaymentLink(methods.getName());
-        } else {
-            orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
-            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, idPaymentRecords));
-        }
+        });
+        Double sumTotalPrice = orders.stream().mapToDouble(order -> order.getTotalPrice()).sum();
+        OrderPaymentResponse orderPaymentResponse = new OrderPaymentResponse();
+        orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
+        orderPaymentResponse.setOrders(orders);
         return orderPaymentResponse;
     }
 

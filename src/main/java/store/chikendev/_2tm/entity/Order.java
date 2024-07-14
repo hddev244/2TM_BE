@@ -65,6 +65,10 @@ public class Order {
     private Store store;
 
     @ManyToOne
+    @JoinColumn(name = "paymentRecordId")
+    private PaymentRecords paymentRecord;
+
+    @ManyToOne
     @JoinColumn(name = "paymentMethodId")
     private PaymentMethods paymentMethod;
 

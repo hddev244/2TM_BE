@@ -1,12 +1,14 @@
 package store.chikendev._2tm.entity;
 
 import java.util.Date;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,5 +35,8 @@ public class PaymentRecords {
     @ManyToOne
     @JoinColumn(name = "accountId")
     private Account account;
+
+    @OneToMany(mappedBy = "paymentRecord")
+    private List<Order> orders;
 
 }
