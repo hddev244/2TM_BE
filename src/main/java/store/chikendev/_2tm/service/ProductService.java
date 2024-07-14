@@ -248,10 +248,10 @@ public class ProductService {
             Image image = img.getImage();
             return ImageDtoUtil.convertToImageResponse(image);
         }).toList();
-        
+
         if (!responseDocument.isEmpty()) {
             response.setThumbnail(responseDocument.get(0));
-        }        
+        }
         return response;
     }
 
@@ -272,11 +272,26 @@ public class ProductService {
             });
         }
         StoreResponse store = mapper.map(product.getStore(), StoreResponse.class);
-        ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
-        store.setUrlImage(imageStore.getFileDownloadUri());
+        if(store != null) {
+            var image = product.getStore().getImage();
+            if(image != null) {
+                ResponseDocumentDto imageStore = ImageDtoUtil
+                        .convertToImageResponse(image);
+                store.setUrlImage(imageStore.getFileDownloadUri());
+            }
+        }
         store.setStreetAddress(getStoreAddress(product.getStore()));
 
         ProductResponse response = convertToResponse(product);
+
+        if (!product.getImages().isEmpty()) {
+            List<ResponseDocumentDto> responseDocument = product.getImages().stream().map(img -> {
+                Image image = img.getImage();
+                return ImageDtoUtil.convertToImageResponse(image);
+            }).toList();
+            response.setImages(responseDocument);
+        }
+
         response.setAttributes(attrs);
         response.setStore(store);
         response.setIdCategory(product.getCategory().getId());
@@ -292,10 +307,10 @@ public class ProductService {
         if (size == null) {
             size = 8;
         }
-    
+
         Pageable pageable = PageRequest.of(pageIndex, size);
         Page<Product> products = productRepository.findProductsBySearchTerm(value, pageable);
-    
+
         Page<ProductResponse> productResponses = products.map(product -> {
             List<AttributeProductResponse> attrs = new ArrayList<>();
             if (!product.getAttributes().isEmpty()) {
@@ -307,7 +322,7 @@ public class ProductService {
                             .build());
                 });
             }
-    
+
             StoreResponse store = null;
             if (product.getStore() != null) {
                 store = mapper.map(product.getStore(), StoreResponse.class);
@@ -315,21 +330,21 @@ public class ProductService {
                 store.setUrlImage(imageStore.getFileDownloadUri());
                 store.setStreetAddress(getStoreAddress(product.getStore()));
             }
-    
+
             ProductResponse response = convertToResponse(product);
             response.setAttributes(attrs);
             response.setStore(store);
             response.setIdCategory(product.getCategory().getId());
-            
+
             // Set thumbnail
             if (!product.getImages().isEmpty()) {
                 Image thumbnailImage = product.getImages().get(0).getImage();
                 response.setThumbnail(ImageDtoUtil.convertToImageResponse(thumbnailImage));
             }
-    
+
             return response;
         });
-    
+
         return productResponses;
     }
 
@@ -444,8 +459,8 @@ public class ProductService {
 
         saveProduct.setImages(imagesSave);
         consignmentOrderSaved.setProduct(saveProduct);
-        ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(consignmentOrderSaved);
-
+        ConsignmentOrdersResponse response = consignmentOrdersService
+                .convertToConsignmentOrdersResponse(consignmentOrderSaved);
 
         return response;
     }
@@ -519,8 +534,9 @@ public class ProductService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        
-        Page<Product> products = productRepository.findConsignmentProductsByOwnerIdAndState(account.getId(), stateId, pageable);
+
+        Page<Product> products = productRepository.findConsignmentProductsByOwnerIdAndState(account.getId(), stateId,
+                pageable);
         return products.map(this::convertToResponse);
     }
 }
