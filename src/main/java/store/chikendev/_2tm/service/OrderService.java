@@ -162,7 +162,6 @@ public class OrderService {
                         .build();
 
                 Order savedOrder = orderRepository.save(order);
-                savedOrdersList.add(savedOrder);
 
                 OrderResponse orderResponse = convertToOrderResponse(savedOrder);
 
@@ -208,6 +207,8 @@ public class OrderService {
                 }).collect(Collectors.toList());
 
                 totalPrice += detail.getDeliveryCost();
+                savedOrder.setTotalPrice(totalPrice);
+                savedOrdersList.add(savedOrder);
 
                 orderResponse.setDetail(orderDetailResponses);
                 orderResponse.setTotalPrice(totalPrice);
@@ -360,7 +361,7 @@ public class OrderService {
 
     private String generateOrdersSummaryHtml(List<OrderResponse> orders) {
         StringBuilder htmlBuilder = new StringBuilder();
-        DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.0");
 
         double grandTotal = 0;
 
@@ -388,7 +389,7 @@ public class OrderService {
                     .append("<p>Ngày tạo hóa đơn: ").append(order.getCreatedAt()).append("</p>")
                     .append("<p>Hình thức thanh toán: ").append(order.getPaymentMethodName()).append("</p>")
                     .append("<p>Địa chỉ nhận hàng: ").append(order.getAddress()).append("</p>")
-                    .append("<p>Phí ship: ").append(order.getDeliveryCost()).append("</p>")
+                    .append("<p>Phí ship: ").append(decimalFormat.format(order.getDeliveryCost())).append("</p>")
                     .append("<p>Sản phẩm đã đặt:</p>")
                     .append("<table>")
                     .append("<tr><th>Tên sản phẩm</th><th>Số lượng</th><th>Đơn giá (VND)</th><th>Tổng tiền (VND)</th></tr>")
@@ -396,12 +397,13 @@ public class OrderService {
                             .map(item -> "<tr>"
                                     + "<td>" + item.getProduct().getName() + "</td>"
                                     + "<td>" + item.getQuantity() + "</td>"
-                                    + "<td>" + item.getPrice() + "</td>"
+                                    + "<td>" + decimalFormat.format(item.getPrice()) + "</td>"
                                     + "<td>" + decimalFormat.format((item.getQuantity() * item.getPrice())) + "</td>"
                                     + "</tr>")
                             .collect(Collectors.joining()))
                     .append("</table>")
-                    .append("<p class='total-price'>Tổng giá trị: ").append(decimalFormat.format(order.getTotalPrice()))
+                    .append("<p class='total-price'>Tổng tiền hóa đơn: ")
+                    .append(decimalFormat.format(order.getTotalPrice()))
                     .append(" VND</p>")
                     .append("</div>")
                     .append("</div>");
