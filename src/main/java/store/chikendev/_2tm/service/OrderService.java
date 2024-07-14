@@ -100,109 +100,186 @@ public class OrderService {
 
     public OrderPaymentResponse createOrder(OrderInformation request) throws UnsupportedEncodingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        String idPaymentRecords = generateRandomId();
+
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         PaymentMethods methods = methodsRepository.findById(request.getPaymentMethodId())
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
+
         Ward ward = wardRepository.findById(request.getWardId())
                 .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
-        List<OrderResponse> orders = new ArrayList<>();
-        request.getDetails().forEach(detail -> {
-            Store store = storeRepository.findById(detail.getStoreId())
-                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
-            List<CartItems> cartItems = cartItemsRepository.findAllById(detail.getCartItemId());
-            if (cartItems.isEmpty() || cartItems.size() != detail.getCartItemId().size()) {
-                throw new AppException(ErrorCode.CART_EMPTY);
-            }
-            cartItems.forEach(item -> {
-                if (!item.getAccount().getId().equals(account.getId())) {
+
+        List<Order> savedOrdersList = new ArrayList<>();
+        List<CartItems> cartItemsOrderedList = new ArrayList<>();
+        List<OrderDetails> savedOrderDetailsList = new ArrayList<>();
+
+        List<OrderResponse> ordersResponseList = new ArrayList<>();
+
+        try {
+            request.getDetails().forEach(detail -> {
+
+                Store store = storeRepository.findById(detail.getStoreId()).get();
+                if (store == null) {
+                    handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
+                    throw new AppException(ErrorCode.STORE_NOT_FOUND);
+                }
+
+                List<CartItems> cartItems = cartItemsRepository.findAllById(detail.getCartItemId());
+
+                if (cartItems.isEmpty() || cartItems.size() != detail.getCartItemId().size()) {
+                    handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
                     throw new AppException(ErrorCode.CART_EMPTY);
                 }
-                if (item.getProduct().getStore().getId() != store.getId()) {
-                    throw new AppException(ErrorCode.CART_EMPTY);
-                }
-            });
-            PaymentRecords record;
-            Optional<PaymentRecords> findRecord = paymentRecordsRepository.findById(idPaymentRecords);
-            if (findRecord.isPresent()) {
-                record = findRecord.get();
-            } else {
-                record = PaymentRecords.builder()
-                        .id(idPaymentRecords)
+
+                cartItems.forEach(item -> {
+                    if (!item.getAccount().getId().equals(account.getId())) {
+                        handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
+                        throw new AppException(ErrorCode.CART_ITEM_NOT_MATCHING_ACCOUNT);
+                    }
+                    if (item.getProduct().getStore() == null) {
+                        handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
+                        throw new AppException(ErrorCode.STORE_NOT_FOUND);
+                    } else if (item.getProduct().getStore().getId() != store.getId()) {
+                        handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
+                        throw new AppException(ErrorCode.STORE_NOT_FOUND);
+                    }
+                });
+
+                Order order = Order.builder()
+                        .deliveryCost(Optional.ofNullable(detail.getDeliveryCost()).orElse((double) 0))
+                        .note(request.getNote())
+                        .paymentStatus(false)
+                        .consigneeDetailAddress(request.getConsigneeDetailAddress())
+                        .consigneeName(request.getConsigneeName())
+                        .consigneePhoneNumber(request.getConsigneePhoneNumber())
                         .account(account)
-                        .status(false)
-                        .build();
-                paymentRecordsRepository.save(record);
-            }
-
-            Order order = Order.builder()
-                    .deliveryCost(Optional.ofNullable(detail.getDeliveryCost()).orElse((double) 0))
-                    .note(request.getNote())
-                    .paymentStatus(false)
-                    .consigneeDetailAddress(request.getConsigneeDetailAddress())
-                    .consigneeName(request.getConsigneeName())
-                    .consigneePhoneNumber(request.getConsigneePhoneNumber())
-                    .account(account)
-                    .stateOrder(stateOrderRepository.findById(StateOrder.IN_CONFIRM).get())
-                    .paymentMethod(methods)
-                    .ward(ward)
-                    .store(store)
-                    .build();
-            Order savedOrder = orderRepository.save(order);
-
-            List<OrderDetails> details = new ArrayList<>();
-            List<Product> products = new ArrayList<>();
-            Double totalPrice = 0.0;
-            for (CartItems item : cartItems) {
-                OrderDetails orderDetails = OrderDetails.builder()
-                        .price(item.getProduct().getPrice())
-                        .quantity(item.getQuantity())
-                        .product(item.getProduct())
-                        .order(savedOrder)
+                        .stateOrder(stateOrderRepository.findById(StateOrder.IN_CONFIRM).get())
+                        .paymentMethod(methods)
+                        .ward(ward)
+                        .store(store)
                         .build();
 
-                details.add(orderDetails);
-                Product product = orderDetails.getProduct();
-                int remainingQuantity = product.getQuantity() - orderDetails.getQuantity();
+                Order savedOrder = orderRepository.save(order);
+                savedOrdersList.add(savedOrder);
 
-                if (remainingQuantity < 0) {
-                    orderRepository.delete(savedOrder);
-                    throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
+                OrderResponse orderResponse = convertToOrderResponse(savedOrder);
+
+                Double totalPrice = 0.0;
+
+                List<OrderDetails> orderDetails = new ArrayList<>();
+                for (CartItems item : cartItems) {
+
+                    Product product = item.getProduct();
+
+                    int remainingQuantity = product.getQuantity() - item.getQuantity();
+
+                    if (remainingQuantity < 0) {
+                        handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
+                        throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
+                    }
+
+                    product.setQuantity(remainingQuantity);
+                    product = productRepository.save(product);
+
+                    OrderDetails orderDetail = OrderDetails.builder()
+                            .price(item.getProduct().getPrice())
+                            .quantity(item.getQuantity())
+                            .product(item.getProduct())
+                            .order(savedOrder)
+                            .build();
+
+                    orderDetail.setOrder(savedOrder);
+                    orderDetail = orderDetailRepository.save(orderDetail);
+                    orderDetails.add(orderDetail);
+
+                    // lưu đẻ xóa khi thất bại
+                    savedOrderDetailsList.add(orderDetail);
+
+                    // lưu để xóa khi thành công
+                    cartItemsOrderedList.add(item);
+
+                    totalPrice += item.getProduct().getPrice() * item.getQuantity();
                 }
-                product.setQuantity(remainingQuantity);
-                products.add(product);
-                totalPrice += orderDetails.getPrice() * orderDetails.getQuantity();
-            }
-            totalPrice += detail.getDeliveryCost();
-            orderDetailRepository.saveAll(details);
-            productRepository.saveAll(products);
-            cartItemsRepository.deleteAll(cartItems);
 
-            if (record != null) {
-                savedOrder.setPaymentRecord(record);
-            }
-            savedOrder.setTotalPrice(totalPrice);
-            savedOrder.setDetails(details);
-            orderRepository.save(savedOrder);
+                List<OrderDetailResponse> orderDetailResponses = orderDetails.stream().map(orderDetail -> {
+                    return convertToOrderDetailResponse(orderDetail);
+                }).collect(Collectors.toList());
 
-            OrderResponse response = convertToOrderResponse(savedOrder);
-            orders.add(response);
+                totalPrice += detail.getDeliveryCost();
 
-        });
-        Long sumTotalPrice = (long) orders.stream().mapToDouble(order -> order.getTotalPrice()).sum();
+                orderResponse.setDetail(orderDetailResponses);
+                orderResponse.setTotalPrice(totalPrice);
+
+                ordersResponseList.add(orderResponse);
+
+            });
+
+            return handleOrderSuccess(account, methods, ordersResponseList, cartItemsOrderedList, savedOrdersList);
+        } catch (Exception e) {
+            handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
+            throw new AppException(ErrorCode.ORDER_ERROR);
+        }
+
+    }
+
+    private OrderPaymentResponse handleOrderSuccess(Account account, PaymentMethods method,
+            List<OrderResponse> ordersResponseList,
+            List<CartItems> cartItemsOrderedList,
+            List<Order> savedOrdersList)
+            throws UnsupportedEncodingException {
+        cartItemsRepository.deleteAll(cartItemsOrderedList);
+
+        Long sumTotalPrice = (long) ordersResponseList.stream().mapToDouble(order -> order.getTotalPrice()).sum();
+
         OrderPaymentResponse orderPaymentResponse = new OrderPaymentResponse();
         orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
-        orderPaymentResponse.setOrders(orders);
-        String htmlContent = generateOrdersSummaryHtml(orders);
-        sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
-        if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
-            orderPaymentResponse.setPaymentLink(methods.getName());
+
+        orderPaymentResponse.setOrders(ordersResponseList);
+        String htmlContent = generateOrdersSummaryHtml(ordersResponseList);
+        sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo",
+                htmlContent);
+
+        if (method.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
+            orderPaymentResponse.setPaymentLink(method.getName());
         } else {
-            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, idPaymentRecords));
+            String idPaymentRecords = generateRandomId();
+
+            while (paymentRecordsRepository.existsById(idPaymentRecords)) {
+                idPaymentRecords = generateRandomId();
+            }
+
+            PaymentRecords record = PaymentRecords.builder()
+                    .id(idPaymentRecords)
+                    .account(account)
+                    .status(false)
+                    .build();
+            paymentRecordsRepository.save(record);
+
+            savedOrdersList.forEach(order -> {
+                order.setPaymentRecord(record);
+                orderRepository.save(order);
+            });
+
+            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice,
+                    idPaymentRecords));
         }
         return orderPaymentResponse;
+    }
+
+    private void handleOrderError(
+            List<CartItems> cartItemsOrderedList,
+            List<Order> savedOrdersList,
+            List<OrderDetails> savedOrderDetailsList) {
+
+        cartItemsOrderedList.forEach(cartItem -> {
+            Product product = cartItem.getProduct();
+            product.setQuantity(product.getQuantity() + cartItem.getQuantity());
+            productRepository.save(product);
+        });
+
+        orderDetailRepository.deleteAll(savedOrderDetailsList);
+        orderRepository.deleteAll(savedOrdersList);
     }
 
     private String getAddress(Order order) {
@@ -251,6 +328,14 @@ public class OrderService {
     }
 
     private OrderResponse convertToOrderResponse(Order order) {
+        List<OrderDetails> details = order.getDetails();
+        List<OrderDetailResponse> orderDetailResponses = new ArrayList<>();
+        if (details != null) {
+            orderDetailResponses = details.stream().map(detail -> {
+                return convertToOrderDetailResponse(detail);
+            }).collect(Collectors.toList());
+        }
+
         return OrderResponse.builder()
                 .id(order.getId())
                 .deliveryCost(order.getDeliveryCost())
@@ -263,14 +348,12 @@ public class OrderService {
                 .consigneeName(order.getConsigneeName())
                 .consigneePhoneNumber(order.getConsigneePhoneNumber())
                 .totalPrice(order.getTotalPrice())
-                .accountName(order.getAccount().getFullName())
-                .state(order.getStateOrder().getStatus())
-                .paymentMethodName(order.getPaymentMethod().getName())
-                .detail(order.getDetails().stream().map(detail -> {
-                    return convertToOrderDetailResponse(detail);
-                }).collect(Collectors.toList()))
+                .accountName(order.getAccount() != null ? order.getAccount().getFullName() : "")
+                .state(order.getStateOrder() != null ? order.getStateOrder().getStatus() : "")
+                .paymentMethodName(order.getPaymentMethod() != null ? order.getPaymentMethod().getName() : "")
+                .detail(orderDetailResponses)
                 .storeName(order.getStore().getName())
-                .paymentRecordId(order.getPaymentRecord().getId())
+                .paymentRecordId(order.getPaymentRecord() != null ? order.getPaymentRecord().getId() : "")
                 .build();
     }
 

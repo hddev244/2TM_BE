@@ -39,6 +39,7 @@ public enum ErrorCode {
     CART_EMPTY(443, "không tìm thấy sản phẩm trong giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_ENOUGH(444, "Số lượng sản phẩm tồn kho không đủ", HttpStatus.BAD_REQUEST),
     PAYMENT_RECORD_NOT_FOUND(445, "Không tìm thấy hóa đơn thanh toán", HttpStatus.BAD_REQUEST),
+    CART_ITEM_NOT_MATCHING_ACCOUNT(446, "Sản phẩm trong giỏ hàng không phù hợp với tài khoản", HttpStatus.BAD_REQUEST),
 
     // File
     ROLE_NOT_FOUND(420, "Không tìm thấy vai trò", HttpStatus.BAD_REQUEST),
@@ -61,7 +62,10 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(500, "Lỗi máy chủ", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHORIZED(401, "Thông tin xác nhận không hợp lệ", HttpStatus.UNAUTHORIZED),
     TOKEN_EXPIRED(402, "Phiên đăng nhập đã hết hạn", HttpStatus.UNAUTHORIZED),
-    FILE_NOT_FOUND(429, "Bạn không thể bỏ trống ảnh trong mục này", HttpStatus.BAD_REQUEST);
+    FILE_NOT_FOUND(429, "Bạn không thể bỏ trống ảnh trong mục này", HttpStatus.BAD_REQUEST),
+    ORDER_ERROR(447, "Order xảy ra lỗi, vui lòng thử lại sau!", HttpStatus.BAD_REQUEST),
+    ;
+
 
     private int code;
     private String message;

@@ -3,6 +3,9 @@ package store.chikendev._2tm.entity;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -35,6 +38,13 @@ public class PaymentRecords {
     @ManyToOne
     @JoinColumn(name = "accountId")
     private Account account;
+
+     @CreationTimestamp
+    @Column(updatable = false)
+    private Date createdAt;
+
+    @UpdateTimestamp
+    private Date updatedAt;
 
     @OneToMany(mappedBy = "paymentRecord")
     private List<Order> orders;

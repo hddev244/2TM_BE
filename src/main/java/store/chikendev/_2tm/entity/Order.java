@@ -2,10 +2,14 @@ package store.chikendev._2tm.entity;
 
 import java.util.Date;
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -82,7 +86,7 @@ public class Order {
     @OneToOne(mappedBy = "order")
     private ViolationRecord record;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order",fetch = FetchType.LAZY)
     private List<OrderDetails> details;
 
 }
