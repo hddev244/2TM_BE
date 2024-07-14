@@ -14,5 +14,5 @@ import lombok.NoArgsConstructor;
 public class OrderPaymentResponse {
     private List<OrderResponse> orders;
     private String paymentLink;
-    private Double sumTotalPrice;
+    private Long sumTotalPrice;
 }

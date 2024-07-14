@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.request.OrderInformation;
-import store.chikendev._2tm.dto.request.OrderRequest;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderPaymentResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
@@ -99,7 +98,7 @@ public class OrderService {
         return idPaymentRecord.toString();
     }
 
-    public OrderPaymentResponse createOrder(OrderInformation request) {
+    public OrderPaymentResponse createOrder(OrderInformation request) throws UnsupportedEncodingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String idPaymentRecords = generateRandomId();
         Account account = accountRepository.findByEmail(email)
@@ -181,6 +180,9 @@ public class OrderService {
             productRepository.saveAll(products);
             cartItemsRepository.deleteAll(cartItems);
 
+            if (record != null) {
+                savedOrder.setPaymentRecord(record);
+            }
             savedOrder.setTotalPrice(totalPrice);
             savedOrder.setDetails(details);
             orderRepository.save(savedOrder);
@@ -189,10 +191,17 @@ public class OrderService {
             orders.add(response);
 
         });
-        Double sumTotalPrice = orders.stream().mapToDouble(order -> order.getTotalPrice()).sum();
+        Long sumTotalPrice = (long) orders.stream().mapToDouble(order -> order.getTotalPrice()).sum();
         OrderPaymentResponse orderPaymentResponse = new OrderPaymentResponse();
         orderPaymentResponse.setSumTotalPrice(sumTotalPrice);
         orderPaymentResponse.setOrders(orders);
+        String htmlContent = generateOrdersSummaryHtml(orders);
+        sendEmail.sendMail(account.getEmail(), "Đơn hàng của bạn đã được tạo", htmlContent);
+        if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
+            orderPaymentResponse.setPaymentLink(methods.getName());
+        } else {
+            orderPaymentResponse.setPaymentLink(payment.createVNPT(sumTotalPrice, idPaymentRecords));
+        }
         return orderPaymentResponse;
     }
 
@@ -261,6 +270,7 @@ public class OrderService {
                     return convertToOrderDetailResponse(detail);
                 }).collect(Collectors.toList()))
                 .storeName(order.getStore().getName())
+                .paymentRecordId(order.getPaymentRecord().getId())
                 .build();
     }
 
