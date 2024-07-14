@@ -52,10 +52,15 @@ public class CartService {
 
         if (cartItemFound == null) {
             CartItems cartItem = new CartItems();
+
+            if (quantityRequest <= 0) {
+                throw new AppException(ErrorCode.INVALID_QUANTITY);
+            }
+
             if (product.getQuantity() >= quantityRequest) {
                 cartItem.setQuantity(quantityRequest);
             } else {
-                throw new AppException(ErrorCode.QUANTITY_ERROR);
+                cartItem.setQuantity(product.getQuantity());
             }
             cartItem.setProduct(product);
             cartItem.setAccount(account);
@@ -63,11 +68,18 @@ public class CartService {
             return;
         } else {
             int quantity = cartItemFound.getQuantity() + quantityRequest;
-            if (product.getQuantity() >= quantity && quantity > 0) {
+
+            if(quantity <= 0){
+                cartItemsRepository.delete(cartItemFound);
+                return;
+            }
+
+            if (product.getQuantity() >= quantity) {
                 cartItemFound.setQuantity(quantity);
             } else {
-                throw new AppException(ErrorCode.QUANTITY_ERROR);
+                cartItemFound.setQuantity(product.getQuantity());
             }
+
             cartItemsRepository.save(cartItemFound);
             return;
         }

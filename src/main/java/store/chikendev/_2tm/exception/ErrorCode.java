@@ -64,6 +64,7 @@ public enum ErrorCode {
     TOKEN_EXPIRED(402, "Phiên đăng nhập đã hết hạn", HttpStatus.UNAUTHORIZED),
     FILE_NOT_FOUND(429, "Bạn không thể bỏ trống ảnh trong mục này", HttpStatus.BAD_REQUEST),
     ORDER_ERROR(447, "Order xảy ra lỗi, vui lòng thử lại sau!", HttpStatus.BAD_REQUEST),
+    INVALID_QUANTITY(448, "Số lượng không hợp lệ", HttpStatus.BAD_REQUEST),
     ;
 
 
