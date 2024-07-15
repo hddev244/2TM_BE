@@ -103,7 +103,7 @@ public class PaymentService {
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         });
-
+        System.out.println(status);
         if (status == null) {
             return paymentRecordsRepository.findByAccount(account, pageable).map(this::convertToPaymentRecordResponse);
         }

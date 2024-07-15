@@ -49,7 +49,7 @@ public class PaymentController {
     public ApiResponse<Page<PaymentRecordResponse>> getByStateOrAll(
             @RequestParam(required = false, name = "size") Optional<Integer> size,
             @RequestParam(required = false, name = "page") Optional<Integer> page,
-            @RequestParam(required = false, name = "state") Boolean status) {
+            @RequestParam(required = false, name = "status") Boolean status) {
         return new ApiResponse<Page<PaymentRecordResponse>>(200, null,
                 paymentService.getByAllAndStatus(size.orElse(10), page.orElse(0), status));
     }
