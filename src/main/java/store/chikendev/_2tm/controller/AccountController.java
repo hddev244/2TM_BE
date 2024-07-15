@@ -60,15 +60,7 @@ public class AccountController {
     public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_USER);
 
-        if (responce.isAuthenticated()) {
-            Cookie cookie = new Cookie("accessToken", responce.getToken());
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            cookie.setMaxAge(24 * 60 * 60);
-            cookie.setSecure(true);
-            // Thêm cookie vào phản hồi
-            this.response.addCookie(cookie);
-        }
+       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
@@ -76,15 +68,7 @@ public class AccountController {
     public ApiResponse<AuthenticationResponse> adminLogin(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_ADMIN);
 
-        if (responce.isAuthenticated()) {
-            Cookie cookie = new Cookie("accessToken", responce.getToken());
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            cookie.setMaxAge(24 * 60 * 60);
-            cookie.setSecure(true);
-            // Thêm cookie vào phản hồi
-            this.response.addCookie(cookie);
-        }
+       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
@@ -92,15 +76,7 @@ public class AccountController {
     public ApiResponse<AuthenticationResponse> staffLogin(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_STAFF);
 
-        if (responce.isAuthenticated()) {
-            Cookie cookie = new Cookie("accessToken", responce.getToken());
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            cookie.setMaxAge(24 * 60 * 60);
-            cookie.setSecure(true);
-            // Thêm cookie vào phản hồi
-            this.response.addCookie(cookie);
-        }
+       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
@@ -109,25 +85,12 @@ public class AccountController {
         AuthenticationResponse responce = authenticationService.auth(request,
                 AuthenticationService.LOGIN_ROLE_DELIVERY);
 
-        if (responce.isAuthenticated()) {
-            Cookie cookie = new Cookie("accessToken", responce.getToken());
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            cookie.setMaxAge(24 * 60 * 60);
-            cookie.setSecure(true);
-            // Thêm cookie vào phản hồi
-            this.response.addCookie(cookie);
-        }
+       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
     @GetMapping("logout")
     public ApiResponse<String> logout() {
-        Cookie cookie = new Cookie("accessToken", "");
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        this.response.addCookie(cookie);
         return new ApiResponse<String>(200, null, "Logout success");
     }
 
@@ -155,12 +118,12 @@ public class AccountController {
         Account updatedAccount = accountService.updateAccountById(id, updateAccountRequest);
         return new ApiResponse<Account>(200, null, updatedAccount);
     }
+
     @PreAuthorize("hasRole('ROLE_QTV')")
     @GetMapping("/{id}")
     public ApiResponse<AccountResponse> getAccountById(@PathVariable(name = "id") String id) {
         AccountResponse accountResponse = accountService.getStaffById(id);
         return new ApiResponse<AccountResponse>(200, null, accountResponse);
     }
-    
 
 }

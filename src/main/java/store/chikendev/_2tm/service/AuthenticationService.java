@@ -27,6 +27,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.LogoutRequest;
@@ -49,12 +50,21 @@ import store.chikendev._2tm.utils.FilesHelp;
 @Service
 public class AuthenticationService {
 
+    public static final boolean REFRESH_TOKEN = true;
+    public static final boolean ACCESS_TOKEN = false;
+
     public static final String LOGIN_ROLE_ADMIN = "ROLE_ADMIN";
     public static final String LOGIN_ROLE_STAFF = "ROLE_STAFF";
     public static final String LOGIN_ROLE_USER = "ROLE_USER";
     public static final String LOGIN_ROLE_DELIVERY = "ROLE_DELIVERY";
     @Autowired
     private AddressService addressService;
+
+    @Autowired
+    HttpServletRequest request;
+
+    @Autowired
+    HttpServletResponse response;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -137,7 +147,8 @@ public class AuthenticationService {
                     .build();
         }
 
-        var token = this.generateToken(user);
+        var token = this.generateToken(user, VALID_DURATION);
+        var refreshToken = this.generateToken(user, REFRESHABLE_DURATION);
 
         var image = FilesHelp.getOneDocument(user.getId(), EntityFileType.USER_AVATAR);
 
@@ -148,6 +159,10 @@ public class AuthenticationService {
                     .name(role.getRole().getName())
                     .build());
         });
+
+        response.setHeader("accessToken", token);
+        response.setHeader("refreshToken", refreshToken);
+        response.setHeader("Authorization", token);
 
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
@@ -164,11 +179,12 @@ public class AuthenticationService {
                                 .primaryAddress(addressService.convertAddressToAddressResponse(user.getAddress()))
                                 .build())
                 .token(token)
+                .refreshToken(refreshToken)
                 .build();
     }
 
     // tao token
-    private String generateToken(Account account) {
+    public String generateToken(Account account, Long duration) {
         // Tạo HMAC signer
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
@@ -178,16 +194,17 @@ public class AuthenticationService {
                 .issuer("dnrea.demo")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
+                        Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", this.buildScope(account))
                 .claim("fullname", account.getFullName())
+                .claim("uid", account.getId())
                 .build();
 
         Payload payload = new Payload(claimsSet.toJSONObject());
 
         JWSObject jwsObject = new JWSObject(header, payload);
-
+        System.out.println("SIGNER_KEY: " + SIGNER_KEY);
         // Ký token
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
@@ -230,6 +247,8 @@ public class AuthenticationService {
 
         try {
             signedJWT = SignedJWT.parse(token);
+            System.out.println("SIGNER_KEY2: " + SIGNER_KEY);
+
             verifier = new MACVerifier(SIGNER_KEY.getBytes());
             verified = signedJWT.verify(verifier);
             if (isRefresh) {
@@ -276,7 +295,7 @@ public class AuthenticationService {
         String email = verify.getJWTClaimsSet().getSubject();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        var token = this.generateToken(account);
+        var token = this.generateToken(account, VALID_DURATION);
 
         return AuthenticationResponse.builder()
                 .authenticated(true)
@@ -285,8 +304,59 @@ public class AuthenticationService {
 
     }
 
+    public boolean refreshToKenFromHttpServletRequest(HttpServletRequest req, HttpServletResponse res,
+            Long VALID_DURATION, Long REFRESHABLE_DURATION) {
+        String refreshToken = getRefreshTokenFromRequest(req);
+
+        if (refreshToken == null) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+
+        SignedJWT signedJWT = verifyToken(refreshToken, AuthenticationService.REFRESH_TOKEN);
+
+        if (signedJWT == null) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        } else {
+            try {
+                String userId = signedJWT.getJWTClaimsSet().getStringClaim("uid");
+                Account account = accountRepository.findById(userId).get();
+
+                if (account == null) {
+                    throw new AppException(ErrorCode.TOKEN_INVALID);
+                }
+
+                String accessToken = generateToken(account, VALID_DURATION);
+                String newRefreshToken = generateToken(account, REFRESHABLE_DURATION);
+
+                res.setHeader("accessToken", accessToken);
+                res.setHeader("refreshToken", newRefreshToken);
+
+                String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
+                Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+                InvaLidatedToken invaLidatedToken = InvaLidatedToken.builder()
+                        .id(jwtId)
+                        .expiryTime(expiryTime)
+                        .build();
+                
+                invaLidatedTokenRepository.save(invaLidatedToken);
+
+                return true;
+            } catch (ParseException e) {
+                throw new AppException(ErrorCode.TOKEN_INVALID);
+            }
+        }
+    }
+
     public String getTokenFromRequest(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        return token.substring(7);
+    }
+
+    public String getRefreshTokenFromRequest(HttpServletRequest request) {
+        String token = request.getHeader("RefreshToken");
         if (token == null || !token.startsWith("Bearer ")) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }

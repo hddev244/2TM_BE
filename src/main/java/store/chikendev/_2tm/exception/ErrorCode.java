@@ -66,9 +66,10 @@ public enum ErrorCode {
     ORDER_ERROR(447, "Order xảy ra lỗi, vui lòng thử lại sau!", HttpStatus.BAD_REQUEST),
     INVALID_QUANTITY(448, "Số lượng không hợp lệ", HttpStatus.BAD_REQUEST),
     CART_DELETED(449, "Sản phẩm đã được xóa khỏi giỏ hàng", HttpStatus.BAD_REQUEST),
-    CART_QTY_BIGGER_THAN_PRODUCT(450, "Số lượng sản phẩm trong giỏ hàng lớn hơn số lượng sản phẩm tồn kho", HttpStatus.BAD_REQUEST),
+    CART_QTY_BIGGER_THAN_PRODUCT(450, "Số lượng sản phẩm trong giỏ hàng lớn hơn số lượng sản phẩm tồn kho",
+            HttpStatus.BAD_REQUEST),
+    TOKEN_INVALID(451, "Token không hợp lệ", HttpStatus.UNAUTHORIZED),
     ;
-
 
     private int code;
     private String message;

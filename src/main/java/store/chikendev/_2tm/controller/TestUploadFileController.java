@@ -1,9 +1,11 @@
 package store.chikendev._2tm.controller;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,13 +14,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nimbusds.jwt.SignedJWT;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
+import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.ProductImages;
+import store.chikendev._2tm.exception.AppException;
+import store.chikendev._2tm.exception.ErrorCode;
+import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.ProductImagesRepository;
 import store.chikendev._2tm.repository.ProductRepository;
+import store.chikendev._2tm.service.AuthenticationService;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.Payment;
@@ -32,13 +45,31 @@ public class TestUploadFileController {
     private Payment payment;
 
     @Autowired
+    private HttpServletRequest request;
+
+    @Autowired
+    private HttpServletResponse response;
+
+    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
     private ImageRepository imageRepository;
-
     @Autowired
     private ProductImagesRepository productImagesRepository;
+
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
+    AccountRepository accountRepository;
+    // thoi gian hieu luc cua token
+    @Value("${jwt.valid-duration}")
+    private Long VALID_DURATION;
+
+    // thoi gian con hieu luc de lam moi token
+    @Value("${jwt.refreshable-duration}")
+    private Long REFRESHABLE_DURATION;
 
     @GetMapping("vnpay-create-payment")
     public String getMethodName()
@@ -46,6 +77,14 @@ public class TestUploadFileController {
         return new String(payment.createVNPT(12200000L,
                 "11111"));
     }
+
+    @PostMapping("refreshtoken")
+    public ApiResponse<String> refreshToken() {
+        authenticationService.refreshToKenFromHttpServletRequest(request, response, VALID_DURATION, REFRESHABLE_DURATION);
+        return new ApiResponse<>(200, null, "Refresh token successfully");
+    }
+
+    
 
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(
