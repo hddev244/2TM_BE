@@ -1,7 +1,6 @@
 package store.chikendev._2tm.dto.responce;
 
 import java.util.Date;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +19,7 @@ public class PaymentRecordResponse {
     private Date payDate;
     private String status;
     private AccountResponse account;
-    private List<Long> idOrder;
+    private Date createdAt;
+    private Date updatedAt;
 
 }

@@ -254,6 +254,7 @@ public class OrderService {
             PaymentRecords record = PaymentRecords.builder()
                     .id(idPaymentRecords)
                     .account(account)
+                    .amount(Double.valueOf(sumTotalPrice))
                     .status(false)
                     .build();
             paymentRecordsRepository.save(record);

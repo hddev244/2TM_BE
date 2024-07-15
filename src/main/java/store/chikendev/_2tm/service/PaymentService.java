@@ -24,7 +24,8 @@ public class PaymentService {
     @Autowired
     private Payment payment;
 
-    public PaymentRecordResponse update(String id, Double amount, String bankCode, String cartType, String bankTranNo,
+    public PaymentRecordResponse updateState(String id, Double amount, String bankCode, String cartType,
+            String bankTranNo,
             String payDate, String status) {
         PaymentRecords record = paymentRecordsRepository.findById(id).orElseThrow(() -> {
             throw new AppException(ErrorCode.PAYMENT_RECORD_NOT_FOUND);
@@ -56,7 +57,9 @@ public class PaymentService {
                 .cartType(record.getCartType())
                 .bankTranNo(record.getBankTranNo())
                 .payDate(record.getPayDate())
-                .status(record.getStatus() ? "Thanh toán thành công" : "Thanh toán thất bại")
+                .status(record.getStatus() ? "Đã thanh toán" : "Chưa thanh toán")
+                .createdAt(record.getCreatedAt())
+                .updatedAt(record.getUpdatedAt())
                 .account(AccountResponse.builder()
                         .id(record.getAccount().getId())
                         .fullName(record.getAccount().getFullName())
