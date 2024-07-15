@@ -1,7 +1,5 @@
 package store.chikendev._2tm.controller;
 
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,23 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nimbusds.jwt.SignedJWT;
-
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
-import store.chikendev._2tm.entity.Account;
-import store.chikendev._2tm.entity.Image;
-import store.chikendev._2tm.entity.ProductImages;
-import store.chikendev._2tm.exception.AppException;
-import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
-import store.chikendev._2tm.repository.ImageRepository;
-import store.chikendev._2tm.repository.ProductImagesRepository;
-import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.service.AuthenticationService;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
@@ -49,14 +35,6 @@ public class TestUploadFileController {
 
     @Autowired
     private HttpServletResponse response;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private ImageRepository imageRepository;
-    @Autowired
-    private ProductImagesRepository productImagesRepository;
 
     @Autowired
     private AuthenticationService authenticationService;
@@ -80,11 +58,10 @@ public class TestUploadFileController {
 
     @PostMapping("refreshtoken")
     public ApiResponse<String> refreshToken() {
-        authenticationService.refreshToKenFromHttpServletRequest(request, response, VALID_DURATION, REFRESHABLE_DURATION);
+        authenticationService.refreshToKenFromHttpServletRequest(request, response, VALID_DURATION,
+                REFRESHABLE_DURATION);
         return new ApiResponse<>(200, null, "Refresh token successfully");
     }
-
-    
 
     @GetMapping
     public ApiResponse<List<ResponseDocumentDto>> getDocuments(

@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
@@ -41,9 +39,6 @@ public class AccountController {
     @Autowired
     private AuthenticationService authenticationService;
 
-    @Autowired
-    private HttpServletResponse response;
-
     @GetMapping
     public ApiResponse<AccountResponse> getAccount() {
         return new ApiResponse<AccountResponse>(200, null, accountService.getAccountByToken());
@@ -60,7 +55,6 @@ public class AccountController {
     public ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_USER);
 
-       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
@@ -68,7 +62,6 @@ public class AccountController {
     public ApiResponse<AuthenticationResponse> adminLogin(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_ADMIN);
 
-       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
@@ -76,7 +69,6 @@ public class AccountController {
     public ApiResponse<AuthenticationResponse> staffLogin(@RequestBody LoginRequest request) {
         AuthenticationResponse responce = authenticationService.auth(request, AuthenticationService.LOGIN_ROLE_STAFF);
 
-       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 
@@ -85,7 +77,6 @@ public class AccountController {
         AuthenticationResponse responce = authenticationService.auth(request,
                 AuthenticationService.LOGIN_ROLE_DELIVERY);
 
-       
         return new ApiResponse<AuthenticationResponse>(responce.isAuthenticated() ? 200 : 414, null, responce);
     }
 

@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class StateOrder {
     public static final Long IN_CONFIRM = 1L;
+    public static final Long CONFIRMED = 12L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
