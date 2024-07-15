@@ -23,12 +23,6 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    // @GetMapping("create-vnpt")
-    // public ApiResponse<String> create_vnpt(@RequestParam("amount") Integer
-    // amount) throws UnsupportedEncodingException {
-    // return new ApiResponse<>(200, null, paymentService.createVNPT(amount));
-    // }
-
     @PostMapping("/{idPaymentRecord}")
     public ApiResponse<String> payment(@RequestParam("vnp_ResponseCode") String status,
             @PathVariable("idPaymentRecord") String id,
