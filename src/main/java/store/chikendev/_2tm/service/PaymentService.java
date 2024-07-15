@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.text.DecimalFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import store.chikendev._2tm.repository.OrderRepository;
 import store.chikendev._2tm.repository.PaymentRecordsRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.utils.Payment;
+import store.chikendev._2tm.utils.SendEmail;
 
 @Service
 public class PaymentService {
@@ -44,6 +46,9 @@ public class PaymentService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private SendEmail email;
 
     public String payment(String id, String bankCode, String cartType,
             String bankTranNo,
@@ -76,6 +81,7 @@ public class PaymentService {
             }
             orderRepository.saveAllAndFlush(orders);
             paymentRecordsRepository.saveAndFlush(record);
+            email.sendMail(record.getAccount().getEmail(), "Thanh toán hóa đơn", generateOrdersSummaryHtml(record));
             return "Thanh toán thành công";
         } else {
             throw new AppException(ErrorCode.valueOf("PAYMENT_ERROR_" + status));
@@ -86,8 +92,10 @@ public class PaymentService {
         PaymentRecords record = paymentRecordsRepository.findById(id).orElseThrow(() -> {
             throw new AppException(ErrorCode.PAYMENT_RECORD_NOT_FOUND);
         });
+        if (record.getStatus()) {
+            throw new AppException(ErrorCode.PAYMENT_RECORD_NOT_FOUND);
+        }
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         if (!record.getAccount().getId().equals(account.getId())) {
@@ -129,5 +137,39 @@ public class PaymentService {
                         .phoneNumber(record.getAccount().getPhoneNumber())
                         .build())
                 .build();
+    }
+
+    private String generateOrdersSummaryHtml(PaymentRecords records) {
+        StringBuilder htmlBuilder = new StringBuilder();
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.0");
+
+        htmlBuilder.append("<html>")
+                .append("<head>")
+                .append("<style>")
+                .append("body { font-family: Arial, sans-serif; margin: 20px; }")
+                .append(".order-summary { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; }")
+                .append(".order-header { background-color: #f2f2f2; padding: 10px; font-size: 18px; }")
+                .append(".order-details { margin-top: 10px; }")
+                .append("table { width: 100%; border-collapse: collapse; }")
+                .append("th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }")
+                .append(".total-price, .grand-total { font-weight: bold; margin-top: 10px; }")
+                .append(".grand-total { font-size: 20px; margin-top: 20px; }")
+                .append("</style>")
+                .append("</head>")
+                .append("<body>")
+                .append("<h1>Thanh toán hóa đơn thành công</h1>")
+                .append("<div class='order-summary'>")
+                .append("<div class='order-header'>Mã hóa đơn: ").append(records.getId()).append("</div>")
+                .append("<div class='order-details'>")
+                .append("<p>Ngày thanh toán: ").append(records.getPayDate()).append("</p>")
+                .append("<p>Hình thức thanh toán: ").append(records.getCartType()).append("</p>")
+                .append("<p>Mã ngân hàng: ").append(records.getBankCode()).append("</p>")
+                .append("<p>Mã giao dịch: ").append(records.getBankTranNo()).append("</p>")
+                .append("<p>Số tiền đã thanh toán: ").append(decimalFormat.format(records.getAmount())).append("</p>")
+                .append("</div>")
+                .append("</div>")
+                .append("<div class='grand-total'>Xin cảm ơn bạn đã sử dụng dịch vụ của chúng tôi</div>")
+                .append("</body></html>");
+        return htmlBuilder.toString();
     }
 }
