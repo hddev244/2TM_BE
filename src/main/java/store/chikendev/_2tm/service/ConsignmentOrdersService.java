@@ -357,4 +357,11 @@ public class ConsignmentOrdersService {
 
     }
 
+    public ConsignmentOrdersResponse getConsignmentOrderById(Long id) {
+        ConsignmentOrders consignmentOrder = consignmentOrdersRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
+
+        return convertToConsignmentOrdersResponse(consignmentOrder);
+    }
+
 }

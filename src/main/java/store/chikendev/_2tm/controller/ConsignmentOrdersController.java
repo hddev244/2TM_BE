@@ -4,6 +4,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,5 +61,11 @@ public class ConsignmentOrdersController {
     @GetMapping("success/{consignmentOrderId}")
     public ApiResponse<String> success(@PathVariable("consignmentOrderId") Long id) {
         return new ApiResponse<String>(200, null, consignmentOrdersService.successConsignmentOrders(id));
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<ConsignmentOrdersResponse> getConsignmentOrderById(@PathVariable("id") Long id) {
+        ConsignmentOrdersResponse response = consignmentOrdersService.getConsignmentOrderById(id);
+        return new ApiResponse<ConsignmentOrdersResponse>(200,null, response);
     }
 }
