@@ -24,7 +24,7 @@ public class SecurityConfig implements WebMvcConfigurer {
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {    
+    public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
                         "http://localhost:3000",
@@ -36,9 +36,12 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "https://api.2tm.store",
                         "http://api.2tm.store",
                         "https://2tm.store",
+                        "http://127.0.0.1:5501",
                         "http://2tm.store")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                .allowedHeaders("*")
+                .allowedHeaders("*", "Authorization", "accessToken", "refreshToken", "test", "Content-Type", "Accept","Aceess-Control-Allow-Credentials")
+                .exposedHeaders("Authorization","accessToken","refreshToken","test")
+                .maxAge(3600)
                 .allowCredentials(true);
     }
 
@@ -54,18 +57,18 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(c -> c.disable());
-        httpSecurity.cors(c -> c.disable());
         
         httpSecurity.authorizeHttpRequests(request -> {
             request.anyRequest().permitAll();
         });
-        
 
         httpSecurity.oauth2ResourceServer(oauth2 -> {
             oauth2.jwt(jwtConfig -> jwtConfig.decoder(customJWTDecoder)
                     .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                     .authenticationEntryPoint(jwtAuthenticationEntryPoint);
         });
+
+ 
 
         return httpSecurity.build();
     }

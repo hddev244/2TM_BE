@@ -245,6 +245,7 @@ public class AuthenticationService {
         var verified = false;
         Date expiryTime;
 
+
         try {
             signedJWT = SignedJWT.parse(token);
             System.out.println("SIGNER_KEY2: " + SIGNER_KEY);
@@ -330,6 +331,7 @@ public class AuthenticationService {
 
                 res.setHeader("accessToken", accessToken);
                 res.setHeader("refreshToken", newRefreshToken);
+                res.setHeader("Authorization", accessToken);                
 
                 String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
                 Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();

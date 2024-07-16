@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletResponse;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.DistrictResponse;
 import store.chikendev._2tm.dto.responce.ProvinceCityResponse;
@@ -30,6 +32,9 @@ public class AddressController {
     @Autowired
     private AddressService addressService;
 
+    @Autowired
+    HttpServletResponse res;
+
     @GetMapping("/provinceCity/{id}")
     public ApiResponse<ProvinceCityResponse> getProvinceCity(@PathVariable("id") Long id) {
         return new ApiResponse<ProvinceCityResponse>(200, null, addressService.getByIdProvince(id));
@@ -46,6 +51,7 @@ public class AddressController {
         return new ApiResponse<List<WardResponse>>(200, null, addressService.findByDistrictId(district_id));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/addAddress")
     public ApiResponse<AddressResponse> address(@RequestBody AddressRequest request) {
         return new ApiResponse<>(200, null, addressService.addAddress(request));
@@ -56,8 +62,10 @@ public class AddressController {
         return new ApiResponse<List<AddressResponse>>(200, null, addressService.getAddressByUserId());
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_CH')")
     @PutMapping("/primary/account")
     public ApiResponse<AddressResponse> updatePrimaryAddress(@RequestParam(name="addressId" ,required = true) Long addressId) {
+        res.addHeader("test", "21123123");
         AddressResponse response = addressService.updatePrimaryAddress(addressId);
         return new ApiResponse<AddressResponse>(200, null, response);
     }
