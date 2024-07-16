@@ -16,8 +16,8 @@ import store.chikendev._2tm.entity.Product;
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     List<Product> findByQuantityGreaterThanOrderByCreatedAtDesc(int quantity);
 
-    @Query("select p from Product p where p.name like %:searchTerm% or p.description like %:searchTerm%")
-    Page<Product> findProductsBySearchTerm(@Param("searchTerm") String searchTerm, Pageable pageable);
+    // @Query("select p from Product p where p.name like %:searchTerm% or p.description like %:searchTerm%")
+    // Page<Product> findProductsBySearchTerm(@Param("searchTerm") String searchTerm, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.state.id = 2 ORDER BY p.createdAt DESC")
     Page<Product> findAvailableProducts(Pageable pageable);
@@ -27,4 +27,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT p FROM Product p WHERE p.ownerId.id = :ownerId AND (:stateId IS NULL OR p.state.id = :stateId)")
     Page<Product> findConsignmentProductsByOwnerIdAndState(@Param("ownerId") String ownerId, @Param("stateId") Long stateId, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.state.id = 2L AND (p.name LIKE :value% OR p.description LIKE :value%)")
+    Page<Product> findProductsBySearchTerm(@Param("value") String value, Pageable pageable);
 }
