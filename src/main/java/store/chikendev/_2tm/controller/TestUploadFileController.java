@@ -58,8 +58,8 @@ public class TestUploadFileController {
 
     @PostMapping("refreshtoken")
     public ApiResponse<String> refreshToken() {
-        authenticationService.refreshToKenFromHttpServletRequest(request, response, VALID_DURATION,
-                REFRESHABLE_DURATION);
+            authenticationService.refreshToKenFromHttpServletRequest(request, response);
+
         return new ApiResponse<>(200, null, "Refresh token successfully");
     }
 

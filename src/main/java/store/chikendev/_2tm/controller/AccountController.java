@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
@@ -35,6 +37,12 @@ public class AccountController {
 
     @Autowired
     private OtpService otpService;
+
+    @Autowired
+    private HttpServletRequest request;
+
+    @Autowired
+    private HttpServletResponse response;
 
     @Autowired
     private AuthenticationService authenticationService;
@@ -114,6 +122,12 @@ public class AccountController {
     public ApiResponse<AccountResponse> getAccountById(@PathVariable(name = "id") String id) {
         AccountResponse accountResponse = accountService.getStaffById(id);
         return new ApiResponse<AccountResponse>(200, null, accountResponse);
+    }
+
+    @PostMapping("refreshtoken")
+    public ApiResponse<String> refreshToken() {
+        authenticationService.refreshToKenFromHttpServletRequest(request, response);
+        return new ApiResponse<>(200, null, "Refresh token successfully");
     }
 
 }

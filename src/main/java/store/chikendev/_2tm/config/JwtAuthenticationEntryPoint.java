@@ -33,8 +33,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
         String token = authenticationService.getTokenFromRequest(request);
-        String refreshToken = authenticationService.getRefreshTokenFromRequest(request);
-
         if (token != null) {
             try {
                 authenticationService.verifyToken(token, false);

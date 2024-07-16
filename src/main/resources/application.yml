@@ -34,7 +34,8 @@ spring:
             enable: true
 jwt:
   signerKey: 3331QGQ7lwcpqMeuVGSCjPkwkMKk/92td+suEztit4FWXPXwLjjxmnHY0Knj796r
-  valid-duration: 3600 # in second
+  signerKeyRefresh: 3331QGQ7lwcpqMeuVGSCjPkwkMKk/92td+suEztit4FWXPXwLjjxmnHY0Knj796rshdajfhk
+  valid-duration: 720 # in second
   refreshable-duration: 86400
 open:
   api:
