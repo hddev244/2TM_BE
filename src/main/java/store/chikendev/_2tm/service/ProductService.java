@@ -309,7 +309,7 @@ public class ProductService {
         }
 
         Pageable pageable = PageRequest.of(pageIndex, size);
-        Page<Product> products = productRepository.findProductsBySearchTerm(value, pageable);
+        Page<Product> products = productRepository.findProductsBySearchTerm("%"+value+"%", pageable);
 
         Page<ProductResponse> productResponses = products.map(product -> {
             List<AttributeProductResponse> attrs = new ArrayList<>();

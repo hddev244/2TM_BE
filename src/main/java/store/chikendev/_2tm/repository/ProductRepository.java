@@ -28,6 +28,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Query("SELECT p FROM Product p WHERE p.ownerId.id = :ownerId AND (:stateId IS NULL OR p.state.id = :stateId)")
     Page<Product> findConsignmentProductsByOwnerIdAndState(@Param("ownerId") String ownerId, @Param("stateId") Long stateId, Pageable pageable);
 
-    @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.state.id = 2L AND (p.name LIKE :value% OR p.description LIKE :value%)")
+    @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.state.id = 2L AND (p.name LIKE :value OR p.description LIKE :value)")
     Page<Product> findProductsBySearchTerm(@Param("value") String value, Pageable pageable);
 }
