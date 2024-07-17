@@ -121,13 +121,4 @@ public class ProductController {
         return new ApiResponse<ProductResponse>(200, null, updatedProduct);
     }
 
-    @PreAuthorize("hasRole('ROLE_CH')")
-    @GetMapping("/consignment")
-    public ApiResponse<Page<ProductResponse>> getConsignmentProductsByState(
-            @RequestParam(required = false, name = "stateId") Long stateId,
-            @RequestParam(defaultValue = "0" , required = false, name="noPage") int noPage,
-            @RequestParam(defaultValue = "10" , required = false, name="size") int size) {
-        Page<ProductResponse> products = productService.getConsignmentProductsByOwnerAndState(stateId, noPage, size);
-        return new ApiResponse<Page<ProductResponse>>(200, null, products);
-    }
 }

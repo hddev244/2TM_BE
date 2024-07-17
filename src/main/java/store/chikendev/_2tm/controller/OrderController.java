@@ -3,15 +3,20 @@ package store.chikendev._2tm.controller;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.OrderInformation;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.OrderPaymentResponse;
+import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.service.OrderService;
 
 @RestController
@@ -24,6 +29,14 @@ public class OrderController {
     public ApiResponse<OrderPaymentResponse> createOder(@RequestBody @Valid OrderInformation request)
             throws UnsupportedEncodingException {
         return new ApiResponse<OrderPaymentResponse>(200, null, orderService.createOrder(request));
+    }
+
+        @GetMapping("/AllOrder")
+    public ApiResponse<Page<OrderResponse>> getAllOrders(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Page<OrderResponse> ordersPage = orderService.getAllOrders(page, size);
+        return new ApiResponse<Page<OrderResponse>>(200,null, ordersPage);
     }
 
 }

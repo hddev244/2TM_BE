@@ -529,14 +529,4 @@ public class ProductService {
                 .anyMatch(accountStore -> accountStore.getAccount().equals(account));
     }
 
-    public Page<ProductResponse> getConsignmentProductsByOwnerAndState(Long stateId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        Page<Product> products = productRepository.findConsignmentProductsByOwnerIdAndState(account.getId(), stateId,
-                pageable);
-        return products.map(this::convertToResponse);
-    }
 }

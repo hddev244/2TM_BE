@@ -9,6 +9,9 @@ import java.security.SecureRandom;
 import java.text.DecimalFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -338,6 +341,8 @@ public class OrderService {
                 return convertToOrderDetailResponse(detail);
             }).collect(Collectors.toList());
         }
+        
+        String storeName = (order.getStore() != null) ? order.getStore().getName() : "";
 
         return OrderResponse.builder()
                 .id(order.getId())
@@ -355,7 +360,7 @@ public class OrderService {
                 .state(order.getStateOrder() != null ? order.getStateOrder().getStatus() : "")
                 .paymentMethodName(order.getPaymentMethod() != null ? order.getPaymentMethod().getName() : "")
                 .detail(orderDetailResponses)
-                .storeName(order.getStore().getName())
+                .storeName(storeName)
                 .paymentRecordId(order.getPaymentRecord() != null ? order.getPaymentRecord().getId() : "")
                 .build();
     }
@@ -420,4 +425,10 @@ public class OrderService {
         return htmlBuilder.toString();
     }
 
+        public Page<OrderResponse> getAllOrders(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+
+        return orderPage.map(this::convertToOrderResponse);
+    }
 }
