@@ -14,10 +14,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import store.chikendev._2tm.dto.request.NotificationPayload;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.service.AuthenticationService;
+import store.chikendev._2tm.service.NotificationService;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.Payment;
@@ -27,6 +29,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 @RequestMapping("/api/test")
 public class TestUploadFileController {
+    @Autowired
+    NotificationService notificationService;
+
     @Autowired
     private Payment payment;
 
@@ -61,6 +66,18 @@ public class TestUploadFileController {
             authenticationService.refreshToKenFromHttpServletRequest(request, response);
 
         return new ApiResponse<>(200, null, "Refresh token successfully");
+    }
+
+    @GetMapping("notification")
+    public String callCreateNotification() {
+        NotificationPayload payload = NotificationPayload.builder()
+                .objectId("1111111111")
+                .accountId("111111111")
+                .message("Test")
+                .type("test")
+                .build();
+
+        return notificationService.callCreateNotification(payload);
     }
 
     @GetMapping
