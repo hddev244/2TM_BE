@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class NotificationPayload {
     public static final String TYPE_NOTIFICATION = "notification";
     public static final String TYPE_MESSAGE = "message";
+    public static final String TYPE_ORDER = "order";
 
     private String objectId;
     private String accountId;
