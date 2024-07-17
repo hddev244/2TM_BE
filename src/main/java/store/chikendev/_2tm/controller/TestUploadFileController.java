@@ -71,10 +71,10 @@ public class TestUploadFileController {
     @GetMapping("notification")
     public String callCreateNotification() {
         NotificationPayload payload = NotificationPayload.builder()
-                .objectId("111111111")
+                .objectId("111111111") // là id của order, thanh toán, ...
                 .accountId("c6cd2076-4c0b-4b9b-b345-374640888ba0")
-                .message("Test thông báo . lỗi cors origin")
-                .type(NotificationPayload.TYPE_ORDER)
+                .message("Test thông báo . lỗi cors origin") // nội dung thông báo
+                .type(NotificationPayload.TYPE_ORDER)  // loại thông báo theo objectId (order, payment, ...)
                 .build();
 
         return notificationService.callCreateNotification(payload);
