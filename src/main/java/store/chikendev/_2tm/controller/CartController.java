@@ -19,12 +19,11 @@ public class CartController {
 
     // @PreAuthorize("hasAnyRole('ROLE_KH')")
     @PostMapping("/add")
-    public ApiResponse<?> addProductToCart(
+    public ApiResponse<CartResponse> addProductToCart(
         @RequestParam(name="productId") Long productId, 
         @RequestParam(name="quantity", required = false, defaultValue = "1") Integer quantity){
-            System.out.println(quantity);
-        cartService.addProductToCart(productId,quantity);
-        return new ApiResponse<>(200, Collections.singletonList("Thêm sản phẩm thành công"), null);
+            CartResponse res = cartService.addProductToCart(productId,quantity);
+        return new ApiResponse<CartResponse>(200, Collections.singletonList("Thêm sản phẩm thành công"), res);
     }
 
     @PreAuthorize("hasAnyRole('ROLE_KH', 'ROLE_CH')")

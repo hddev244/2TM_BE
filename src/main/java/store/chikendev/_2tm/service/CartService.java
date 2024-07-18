@@ -39,7 +39,7 @@ public class CartService {
 
     @SuppressWarnings("unused")
     // thêm sản phẩm vào giỏ hàng
-    public void addProductToCart(Long idProduct, Integer quantityRequest) {
+    public CartResponse addProductToCart(Long idProduct, Integer quantityRequest) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
@@ -70,8 +70,7 @@ public class CartService {
 
                 throw new AppException(ErrorCode.CART_QTY_BIGGER_THAN_PRODUCT);
             }
-
-            return;
+            return convertToCartDto(cartItem);
         } else {
             int quantity = cartItemFound.getQuantity() + quantityRequest;
 
@@ -83,7 +82,7 @@ public class CartService {
             if (product.getQuantity() >= quantity) {
                 cartItemFound.setQuantity(quantity);
                 cartItemsRepository.save(cartItemFound);
-                return;
+                return convertToCartDto(cartItemFound);
             } else {
                 cartItemFound.setQuantity(product.getQuantity());
                 throw new AppException(ErrorCode.CART_QTY_BIGGER_THAN_PRODUCT);
