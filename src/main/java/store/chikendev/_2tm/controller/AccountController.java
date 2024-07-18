@@ -126,7 +126,7 @@ public class AccountController {
 
     @PostMapping("refreshtoken")
     public ApiResponse<String> refreshToken() {
-        authenticationService.refreshToKenFromHttpServletRequest(request, response);
+        authenticationService.refreshToKenFromHttpServletRequest();
         return new ApiResponse<>(200, null, "Refresh token successfully");
     }
 

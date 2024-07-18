@@ -33,10 +33,10 @@ spring:
           starttls:
             enable: true
 jwt:
-  signerKey: 3331QGQ7lwcpqMeuVGSCjPkwkMKk/92td+suEztit4FWXPXwLjjxmnHY0Knj796r
+  signerKey: 3331QGQ7lwcpqMeuVGSCjPkwkMKk/92td+suEztit4FWXPXwLjjxmnHY0Knj796rj
   signerKeyRefresh: 3331QGQ7lwcpqMeuVGSCjPkwkMKk/92td+suEztit4FWXPXwLjjxmnHY0Knj796rshdajfhk
   valid-duration: 720 # in second
-  refreshable-duration: 86400
+  refreshable-duration: 864000
 open:
   api:
     title: 2TM API Documentation 

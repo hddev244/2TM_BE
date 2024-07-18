@@ -326,13 +326,12 @@ public class AuthenticationService {
                 .build();
     }
 
-    public boolean refreshToKenFromHttpServletRequest(HttpServletRequest req, HttpServletResponse res) {
-        String refreshToken = getRefreshTokenFromRequest(req);
+    public boolean refreshToKenFromHttpServletRequest() {
+        String refreshToken = getRefreshTokenFromRequest(request);
 
         if (refreshToken == null) {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
-
         SignedJWT signedJWT = verifyToken(refreshToken, AuthenticationService.REFRESH_TOKEN);
 
         if (signedJWT == null) {
@@ -349,9 +348,9 @@ public class AuthenticationService {
                 String accessToken = generateToken(account, VALID_DURATION, SIGNER_KEY);
                 String newRefreshToken = generateToken(account, REFRESHABLE_DURATION, SIGNER_KEY_REFRESH);
 
-                res.setHeader("accessToken", accessToken);
-                res.setHeader("refreshToken", newRefreshToken);
-                res.setHeader("Authorization", accessToken);
+                response.setHeader("accessToken", accessToken);
+                response.setHeader("refreshToken", newRefreshToken);
+                response.setHeader("Authorization", accessToken);
 
                 String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
                 Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
