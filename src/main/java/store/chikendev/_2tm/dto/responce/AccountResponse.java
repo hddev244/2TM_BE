@@ -24,6 +24,7 @@ public class AccountResponse {
     private String address;
     private String email;
     private List<RoleResponse> roles;
+    private List<CartResponse> cartItems;
     private Date createdAt;
     private Date updatedAt;
     private String stateName;

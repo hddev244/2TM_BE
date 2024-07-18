@@ -233,7 +233,7 @@ public class ProductService {
         return "";
     }
 
-    private ProductResponse convertToResponse(Product product) {
+    public ProductResponse convertToResponse(Product product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
         response.setName(product.getName());

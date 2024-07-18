@@ -34,8 +34,10 @@ import store.chikendev._2tm.dto.request.LogoutRequest;
 import store.chikendev._2tm.dto.request.RefreshTokenRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
+import store.chikendev._2tm.dto.responce.CartResponse;
 import store.chikendev._2tm.dto.responce.RoleResponse;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.InvaLidatedToken;
 import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.RoleAccount;
@@ -62,6 +64,9 @@ public class AuthenticationService {
 
     @Autowired
     HttpServletRequest request;
+
+    @Autowired
+    private ProductService productService;
 
     @Autowired
     HttpServletResponse response;
@@ -167,6 +172,20 @@ public class AuthenticationService {
         response.setHeader("accessToken", token);
         response.setHeader("refreshToken", refreshToken);
         response.setHeader("Authorization", token);
+        
+        List<CartItems> cartItems = user.getCartItems();
+
+        List<CartResponse> cartResponses = null;
+        if (!CollectionUtils.isEmpty(cartItems)) {
+            cartResponses = cartItems.stream().map(cartItem -> {
+                return CartResponse.builder()
+                        .id(cartItem.getId())
+                        .quantity(cartItem.getQuantity())
+                        .product(productService.convertToResponse(cartItem.getProduct()))
+                        .build();
+            }).toList();
+        }
+
 
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
@@ -180,6 +199,7 @@ public class AuthenticationService {
                                 .phoneNumber(user.getPhoneNumber())
                                 .email(user.getEmail())
                                 .image(image)
+                                .cartItems(cartResponses)
                                 .primaryAddress(addressService.convertAddressToAddressResponse(user.getAddress()))
                                 .build())
                 .token(token)
