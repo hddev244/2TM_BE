@@ -4,9 +4,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,6 +46,16 @@ public class ConsignmentOrdersController {
                 consignmentOrdersService.getByStateOrAll(size.orElse(10), page.orElse(0), state));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_CH')")
+    @GetMapping("owner-find-by-state")
+    public ApiResponse<Page<ConsignmentOrdersResponse>> getByStateOrAllWithOwner(
+            @RequestParam(required = false, name = "size") Optional<Integer> size,
+            @RequestParam(required = false, name = "page") Optional<Integer> page,
+            @RequestParam(required = false, name = "state") Long state) {
+        return new ApiResponse<Page<ConsignmentOrdersResponse>>(200, null,
+                consignmentOrdersService.getByStateOrAllWithOwner(size.orElse(10), page.orElse(0), state));
+    }
+
     @PreAuthorize("hasRole('ROLE_NVGH')")
     @PutMapping(value = "update-status", consumes = "multipart/form-data")
     public ApiResponse<String> updateStatus(@RequestPart("consignmentOrderId") Long id,
@@ -63,7 +70,7 @@ public class ConsignmentOrdersController {
         return new ApiResponse<String>(200, null, consignmentOrdersService.successConsignmentOrders(id));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/find-by-id/{id}")
     public ApiResponse<ConsignmentOrdersResponse> getConsignmentOrderById(@PathVariable("id") Long id) {
         ConsignmentOrdersResponse response = consignmentOrdersService.getConsignmentOrderById(id);
         return new ApiResponse<ConsignmentOrdersResponse>(200,null, response);

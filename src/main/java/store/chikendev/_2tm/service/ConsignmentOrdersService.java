@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.request.ConsignmentOrdersRequest;
+import store.chikendev._2tm.dto.request.NotificationPayload;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
@@ -50,6 +51,9 @@ import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class ConsignmentOrdersService {
+    @Autowired
+    private NotificationService notificationService;
+
     @Autowired
     ImageRepository imageRepository;
 
@@ -142,7 +146,8 @@ public class ConsignmentOrdersService {
         if (deliveryPerson.isPresent() == false) {
             throw new AppException(ErrorCode.DELIVERY_PERSON_NOT_FOUND);
         }
-        StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.IN_CONFIRM).get();
+        StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.CREATED).get();
+
         ConsignmentOrders save = ConsignmentOrders.builder()
                 .note(request.getNote())
                 .ordererId(account)
@@ -291,7 +296,7 @@ public class ConsignmentOrdersService {
             throw new AppException(ErrorCode.STATE_NOT_FOUND);
         });
         if (consignmentOrders.getDeliveryPerson().getId().equals(account.getId())) {
-            if (idStatus == StateConsignmentOrder.ORDER_SUCCESSFULLY) {
+            if (state.getId() == StateConsignmentOrder.PICKED_UP) {
                 if (file == null) {
                     throw new AppException(ErrorCode.FILE_NOT_FOUND);
                 }
@@ -306,16 +311,24 @@ public class ConsignmentOrdersService {
                         .build();
                 Image imageSaved = imageRepository.save(image);
 
-                consignmentOrders.setStatusChangeDate(new java.util.Date());
                 consignmentOrders.setImage(imageSaved);
-                consignmentOrders.setStateId(state);
-                consignmentOrdersRepository.save(consignmentOrders);
-                return "Xác nhận thành công";
             }
 
             consignmentOrders.setStatusChangeDate(new java.util.Date());
             consignmentOrders.setStateId(state);
             consignmentOrdersRepository.save(consignmentOrders);
+
+            // Tạo thông báo realtime cho người dùng
+            String objectId = consignmentOrders.getId().toString();
+            NotificationPayload payload = NotificationPayload.builder()
+                    .objectId(objectId) // là id của order, thanh toán, ...
+                    .accountId(consignmentOrders.getProduct().getOwnerId().getId())
+                    .message(state.getDescription()) // nội dung thông báo
+                    .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông báo theo objectId (order, payment,                                  // ...)
+                    .build();
+
+            notificationService.callCreateNotification(payload);
+
             return "Xác nhận thành công";
         }
         throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
@@ -334,7 +347,7 @@ public class ConsignmentOrdersService {
 
         if (consignmentOrders.getStore().getAccountStores().stream()
                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
-            if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.ORDER_SUCCESSFULLY) {
+            if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.COMPLETED) {
                 if (consignmentOrders.getImage() != null) {
                     StateConsignmentOrder state = stateConsignmentOrderRepository
                             .findById(StateConsignmentOrder.COMPLETED)
@@ -362,6 +375,28 @@ public class ConsignmentOrdersService {
                 .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
 
         return convertToConsignmentOrdersResponse(consignmentOrder);
+    }
+
+    public Page<ConsignmentOrdersResponse> getByStateOrAllWithOwner(int size, int page, Long stateId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        });
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        if (stateId == null) {
+            Page<ConsignmentOrders> response = consignmentOrdersRepository.getByStateOrAllWithOwner(account,
+                    pageable);
+            return convertToResponse(response);
+        } else {
+            StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId).orElseThrow(() -> {
+                throw new AppException(ErrorCode.STATE_NOT_FOUND);
+            });
+            Page<ConsignmentOrders> response = consignmentOrdersRepository.getByStateOrAllWithOwner(account, state,
+                    pageable);
+            return convertToResponse(response);
+        }
     }
 
 }

@@ -13,6 +13,7 @@ public class NotificationPayload {
     public static final String TYPE_NOTIFICATION = "notification";
     public static final String TYPE_MESSAGE = "message";
     public static final String TYPE_ORDER = "order";
+    public static final String TYPE_CONSIGNMENT_ORDER = "consignment_order";
 
     private String objectId;
     private String accountId;

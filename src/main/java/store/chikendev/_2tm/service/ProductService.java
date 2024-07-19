@@ -441,7 +441,7 @@ public class ProductService {
         });
         productAttributeDetailRepository.saveAll(attributeDetails);
 
-        StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.IN_CONFIRM).get();
+        StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.CREATED).get();
 
         ConsignmentOrders consignmentOrderSaved = ConsignmentOrders.builder()
                 .note(request.getNote())

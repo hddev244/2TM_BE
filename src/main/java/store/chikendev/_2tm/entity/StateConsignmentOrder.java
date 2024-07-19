@@ -22,13 +22,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StateConsignmentOrder {
 
-    public static final Long IN_CONFIRM = 1L;
-    public static final Long PROCESSING_ORDER = 2L;
-    public static final Long ORDER_SUCCESSFULLY = 3L;
-    public static final Long COMPLETED = 4L;
-    public static final Long ORDER_FAILED = 5L;
-    public static final Long REFUSE = 6L;
-    public static final Long CONFIRM = 7L;
+    public static final Long CREATED = 1L; // VẬN ĐƠN ĐƯỢC TẠO THÀNH CÔNG
+    public static final Long ON_THE_WAY_PICK_UP = 2L; // ĐANG TRÊN ĐƯỜNG ĐẾN LẤY HÀNG
+    public static final Long PICKED_UP = 3L; // NHÂN VIÊN ĐÃ LẤY HÀNG, ĐANG GIAO VỀ CỬA HÀNG
+    public static final Long COMPLETED = 4L; // VẬN ĐƠN ĐÃ HOÀN THÀNH
+    public static final Long PICK_UP_FAILED = 5L; // LẤY HÀNG THẤT BẠI
+    public static final Long REFUSE = 6L; // Nhân viên giao hàng từ chối xác nhận đơn ký gửi không đúng yêu cầu
+    public static final Long RETURN = 7L; // Đơn hàng được trả lại
+    public static final Long RETURN_SUCCESS = 8L; // Đơn hàng đã được trả lại thành công
+    public static final Long CANCEL = 9L; // Hủy đơn bởi chủ hàng
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
