@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.AccountRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
@@ -37,12 +35,6 @@ public class AccountController {
 
     @Autowired
     private OtpService otpService;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
-    private HttpServletResponse response;
 
     @Autowired
     private AuthenticationService authenticationService;

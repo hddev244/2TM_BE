@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,12 +30,12 @@ public class OrderController {
         return new ApiResponse<OrderPaymentResponse>(200, null, orderService.createOrder(request));
     }
 
-        @GetMapping("/AllOrder")
+    @GetMapping("/AllOrder")
     public ApiResponse<Page<OrderResponse>> getAllOrders(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
         Page<OrderResponse> ordersPage = orderService.getAllOrders(page, size);
-        return new ApiResponse<Page<OrderResponse>>(200,null, ordersPage);
+        return new ApiResponse<Page<OrderResponse>>(200, null, ordersPage);
     }
 
 }
