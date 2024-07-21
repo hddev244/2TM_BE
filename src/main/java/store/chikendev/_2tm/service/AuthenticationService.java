@@ -249,28 +249,35 @@ public class AuthenticationService {
     }
 
     // đăng xuất
-    public void logout(LogoutRequest request) throws ParseException, JOSEException {
-        SignedJWT signToken = verifyToken(request.getToken(), true);
-        SignedJWT signToken2 = verifyToken(request.getRefreshToken(), true);
-
-        String jwtId = signToken.getJWTClaimsSet().getJWTID();
-        String jwtId2 = signToken2.getJWTClaimsSet().getJWTID();
-
-        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
-        InvaLidatedToken invaLidatedToken = InvaLidatedToken.builder()
-                .id(jwtId)
-                .expiryTime(expiryTime)
-                .build();
-        InvaLidatedToken invaLidatedToken2 = InvaLidatedToken.builder()
-                .id(jwtId2)
-                .expiryTime(expiryTime)
-                .build();
-        invaLidatedTokenRepository.save(invaLidatedToken);
-        invaLidatedTokenRepository.save(invaLidatedToken2);
-
+    public void logout() throws ParseException, JOSEException {
         response.setHeader("Authorization", null);
         response.setHeader("accessToken", null);
         response.setHeader("refreshToken", null);
+
+        String accessToken = getTokenFromRequest(request);
+        String refreshToken = getRefreshTokenFromRequest(request);
+
+        if (accessToken == null || refreshToken == null || "".equals(refreshToken) || "".equals(accessToken)) {
+            return;
+        }
+
+        SignedJWT signAccessToken = verifyToken(accessToken, false);
+        SignedJWT signRefreshToken = verifyToken(refreshToken, true);
+
+        String jwtIdAccess = signAccessToken.getJWTClaimsSet().getJWTID();
+        String jwtIdRefresh = signRefreshToken.getJWTClaimsSet().getJWTID();
+
+        Date expiryTime = signAccessToken.getJWTClaimsSet().getExpirationTime();
+        InvaLidatedToken invaLidatedAccessToken = InvaLidatedToken.builder()
+                .id(jwtIdAccess)
+                .expiryTime(expiryTime)
+                .build();
+        InvaLidatedToken invaLidatedRefreshToken = InvaLidatedToken.builder()
+                .id(jwtIdRefresh)
+                .expiryTime(expiryTime)
+                .build();
+        invaLidatedTokenRepository.save(invaLidatedAccessToken);
+        invaLidatedTokenRepository.save(invaLidatedRefreshToken);
 
     }
 
@@ -390,6 +397,14 @@ public class AuthenticationService {
 
     public String getTokenFromRequest(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        return token.substring(7);
+    }
+
+    public String getAccessTokenFromRequest(HttpServletRequest request) {
+        String token = request.getHeader("AccessToken");
         if (token == null || !token.startsWith("Bearer ")) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }

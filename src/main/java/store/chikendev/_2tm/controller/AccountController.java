@@ -81,6 +81,11 @@ public class AccountController {
 
     @GetMapping("logout")
     public ApiResponse<String> logout() {
+        try {
+            authenticationService.logout();
+        } catch (Exception e) {
+            return new ApiResponse<String>(414, null, "Logout fail");
+        }
         return new ApiResponse<String>(200, null, "Logout success");
     }
 
