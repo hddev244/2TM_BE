@@ -392,7 +392,7 @@ public class ProductService {
         Category category = categoryRepository.findById(request.getIdCategory()).orElseThrow(() -> {
             throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         });
-        StateProduct stateProduct = stateProductRepository.findById(StateProduct.IN_CONFIRM).orElseThrow(() -> {
+        StateProduct stateProduct = stateProductRepository.findById(StateProduct.DELYVERING).orElseThrow(() -> {
             throw new AppException(ErrorCode.STATE_NOT_FOUND);
         });
         Store store = storeRepository.findById(request.getStoreId()).orElseThrow(() -> {
