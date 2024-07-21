@@ -98,7 +98,7 @@ public class ConsignmentOrdersService {
         Category category = categoryRepository.findById(request.getIdCategory()).orElseThrow(() -> {
             throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         });
-        StateProduct stateProduct = stateProductRepository.findById(StateProduct.IN_CONFIRM).orElseThrow(() -> {
+        StateProduct stateProduct = stateProductRepository.findById(StateProduct.DELYVERING).orElseThrow(() -> {
             throw new AppException(ErrorCode.STATE_NOT_FOUND);
         });
         Store store = storeRepository.findById(request.getStoreId()).orElseThrow(() -> {
@@ -295,6 +295,7 @@ public class ConsignmentOrdersService {
         StateConsignmentOrder state = stateConsignmentOrderRepository.findById(idStatus).orElseThrow(() -> {
             throw new AppException(ErrorCode.STATE_NOT_FOUND);
         });
+
         if (consignmentOrders.getDeliveryPerson().getId().equals(account.getId())) {
             if (state.getId() == StateConsignmentOrder.PICKED_UP) {
                 if (file == null) {
@@ -329,6 +330,12 @@ public class ConsignmentOrdersService {
 
             notificationService.callCreateNotification(payload);
 
+            if (state.getId() == StateConsignmentOrder.COMPLETED) {
+                Product product = consignmentOrders.getProduct();
+                product.setState(stateProductRepository.findById(StateProduct.IN_CONFIRM).get());
+                productRepository.save(product);
+            }
+
             return "Xác nhận thành công";
         }
         throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
@@ -356,7 +363,7 @@ public class ConsignmentOrdersService {
                     consignmentOrders.setStateId(state);
                     consignmentOrdersRepository.save(consignmentOrders);
                     Product product = consignmentOrders.getProduct();
-                    product.setState(stateProductRepository.findById(StateProduct.CONFIRM).get());
+                    product.setState(stateProductRepository.findById(StateProduct.IN_CONFIRM).get());
                     product.setAccount(account);
                     productRepository.save(product);
                     return "Xác nhận thành công";
