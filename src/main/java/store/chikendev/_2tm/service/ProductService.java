@@ -1,9 +1,9 @@
 package store.chikendev._2tm.service;
 
-import java.util.Optional;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,10 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.validation.Valid;
 import store.chikendev._2tm.dto.request.ConsignmentOrdersRequest;
 import store.chikendev._2tm.dto.request.CreateProductRequest;
+import store.chikendev._2tm.dto.request.NotificationPayload;
 import store.chikendev._2tm.dto.request.ProductRequest;
 import store.chikendev._2tm.dto.responce.AttributeProductResponse;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
@@ -75,7 +74,11 @@ public class ProductService {
     private StoreRepository storeRepository;
 
     @Autowired
+    NotificationService notificationService;
+
+    @Autowired
     private WardRepository wardRepository;
+
     @Autowired
     private ProductRepository productRepository;
 
@@ -110,18 +113,31 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public ProductResponse staffCreateProduct(CreateProductRequest request, MultipartFile[] files) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
-        });
-        Category category = categoryRepository.findById(request.getIdCategory()).orElseThrow(() -> {
-            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
-        });
-        StateProduct state = stateProductRepository.findById(StateProduct.CONFIRM).orElseThrow(() -> {
-            throw new AppException(ErrorCode.STATE_NOT_FOUND);
-        });
-        Optional<AccountStore> store = accountStoreRepository.findByAccount(account);
+    public ProductResponse staffCreateProduct(
+        CreateProductRequest request,
+        MultipartFile[] files
+    ) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+        Account account = accountRepository
+            .findByEmail(email)
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.USER_NOT_FOUND);
+            });
+        Category category = categoryRepository
+            .findById(request.getIdCategory())
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+            });
+        StateProduct state = stateProductRepository
+            .findById(StateProduct.CONFIRM)
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.STATE_NOT_FOUND);
+            });
+        Optional<AccountStore> store = accountStoreRepository.findByAccount(
+            account
+        );
 
         Product product = mapper.map(request, Product.class);
         product.setAccount(account);
@@ -139,28 +155,45 @@ public class ProductService {
         save.setImages(images);
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
-        request.getIdAttributeDetail().forEach(id -> {
-            ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
-                    .product(save)
-                    .attributeDetail(attributeDetailRepository.findById(id).orElseThrow(() -> {
-                        throw new AppException(ErrorCode.ATTRIBUTE_NOT_FOUND);
-                    }))
-                    .build();
-            attributeDetails.add(attributeDetail);
-        });
-        List<ProductAttributeDetail> saveAttribute = productAttributeDetailRepository.saveAll(attributeDetails);
+        request
+            .getIdAttributeDetail()
+            .forEach(id -> {
+                ProductAttributeDetail attributeDetail =
+                    ProductAttributeDetail.builder()
+                        .product(save)
+                        .attributeDetail(
+                            attributeDetailRepository
+                                .findById(id)
+                                .orElseThrow(() -> {
+                                    throw new AppException(
+                                        ErrorCode.ATTRIBUTE_NOT_FOUND
+                                    );
+                                })
+                        )
+                        .build();
+                attributeDetails.add(attributeDetail);
+            });
+        List<ProductAttributeDetail> saveAttribute =
+            productAttributeDetailRepository.saveAll(attributeDetails);
         List<AttributeProductResponse> attrs = new ArrayList<>();
         saveAttribute.forEach(att -> {
-            attrs.add(AttributeProductResponse.builder()
+            attrs.add(
+                AttributeProductResponse.builder()
                     .id(att.getAttributeDetail().getAttribute().getId())
                     .name(att.getAttributeDetail().getAttribute().getName())
                     .value(att.getAttributeDetail().getDescription())
-                    .build());
+                    .build()
+            );
         });
         // store response
-        StoreResponse responseStore = mapper.map(save.getStore(), StoreResponse.class);
-        ResponseDocumentDto imageStore = FilesHelp.getOneDocument(save.getStore().getId(),
-                EntityFileType.STORE_LOGO);
+        StoreResponse responseStore = mapper.map(
+            save.getStore(),
+            StoreResponse.class
+        );
+        ResponseDocumentDto imageStore = FilesHelp.getOneDocument(
+            save.getStore().getId(),
+            EntityFileType.STORE_LOGO
+        );
         responseStore.setUrlImage(imageStore.getFileDownloadUri());
         responseStore.setStreetAddress(getStoreAddress(save.getStore()));
         // product response
@@ -170,11 +203,12 @@ public class ProductService {
         response.setAttributes(attrs);
 
         return response;
-
     }
 
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        Page<Product> products = productRepository.findAvailableProducts(pageable);
+        Page<Product> products = productRepository.findAvailableProducts(
+            pageable
+        );
         Page<ProductResponse> productResponses = products.map(product -> {
             ResponseDocumentDto thumbnail = null;
             // thay đổi ảnh thumbnail bằng image từ db
@@ -184,37 +218,51 @@ public class ProductService {
             }
 
             var address = getStoreAddress(product.getStore());
-            var storeName = product.getStore() == null ? "" : product.getStore().getName();
+            var storeName = product.getStore() == null
+                ? ""
+                : product.getStore().getName();
             var type = "";
             if (product.getType() != null) {
                 type = product.getType() ? "Cửa hàng" : "Ký gửi";
             }
             List<AttributeProductResponse> attrs = new ArrayList<>();
             if (product.getAttributes().size() > 0) {
-                product.getAttributes().forEach(att -> {
-                    attrs.add(AttributeProductResponse.builder()
-                            .id(att.getAttributeDetail().getId())
-                            .name(att.getAttributeDetail().getAttribute().getName())
-                            .value(att.getAttributeDetail().getDescription())
-                            .build());
-                });
+                product
+                    .getAttributes()
+                    .forEach(att -> {
+                        attrs.add(
+                            AttributeProductResponse.builder()
+                                .id(att.getAttributeDetail().getId())
+                                .name(
+                                    att
+                                        .getAttributeDetail()
+                                        .getAttribute()
+                                        .getName()
+                                )
+                                .value(
+                                    att.getAttributeDetail().getDescription()
+                                )
+                                .build()
+                        );
+                    });
             }
 
             return ProductResponse.builder()
-                    .id(product.getId())
-                    .thumbnail(thumbnail)
-                    .name(product.getName())
-                    .price(product.getPrice())
-                    .quantity(product.getQuantity())
-                    .description(product.getDescription())
-                    .typeProduct(type)
-                    .attributes(attrs)
-                    .store(
-                            StoreResponse.builder()
-                                    .name(storeName)
-                                    .streetAddress(address)
-                                    .build())
-                    .build();
+                .id(product.getId())
+                .thumbnail(thumbnail)
+                .name(product.getName())
+                .price(product.getPrice())
+                .quantity(product.getQuantity())
+                .description(product.getDescription())
+                .typeProduct(type)
+                .attributes(attrs)
+                .store(
+                    StoreResponse.builder()
+                        .name(storeName)
+                        .streetAddress(address)
+                        .build()
+                )
+                .build();
         });
         return productResponses;
     }
@@ -226,9 +274,22 @@ public class ProductService {
         if (store.getWard() != null) {
             String StoreWard = store.getWard().getName();
             String StoreDistrict = store.getWard().getDistrict().getName();
-            String StoreProvince = store.getWard().getDistrict().getProvinceCity().getName();
-            String storeAddress = store.getStreetAddress() == null ? "" : store.getStreetAddress() + ", ";
-            return storeAddress + StoreWard + ", " + StoreDistrict + ", " + StoreProvince;
+            String StoreProvince = store
+                .getWard()
+                .getDistrict()
+                .getProvinceCity()
+                .getName();
+            String storeAddress = store.getStreetAddress() == null
+                ? ""
+                : store.getStreetAddress() + ", ";
+            return (
+                storeAddress +
+                StoreWard +
+                ", " +
+                StoreDistrict +
+                ", " +
+                StoreProvince
+            );
         }
         return "";
     }
@@ -244,10 +305,14 @@ public class ProductService {
             response.setTypeProduct(product.getType() ? "Cửa hàng" : "Ký gửi");
         }
 
-        List<ResponseDocumentDto> responseDocument = product.getImages().stream().map(img -> {
-            Image image = img.getImage();
-            return ImageDtoUtil.convertToImageResponse(image);
-        }).toList();
+        List<ResponseDocumentDto> responseDocument = product
+            .getImages()
+            .stream()
+            .map(img -> {
+                Image image = img.getImage();
+                return ImageDtoUtil.convertToImageResponse(image);
+            })
+            .toList();
 
         if (!responseDocument.isEmpty()) {
             response.setThumbnail(responseDocument.get(0));
@@ -256,27 +321,41 @@ public class ProductService {
     }
 
     public ProductResponse getById(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> {
-            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
-        });
+        Product product = productRepository
+            .findById(id)
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+            });
 
         List<AttributeProductResponse> attrs = new ArrayList<>();
 
         if (product.getAttributes().size() > 0) {
-            product.getAttributes().forEach(att -> {
-                attrs.add(AttributeProductResponse.builder()
-                        .id(att.getAttributeDetail().getAttribute().getId())
-                        .name(att.getAttributeDetail().getAttribute().getName())
-                        .value(att.getAttributeDetail().getDescription())
-                        .build());
-            });
+            product
+                .getAttributes()
+                .forEach(att -> {
+                    attrs.add(
+                        AttributeProductResponse.builder()
+                            .id(att.getAttributeDetail().getAttribute().getId())
+                            .name(
+                                att
+                                    .getAttributeDetail()
+                                    .getAttribute()
+                                    .getName()
+                            )
+                            .value(att.getAttributeDetail().getDescription())
+                            .build()
+                    );
+                });
         }
-        StoreResponse store = mapper.map(product.getStore(), StoreResponse.class);
-        if(store != null) {
+        StoreResponse store = mapper.map(
+            product.getStore(),
+            StoreResponse.class
+        );
+        if (store != null) {
             var image = product.getStore().getImage();
-            if(image != null) {
-                ResponseDocumentDto imageStore = ImageDtoUtil
-                        .convertToImageResponse(image);
+            if (image != null) {
+                ResponseDocumentDto imageStore =
+                    ImageDtoUtil.convertToImageResponse(image);
                 store.setUrlImage(imageStore.getFileDownloadUri());
             }
         }
@@ -285,10 +364,14 @@ public class ProductService {
         ProductResponse response = convertToResponse(product);
 
         if (!product.getImages().isEmpty()) {
-            List<ResponseDocumentDto> responseDocument = product.getImages().stream().map(img -> {
-                Image image = img.getImage();
-                return ImageDtoUtil.convertToImageResponse(image);
-            }).toList();
+            List<ResponseDocumentDto> responseDocument = product
+                .getImages()
+                .stream()
+                .map(img -> {
+                    Image image = img.getImage();
+                    return ImageDtoUtil.convertToImageResponse(image);
+                })
+                .toList();
             response.setImages(responseDocument);
         }
 
@@ -297,10 +380,13 @@ public class ProductService {
         response.setIdCategory(product.getCategory().getId());
 
         return response;
-
     }
 
-    public Page<ProductResponse> getByNameAndDescription(String value, Integer pageIndex, Integer size) {
+    public Page<ProductResponse> getByNameAndDescription(
+        String value,
+        Integer pageIndex,
+        Integer size
+    ) {
         if (pageIndex == null) {
             pageIndex = 0;
         }
@@ -309,24 +395,46 @@ public class ProductService {
         }
 
         Pageable pageable = PageRequest.of(pageIndex, size);
-        Page<Product> products = productRepository.findProductsBySearchTerm("%"+value+"%", pageable);
+        Page<Product> products = productRepository.findProductsBySearchTerm(
+            "%" + value + "%",
+            pageable
+        );
 
         Page<ProductResponse> productResponses = products.map(product -> {
             List<AttributeProductResponse> attrs = new ArrayList<>();
             if (!product.getAttributes().isEmpty()) {
-                product.getAttributes().forEach(att -> {
-                    attrs.add(AttributeProductResponse.builder()
-                            .id(att.getAttributeDetail().getAttribute().getId())
-                            .name(att.getAttributeDetail().getAttribute().getName())
-                            .value(att.getAttributeDetail().getDescription())
-                            .build());
-                });
+                product
+                    .getAttributes()
+                    .forEach(att -> {
+                        attrs.add(
+                            AttributeProductResponse.builder()
+                                .id(
+                                    att
+                                        .getAttributeDetail()
+                                        .getAttribute()
+                                        .getId()
+                                )
+                                .name(
+                                    att
+                                        .getAttributeDetail()
+                                        .getAttribute()
+                                        .getName()
+                                )
+                                .value(
+                                    att.getAttributeDetail().getDescription()
+                                )
+                                .build()
+                        );
+                    });
             }
 
             StoreResponse store = null;
             if (product.getStore() != null) {
                 store = mapper.map(product.getStore(), StoreResponse.class);
-                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
+                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(
+                    store.getId(),
+                    EntityFileType.STORE_LOGO
+                );
                 store.setUrlImage(imageStore.getFileDownloadUri());
                 store.setStreetAddress(getStoreAddress(product.getStore()));
             }
@@ -339,7 +447,9 @@ public class ProductService {
             // Set thumbnail
             if (!product.getImages().isEmpty()) {
                 Image thumbnailImage = product.getImages().get(0).getImage();
-                response.setThumbnail(ImageDtoUtil.convertToImageResponse(thumbnailImage));
+                response.setThumbnail(
+                    ImageDtoUtil.convertToImageResponse(thumbnailImage)
+                );
             }
 
             return response;
@@ -348,26 +458,48 @@ public class ProductService {
         return productResponses;
     }
 
-    public Page<ProductResponse> getAvailableProductsByCategory(Long categoryId, int page, int size) {
+    public Page<ProductResponse> getAvailableProductsByCategory(
+        Long categoryId,
+        int page,
+        int size
+    ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> products = productRepository.findAvailableProductsByCategory(categoryId, pageable);
+        Page<Product> products =
+            productRepository.findAvailableProductsByCategory(
+                categoryId,
+                pageable
+            );
 
         Page<ProductResponse> productResponses = products.map(product -> {
             List<AttributeProductResponse> attrs = new ArrayList<>();
             if (product.getAttributes().size() > 0) {
-                product.getAttributes().forEach(att -> {
-                    attrs.add(AttributeProductResponse.builder()
-                            .id(att.getAttributeDetail().getId())
-                            .name(att.getAttributeDetail().getAttribute().getName())
-                            .value(att.getAttributeDetail().getDescription())
-                            .build());
-                });
+                product
+                    .getAttributes()
+                    .forEach(att -> {
+                        attrs.add(
+                            AttributeProductResponse.builder()
+                                .id(att.getAttributeDetail().getId())
+                                .name(
+                                    att
+                                        .getAttributeDetail()
+                                        .getAttribute()
+                                        .getName()
+                                )
+                                .value(
+                                    att.getAttributeDetail().getDescription()
+                                )
+                                .build()
+                        );
+                    });
             }
 
             StoreResponse store = null;
             if (product.getStore() != null) {
                 store = mapper.map(product.getStore(), StoreResponse.class);
-                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(store.getId(), EntityFileType.STORE_LOGO);
+                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(
+                    store.getId(),
+                    EntityFileType.STORE_LOGO
+                );
                 store.setUrlImage(imageStore.getFileDownloadUri());
                 store.setStreetAddress(getStoreAddress(product.getStore()));
             }
@@ -383,46 +515,67 @@ public class ProductService {
         return productResponses;
     }
 
-    public ConsignmentOrdersResponse ownerCreateProduct(@Valid ConsignmentOrdersRequest request,
-            MultipartFile[] images) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
-        });
-        Category category = categoryRepository.findById(request.getIdCategory()).orElseThrow(() -> {
-            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
-        });
-        StateProduct stateProduct = stateProductRepository.findById(StateProduct.DELYVERING).orElseThrow(() -> {
-            throw new AppException(ErrorCode.STATE_NOT_FOUND);
-        });
-        Store store = storeRepository.findById(request.getStoreId()).orElseThrow(() -> {
-            throw new AppException(ErrorCode.STORE_NOT_FOUND);
-        });
+    public ConsignmentOrdersResponse ownerCreateProduct(
+        @Valid ConsignmentOrdersRequest request,
+        MultipartFile[] images
+    ) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+        Account account = accountRepository
+            .findByEmail(email)
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.USER_NOT_FOUND);
+            });
+        Category category = categoryRepository
+            .findById(request.getIdCategory())
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+            });
+        StateProduct stateProduct = stateProductRepository
+            .findById(StateProduct.DELYVERING)
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.STATE_NOT_FOUND);
+            });
+        Store store = storeRepository
+            .findById(request.getStoreId())
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.STORE_NOT_FOUND);
+            });
 
-        Ward ward = wardRepository.findById(request.getWardId()).orElseThrow(() -> {
-            throw new AppException(ErrorCode.WARD_NOT_FOUND);
-        });
+        Ward ward = wardRepository
+            .findById(request.getWardId())
+            .orElseThrow(() -> {
+                throw new AppException(ErrorCode.WARD_NOT_FOUND);
+            });
 
-        Optional<Account> deliveryPerson = store.getAccountStores().stream()
-                .flatMap(acc -> acc.getAccount().getRoles().stream()
-                        .filter(role -> role.getRole().getId().equals("NVGH"))
-                        .map(role -> acc.getAccount()))
-                .findFirst();
+        Optional<Account> deliveryPerson = store
+            .getAccountStores()
+            .stream()
+            .flatMap(acc ->
+                acc
+                    .getAccount()
+                    .getRoles()
+                    .stream()
+                    .filter(role -> role.getRole().getId().equals("NVGH"))
+                    .map(role -> acc.getAccount())
+            )
+            .findFirst();
 
         if (deliveryPerson.isPresent() == false) {
             throw new AppException(ErrorCode.DELIVERY_PERSON_NOT_FOUND);
         }
 
         Product product = Product.builder()
-                .name(request.getName())
-                .price(request.getPrice())
-                .quantity(request.getQuantity())
-                .description(request.getDescription())
-                .category(category)
-                .state(stateProduct)
-                .store(store)
-                .ownerId(account)
-                .build();
+            .name(request.getName())
+            .price(request.getPrice())
+            .quantity(request.getQuantity())
+            .description(request.getDescription())
+            .category(category)
+            .state(stateProduct)
+            .store(store)
+            .ownerId(account)
+            .build();
 
         // lưu ảnh
         Product saveProduct = productRepository.save(product);
@@ -430,79 +583,125 @@ public class ProductService {
         List<ProductImages> imagesSave = saveProductImages(saveProduct, images);
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
-        request.getIdAttributeDetail().forEach(id -> {
-            ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
-                    .product(saveProduct)
-                    .attributeDetail(attributeDetailRepository.findById(id).orElseThrow(() -> {
-                        throw new AppException(ErrorCode.ATTRIBUTE_NOT_FOUND);
-                    }))
-                    .build();
-            attributeDetails.add(attributeDetail);
-        });
+        request
+            .getIdAttributeDetail()
+            .forEach(id -> {
+                ProductAttributeDetail attributeDetail =
+                    ProductAttributeDetail.builder()
+                        .product(saveProduct)
+                        .attributeDetail(
+                            attributeDetailRepository
+                                .findById(id)
+                                .orElseThrow(() -> {
+                                    throw new AppException(
+                                        ErrorCode.ATTRIBUTE_NOT_FOUND
+                                    );
+                                })
+                        )
+                        .build();
+                attributeDetails.add(attributeDetail);
+            });
         productAttributeDetailRepository.saveAll(attributeDetails);
 
-        StateConsignmentOrder state = stateConsignmentOrderRepository.findById(StateConsignmentOrder.CREATED).get();
+        StateConsignmentOrder state = stateConsignmentOrderRepository
+            .findById(StateConsignmentOrder.CREATED)
+            .get();
 
         ConsignmentOrders consignmentOrderSaved = ConsignmentOrders.builder()
-                .note(request.getNote())
-                .ordererId(account)
-                .product(saveProduct)
-                .store(store)
-                .stateId(state)
-                .phoneNumber(request.getPhoneNumber())
-                .detailAddress(request.getDetailAddress())
-                .ward(ward)
-                .deliveryPerson(deliveryPerson.get())
-                .build();
+            .note(request.getNote())
+            .ordererId(account)
+            .product(saveProduct)
+            .store(store)
+            .stateId(state)
+            .phoneNumber(request.getPhoneNumber())
+            .detailAddress(request.getDetailAddress())
+            .ward(ward)
+            .deliveryPerson(deliveryPerson.get())
+            .build();
 
         consignmentOrdersRepository.save(consignmentOrderSaved);
 
         saveProduct.setImages(imagesSave);
         consignmentOrderSaved.setProduct(saveProduct);
-        ConsignmentOrdersResponse response = consignmentOrdersService
-                .convertToConsignmentOrdersResponse(consignmentOrderSaved);
+        ConsignmentOrdersResponse response =
+            consignmentOrdersService.convertToConsignmentOrdersResponse(
+                consignmentOrderSaved
+            );
+
+        // Tạo thông báo realtime cho người dùng
+        NotificationPayload payload = NotificationPayload.builder()
+            .objectId(consignmentOrderSaved.getId().toString()) // là id của order, thanh toán, ...
+            .accountId(consignmentOrderSaved.getDeliveryPerson().getId())
+            .message("Bạn có đơn vận chuyển mới cần xác nhận!") // nội dung thông báo
+            .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông báo theo objectId (order, payment,                                  // ...)
+            .build();
+
+        notificationService.callCreateNotification(payload);
 
         return response;
     }
 
-    private List<ProductImages> saveProductImages(Product product, MultipartFile[] images) {
+    private List<ProductImages> saveProductImages(
+        Product product,
+        MultipartFile[] images
+    ) {
         List<ProductImages> productImages = new ArrayList<>();
         for (MultipartFile file : images) {
-            ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, product.getId(), EntityFileType.PRODUCT);
+            ResponseDocumentDto fileSaved = FilesHelp.saveFile(
+                file,
+                product.getId(),
+                EntityFileType.PRODUCT
+            );
             Image image = Image.builder()
-                    .fileId(fileSaved.getFileId())
-                    .fileName(fileSaved.getFileName())
-                    .fileDownloadUri(fileSaved.getFileDownloadUri())
-                    .fileType(fileSaved.getFileType())
-                    .size(fileSaved.getSize())
-                    .build();
+                .fileId(fileSaved.getFileId())
+                .fileName(fileSaved.getFileName())
+                .fileDownloadUri(fileSaved.getFileDownloadUri())
+                .fileType(fileSaved.getFileType())
+                .size(fileSaved.getSize())
+                .build();
             Image imageSaved = imageRepository.save(image);
 
             ProductImages productImage = ProductImages.builder()
-                    .product(product)
-                    .image(imageSaved)
-                    .build();
+                .product(product)
+                .image(imageSaved)
+                .build();
             productImages.add(productImage);
         }
-        System.out.println(productImages.get(0).getImage().getFileDownloadUri());
+        System.out.println(
+            productImages.get(0).getImage().getFileDownloadUri()
+        );
         return productImagesRepository.saveAll(productImages);
     }
 
-    public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    public ProductResponse updateProduct(
+        Long id,
+        ProductRequest productRequest
+    ) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+        Account account = accountRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        List<RoleAccount> allRole = roleAccountRepository.findByAccount(account);
+        List<RoleAccount> allRole = roleAccountRepository.findByAccount(
+            account
+        );
         allRole.forEach(roleAccount -> {
-            if (!roleAccount.getRole().getId().equals(Role.ROLE_STORE_MANAGER)
-                    && !roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)) {
+            if (
+                !roleAccount
+                    .getRole()
+                    .getId()
+                    .equals(Role.ROLE_STORE_MANAGER) &&
+                !roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)
+            ) {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
         });
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        Product product = productRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         Store store = product.getStore();
         if (store == null || !isManagerOfStore(account, store)) {
@@ -515,8 +714,11 @@ public class ProductService {
         product.setDescription(productRequest.getDescription());
 
         if (productRequest.getCategoryId() != null) {
-            Category category = categoryRepository.findById(productRequest.getCategoryId())
-                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+            Category category = categoryRepository
+                .findById(productRequest.getCategoryId())
+                .orElseThrow(() ->
+                    new AppException(ErrorCode.CATEGORY_NOT_FOUND)
+                );
             product.setCategory(category);
         }
 
@@ -525,8 +727,10 @@ public class ProductService {
     }
 
     private boolean isManagerOfStore(Account account, Store store) {
-        return store.getAccountStores().stream()
-                .anyMatch(accountStore -> accountStore.getAccount().equals(account));
+        return store
+            .getAccountStores()
+            .stream()
+            .anyMatch(accountStore -> accountStore.getAccount().equals(account)
+            );
     }
-
 }
