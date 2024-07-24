@@ -2,8 +2,6 @@ package store.chikendev._2tm.config;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
