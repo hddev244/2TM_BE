@@ -17,5 +17,5 @@ public class BillOfLadingResponse {
     private String deliveryPerson;
     private String createBy;
     private Date createdAt;
-    private ResponseDocumentDto urlImage;
+    private String urlImage;
 }

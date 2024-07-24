@@ -4,16 +4,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import store.chikendev._2tm.dto.request.BillOfLadingRequest;
 import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.BillOfLading;
 import store.chikendev._2tm.entity.Order;
+import store.chikendev._2tm.entity.Role;
+import store.chikendev._2tm.entity.StateOrder;
+import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
+import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.BillOfLadingRepository;
 import store.chikendev._2tm.repository.OrderRepository;
 
@@ -29,30 +34,39 @@ public class BillOfLadingService {
     @Autowired
     private AccountRepository accountRepository;
 
-    public BillOfLadingResponse addBillOfLading(BillOfLadingRequest request) {
-        BillOfLading billol = new BillOfLading();
-        if (request.getOrder() != null) {
-            Order order = orderRepository.findById(request.getOrder())
+    @Autowired
+    private AccountStoreRepository accountStoreRepository;
+
+    public BillOfLadingResponse addBillOfLading(Long idOrder) {
+        BillOfLading bill = new BillOfLading();
+        if (idOrder != null) {
+            Order order = orderRepository.findById(idOrder)
                     .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
-            billol.setOrder(order);
+
+            if (order.getStateOrder().getId() != StateOrder.CONFIRMED) {
+                throw new AppException(ErrorCode.ORDER_NOT_CONFIRMED);
+            }
+            bill.setOrder(order);
         }
-        if (request.getDeliveryPerson() != null) {
-            Account deliveryPerson = accountRepository.findById(request.getDeliveryPerson())
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_EXISTED));
-            billol.setDeliveryPerson(deliveryPerson);
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account createBy = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Store store = accountStoreRepository.findByAccount(createBy)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND)).getStore();
+        List<AccountStore> accounts = accountStoreRepository.findByStore(store);
+        accounts.forEach(deliveryPerson -> {
+            deliveryPerson.getAccount().getRoles().forEach(roles -> {
+                if (roles.getRole().getId() == Role.ROLE_SHIPPER) {
+                    bill.setDeliveryPerson(deliveryPerson.getAccount());
+                }
+            });
+        });
+        if (bill.getDeliveryPerson() == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
-        if (request.getCreateBy() != null) {
-            Account createBy = accountRepository.findById(request.getCreateBy())
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_EXISTED));
-            billol.setCreateBy(createBy);
-        }
-        BillOfLading save = billOfLRepository.save(billol);
-        BillOfLadingResponse response = new BillOfLadingResponse();
-        response.setId(save.getId());
-        response.setCreateBy(save.getCreateBy().getFullName());
-        response.setDeliveryPerson(save.getDeliveryPerson().getFullName());
-        response.setOrderId(save.getOrder().getId());
-        response.setCreatedAt(save.getCreatedAt());
+        bill.setCreateBy(createBy);
+        BillOfLading save = billOfLRepository.save(bill);
+        BillOfLadingResponse response = getResponse(save);
         return response;
     }
 
@@ -72,7 +86,7 @@ public class BillOfLadingService {
         response.setCreateBy(billOfLadings.getCreateBy().getFullName());
         response.setOrderId(billOfLadings.getOrder().getId());
         response.setCreatedAt(billOfLadings.getCreatedAt());
-
+        response.setUrlImage(billOfLadings.getImage().getFileDownloadUri());
         return response;
     }
 
