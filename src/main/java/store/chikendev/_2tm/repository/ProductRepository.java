@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import store.chikendev._2tm.entity.Product;
+import store.chikendev._2tm.entity.Store;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
@@ -30,4 +31,11 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.state.id = 2L AND (p.name LIKE :value OR p.description LIKE :value)")
     Page<Product> findProductsBySearchTerm(@Param("value") String value, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.store = :store AND (:stateProduct IS NULL OR p.state.id = :stateProduct) AND p.type = :type")
+    Page<Product> findConsignmentProductsByStoreAndState(
+            @Param("store") Store store,
+            @Param("stateProduct") Long stateProductId,
+            @Param("type") Boolean type,
+            Pageable pageable);
 }

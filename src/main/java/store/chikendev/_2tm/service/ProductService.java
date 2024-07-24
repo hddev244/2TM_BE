@@ -733,4 +733,17 @@ public class ProductService {
             .anyMatch(accountStore -> accountStore.getAccount().equals(account)
             );
     }
+
+    public Page<ProductResponse> getConsignmentProductsByStoreAndState(Long stateProductId, int page, int size) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Store store = accountStoreRepository.findByAccount(account)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND)).getStore();
+                
+        Long stateProductFilter = (stateProductId == null || !stateProductId.equals(StateProduct.DELYVERING)) ? null : stateProductId;
+        Page<Product> productsPage = productRepository.findConsignmentProductsByStoreAndState(store, stateProductFilter, Product.TYPE_PRODUCT_OF_ACCOUNT, PageRequest.of(page, size));
+        return productsPage.map(this::convertToResponse);
+    }
 }

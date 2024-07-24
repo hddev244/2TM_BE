@@ -158,4 +158,13 @@ public class ProductController {
         );
         return new ApiResponse<ProductResponse>(200, null, updatedProduct);
     }
+
+    @GetMapping("/consignment")
+    public ApiResponse<Page<ProductResponse>> getConsignmentProducts(
+            @RequestParam(value = "stateProduct", required = false) Long stateProductId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        Page<ProductResponse> products = productService.getConsignmentProductsByStoreAndState(stateProductId, page, size);
+        return new ApiResponse<Page<ProductResponse>>(200, null, products);
+    }
 }
