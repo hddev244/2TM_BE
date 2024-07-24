@@ -28,10 +28,15 @@ public class SecurityConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                         "http://localhost:3000",
+                        "http://localhost:3002",//giao hàng
+                        "http://localhost:3003",// Của hàng
+                        "http://localhost:3004", // admin
                         "http://localhost:3001",
                         "https://192.168.1.197:3001",
                         "http://192.168.1.197:3001",
-                        "https://test-onserver.2tm.store",
+                        "https://admin.2tm.store",
+                        "https://delivery-person.2tm.store",
+                        "https://store-manager.2tm.store",
                         "http://test-onserver.2tm.store",
                         "https://api.2tm.store",
                         "http://api.2tm.store",
