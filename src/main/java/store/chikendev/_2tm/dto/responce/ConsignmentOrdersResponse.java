@@ -1,7 +1,6 @@
 package store.chikendev._2tm.dto.responce;
 
 import java.util.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +20,7 @@ public class ConsignmentOrdersResponse {
     private ProductResponse product;
     private StoreResponse store;
     private String stateName;
+    private ConsignmentOrderStateResponse state;
     private String address;
     private String phone;
     private ResponseDocumentDto image;
