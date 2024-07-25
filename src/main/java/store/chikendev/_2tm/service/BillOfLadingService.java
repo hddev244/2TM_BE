@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.BillOfLadingRepository;
 import store.chikendev._2tm.repository.OrderRepository;
+import store.chikendev._2tm.repository.StateOrderRepository;
 
 @Service
 public class BillOfLadingService {
@@ -36,6 +40,9 @@ public class BillOfLadingService {
 
     @Autowired
     private AccountStoreRepository accountStoreRepository;
+
+    @Autowired
+    private StateOrderRepository stateOrderRep;
 
     public BillOfLadingResponse addBillOfLading(Long idOrder) {
         BillOfLading bill = new BillOfLading();
@@ -90,6 +97,31 @@ public class BillOfLadingService {
             response.setUrlImage(billOfLadings.getImage().getFileDownloadUri());
         }
         return response;
+    }
+
+    private Page<BillOfLadingResponse> convertToResponse(Page<BillOfLading> response) {
+        return response.map(responses -> {
+            return getResponse(responses);
+        });
+    }
+
+    public Page<BillOfLadingResponse> getByDeliveryPersonIdAndStateId(int size, int page, Long stateId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Pageable pageable = PageRequest.of(page, size);
+        if (stateId == null) {
+            Page<BillOfLading> responses = billOfLRepository.findByDeliveryPerson(account, pageable);
+            System.out.println(responses);
+            return convertToResponse(responses);
+        } else {
+            System.out.println(stateId + " TC");
+            StateOrder stateOrder = stateOrderRep.findById(stateId)
+                    .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+            Page<BillOfLading> responses = billOfLRepository.getByDaliveryPersonIdAndStateId(account, stateOrder,
+                    pageable);
+            return convertToResponse(responses);
+        }
     }
 
 }

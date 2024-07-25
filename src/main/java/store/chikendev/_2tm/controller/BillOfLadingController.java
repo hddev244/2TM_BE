@@ -1,8 +1,10 @@
 package store.chikendev._2tm.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,10 +32,21 @@ public class BillOfLadingController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_NVGH', 'ROLE_NVCH')")
-    @GetMapping("/shipList/{deliveryPerson}")
+    @GetMapping("/{deliveryPerson}")
     public ApiResponse<List<BillOfLadingResponse>> getShipList(@PathVariable("deliveryPerson") String deliveryPerson) {
         return new ApiResponse<List<BillOfLadingResponse>>(200, null,
                 billOfLadingService.getBillOfLadingByDeliveryPersonId(deliveryPerson));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_NVGH')")
+    @GetMapping("/shipList")
+    public ApiResponse<Page<BillOfLadingResponse>> getByDeliveryPersonIdAndStateId(
+            @RequestParam(required = false, name = "size") Optional<Integer> size,
+            @RequestParam(required = false, name = "page") Optional<Integer> page,
+            @RequestParam(required = false, name = "stateId") Long stateId) {
+        Page<BillOfLadingResponse> response = billOfLadingService.getByDeliveryPersonIdAndStateId(size.orElse(10),
+                page.orElse(0), stateId);
+        return new ApiResponse<Page<BillOfLadingResponse>>(200, null, response);
     }
 
     // @PreAuthorize("isAuthenticated()")
