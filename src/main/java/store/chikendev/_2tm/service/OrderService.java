@@ -431,4 +431,15 @@ public class OrderService {
 
         return orderPage.map(this::convertToOrderResponse);
     }
+
+    public Page<OrderResponse> getOrdersByCustomer(String email, int page, int size) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> ordersPage = orderRepository.findByAccountId(account.getId(), pageable);
+
+        return ordersPage.map(this::convertToOrderResponse);
+    }
 }
+

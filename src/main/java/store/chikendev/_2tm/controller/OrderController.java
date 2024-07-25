@@ -4,6 +4,9 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +39,17 @@ public class OrderController {
             @RequestParam(name = "size", defaultValue = "10") int size) {
         Page<OrderResponse> ordersPage = orderService.getAllOrders(page, size);
         return new ApiResponse<Page<OrderResponse>>(200, null, ordersPage);
+    }
+    @PreAuthorize("hasRole('ROLE_KH')")
+    @GetMapping("/Ordered")
+    public ApiResponse<Page<OrderResponse>> getOrdersForCustomer(
+        @RequestParam(name = "page", defaultValue = "0") int page,
+        @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Page<OrderResponse> orders = (Page<OrderResponse>) orderService.getOrdersByCustomer(email, page, size);
+
+        return new ApiResponse<Page<OrderResponse>>(200,null,orders);
     }
 
 }
