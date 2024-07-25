@@ -42,6 +42,7 @@ public enum ErrorCode {
         CART_ITEM_NOT_MATCHING_ACCOUNT(446, "Sản phẩm trong giỏ hàng không phù hợp với tài khoản",
                         HttpStatus.BAD_REQUEST),
         ORDER_NOT_CONFIRMED(447, "Đơn hàng chưa xác nhận", HttpStatus.BAD_REQUEST),
+        DELIVERY_PERSON_EMPTY(448, "Không tìm thấy nhân viên giao hàng", HttpStatus.BAD_REQUEST),
         // payment
         PAYMENT_ERROR_05(470, "Tài khoản của bạn không đủ số dư để thực hiện giao dịch", HttpStatus.BAD_REQUEST),
         PAYMENT_ERROR_06(471, "Bạn nhập sai mã OTP", HttpStatus.BAD_REQUEST),

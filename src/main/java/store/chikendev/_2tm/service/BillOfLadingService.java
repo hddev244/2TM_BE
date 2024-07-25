@@ -56,13 +56,13 @@ public class BillOfLadingService {
         List<AccountStore> accounts = accountStoreRepository.findByStore(store);
         accounts.forEach(deliveryPerson -> {
             deliveryPerson.getAccount().getRoles().forEach(roles -> {
-                if (roles.getRole().getId() == Role.ROLE_SHIPPER) {
-                    bill.setDeliveryPerson(deliveryPerson.getAccount());
+                if (roles.getRole().getId().equals(Role.ROLE_SHIPPER)) {
+                    bill.setDeliveryPerson(roles.getAccount());
                 }
             });
         });
         if (bill.getDeliveryPerson() == null) {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
+            throw new AppException(ErrorCode.DELIVERY_PERSON_EMPTY);
         }
         bill.setCreateBy(createBy);
         BillOfLading save = billOfLRepository.save(bill);
@@ -86,7 +86,9 @@ public class BillOfLadingService {
         response.setCreateBy(billOfLadings.getCreateBy().getFullName());
         response.setOrderId(billOfLadings.getOrder().getId());
         response.setCreatedAt(billOfLadings.getCreatedAt());
-        response.setUrlImage(billOfLadings.getImage().getFileDownloadUri());
+        if (billOfLadings.getImage() != null) {
+            response.setUrlImage(billOfLadings.getImage().getFileDownloadUri());
+        }
         return response;
     }
 
