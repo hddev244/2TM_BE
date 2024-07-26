@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -74,5 +75,14 @@ public class StoreController {
     public ApiResponse<List<StoreResponse>> getAdminAllStore() {
         List<StoreResponse> responses = storeService.getAllStoresAdmin();
         return new ApiResponse<>(200, null, responses);
+    }
+
+    // @PreAuthorize("hasAnyRole('ROLE_QTV')")
+    @GetMapping("admin/store/{id}")
+    public ApiResponse<StoreResponse> getAdminStoreById(
+        @PathVariable("id") Long id
+    ) {
+        StoreResponse responses = storeService.getStoreById(id);
+        return new ApiResponse<StoreResponse>(200, null, responses);
     }
 }
