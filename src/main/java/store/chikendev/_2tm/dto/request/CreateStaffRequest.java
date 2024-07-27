@@ -15,21 +15,26 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CreateStaffRequest {
+
     @NotBlank(message = "không bỏ trống username")
     @Size(min = 5, message = "username phải từ 5 ký tự trở lên")
     private String username;
+
     @NotBlank(message = "Không bỏ trống tên của bạn")
     private String fullName;
+
     @NotBlank(message = "Không bỏ số điện thoại")
     @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại không hợp lệ")
     private String phoneNumber;
+
     @NotBlank(message = "Không bỏ trống email")
     @Email(message = "Định dạng email không chính xác")
     private String email;
+
     @NotNull(message = "Bạn cần phân quyền cho nhân viên")
     private String roleId;
-    private Long storeId;
-    private String Address;
-    private Long idWard;
 
+    private Long storeId;
+    private String streetAddress;
+    private Long wardId;
 }
