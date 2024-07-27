@@ -260,4 +260,15 @@ public class StoreService {
         Store savedStore = storeRepository.save(store);
         return convertStoreToResponse(savedStore);
     }
+
+    public StoreResponse updateState(Long id) {
+        Store store = storeRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+
+        store.setActiveStatus(!store.isActiveStatus());
+
+        Store savedStore = storeRepository.save(store);
+        return convertStoreToResponse(savedStore);
+    }
 }

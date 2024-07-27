@@ -54,6 +54,7 @@ public class StoreController {
 
     /**
      * Get store by district id
+     *
      * @param districtId
      * @return StoreResponse
      */
@@ -95,6 +96,13 @@ public class StoreController {
         @RequestBody StoreRequest request
     ) {
         StoreResponse responses = storeService.updateStore(id, request);
+        return new ApiResponse<StoreResponse>(200, null, responses);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_QTV')")
+    @PutMapping("store/update-state/{id}")
+    public ApiResponse<StoreResponse> updateState(@PathVariable("id") Long id) {
+        StoreResponse responses = storeService.updateState(id);
         return new ApiResponse<StoreResponse>(200, null, responses);
     }
 }

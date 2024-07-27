@@ -437,10 +437,18 @@ public class AccountService {
             .findById(id)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        StateAccount lockedState = new StateAccount();
-        lockedState.setId(StateAccount.LOCKED); // Set trạng thái là 5 (bị khóa)
-        account.setState(lockedState);
-        accountRepository.save(account);
+        StateAccount currentState = account.getState();
+
+        if (currentState.getId().equals(StateAccount.LOCKED)) {
+            account.setState(
+                stateAccountRepository.findById(StateAccount.ACTIVE).get()
+            );
+        } else if (currentState.getId().equals(StateAccount.ACTIVE)) {
+            account.setState(
+                stateAccountRepository.findById(StateAccount.LOCKED).get()
+            );
+        }
+        account = accountRepository.save(account);
         return mapper.map(account, AccountResponse.class);
     }
 
