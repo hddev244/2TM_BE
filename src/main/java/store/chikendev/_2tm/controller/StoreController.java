@@ -7,6 +7,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -83,6 +85,16 @@ public class StoreController {
         @PathVariable("id") Long id
     ) {
         StoreResponse responses = storeService.getStoreById(id);
+        return new ApiResponse<StoreResponse>(200, null, responses);
+    }
+
+    // @PreAuthorize("hasAnyRole('ROLE_QTV')")
+    @PutMapping("admin/store/{id}")
+    public ApiResponse<StoreResponse> updateStore(
+        @PathVariable("id") Long id,
+        @RequestBody StoreRequest request
+    ) {
+        StoreResponse responses = storeService.updateStore(id, request);
         return new ApiResponse<StoreResponse>(200, null, responses);
     }
 }

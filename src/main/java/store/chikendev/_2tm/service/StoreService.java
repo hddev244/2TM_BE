@@ -234,4 +234,30 @@ public class StoreService {
             .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
         return convertStoreToResponse(store);
     }
+
+    public StoreResponse updateStore(Long id, StoreRequest request) {
+        if (id == null) {
+            throw new AppException(ErrorCode.STORE_NOT_FOUND);
+        }
+
+        Store store = storeRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+
+        store.setName(request.getName());
+        store.setPostalCode(request.getPostalCode());
+        store.setPhone(request.getPhone());
+        store.setEmail(request.getEmail());
+        store.setStreetAddress(request.getStreetAddress());
+        store.setDescription(request.getDescription());
+        if (request.getIdWard() != null) {
+            Ward ward = wardRepository
+                .findById(request.getIdWard())
+                .orElse(null);
+            store.setWard(ward);
+        }
+
+        Store savedStore = storeRepository.save(store);
+        return convertStoreToResponse(savedStore);
+    }
 }

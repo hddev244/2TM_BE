@@ -13,19 +13,31 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class StoreRequest {
+
     @NotBlank(message = "Không bỏ trống tên cửa hàng")
     private String name;
+
     @NotBlank(message = "Không bỏ trống mã bưu điện cửa hàng")
-    @Pattern(regexp = "^[0-9]{5}(?:-[0-9]{4})?$", message = "Mã bưu chính không hợp lệ")
+    @Pattern(
+        regexp = "^[0-9]{5}(?:-[0-9]{4})?$",
+        message = "Mã bưu chính không hợp lệ - 5 số từ 0-9"
+    )
     private String postalCode;
+
     @NotBlank(message = "Không bỏ trống số điện thoại cửa hàng")
-    @Pattern(regexp = "^(\\+84|0)[1-9][0-9]{8}$", message = "Số điện thoại không hợp lệ")
+    @Pattern(
+        regexp = "^(\\+84|0)[1-9][0-9]{8}$",
+        message = "Số điện thoại không hợp lệ"
+    )
     private String phone;
+
     @NotBlank(message = "Không bỏ trống email cửa hàng")
     @Email(message = "Định dạng email không chính xác")
     private String email;
+
     @NotBlank(message = "Không bỏ trống địa chỉ chi tiết cửa hàng")
     private String streetAddress;
+
     private String description;
     private Long idWard;
 }
