@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import store.chikendev._2tm.dto.request.CreateProductRequest;
 import store.chikendev._2tm.dto.request.NotificationPayload;
 import store.chikendev._2tm.dto.request.ProductRequest;
 import store.chikendev._2tm.dto.responce.AttributeProductResponse;
+import store.chikendev._2tm.dto.responce.CategoryResponse;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
@@ -734,16 +736,47 @@ public class ProductService {
             );
     }
 
-    public Page<ProductResponse> getConsignmentProductsByStoreAndState(Long stateProductId, int page, int size) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    public Page<ProductResponse> getConsignmentProductsByStoreAndState(
+        Long stateProductId,
+        int page,
+        int size
+    ) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+        Account account = accountRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        Store store = accountStoreRepository.findByAccount(account)
-                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND)).getStore();
-                
-        Long stateProductFilter = (stateProductId == null || !stateProductId.equals(StateProduct.DELYVERING)) ? null : stateProductId;
-        Page<Product> productsPage = productRepository.findConsignmentProductsByStoreAndState(store, stateProductFilter, Product.TYPE_PRODUCT_OF_ACCOUNT, PageRequest.of(page, size));
+        Store store = accountStoreRepository
+            .findByAccount(account)
+            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
+            .getStore();
+
+        Long stateProductFilter = (stateProductId == null ||
+                !stateProductId.equals(StateProduct.DELYVERING))
+            ? null
+            : stateProductId;
+        Page<Product> productsPage =
+            productRepository.findConsignmentProductsByStoreAndState(
+                store,
+                stateProductFilter,
+                Product.TYPE_PRODUCT_OF_ACCOUNT,
+                PageRequest.of(page, size)
+            );
         return productsPage.map(this::convertToResponse);
+    }
+
+    public Page<ProductResponse> getProductsByCategoryPath(
+        String path,
+        int page,
+        int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productRepository.findByCategoryPath(
+            path,
+            pageable
+        );
+        return products.map(this::convertToResponse);
     }
 }

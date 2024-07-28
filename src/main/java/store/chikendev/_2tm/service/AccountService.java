@@ -248,10 +248,15 @@ public class AccountService {
 
     @SuppressWarnings("static-access")
     public Page<AccountResponse> getAllStaff(Optional<Integer> pageNo) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+
         Pageable pageable = PageRequest.of(pageNo.orElse(0), 10);
         List<String> excludedRoles = Arrays.asList("CH", "KH", "ND");
         Page<Account> staffs = roleAccountRepository.findByRoleStaff(
             excludedRoles,
+            email,
             pageable
         );
         return staffs.map(account -> {
