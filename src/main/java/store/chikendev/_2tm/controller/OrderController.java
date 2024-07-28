@@ -51,5 +51,17 @@ public class OrderController {
 
         return new ApiResponse<Page<OrderResponse>>(200,null,orders);
     }
+    @PreAuthorize("hasRole('ROLE_KH')")
+    @GetMapping("/status")
+    public ApiResponse<Page<OrderResponse>> getOrdersByStatusForCustomer(
+            @RequestParam Long statusId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Page<OrderResponse> orders = orderService.getOrdersBystatus( statusId, email, page, size);
+
+        return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+    }
 
 }
