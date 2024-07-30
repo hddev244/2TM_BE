@@ -341,7 +341,7 @@ public class OrderService {
                 return convertToOrderDetailResponse(detail);
             }).collect(Collectors.toList());
         }
-        
+
         String storeName = (order.getStore() != null) ? order.getStore().getName() : "";
 
         return OrderResponse.builder()
@@ -425,7 +425,7 @@ public class OrderService {
         return htmlBuilder.toString();
     }
 
-        public Page<OrderResponse> getAllOrders(int page, int size) {
+    public Page<OrderResponse> getAllOrders(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orderPage = orderRepository.findAll(pageable);
 
@@ -442,4 +442,3 @@ public class OrderService {
         return ordersPage.map(this::convertToOrderResponse);
     }
 }
-
