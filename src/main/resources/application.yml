@@ -39,8 +39,8 @@ jwt:
   refreshable-duration: 864000
 open:
   api:
-    title: 2TM API Documentation 
-    description: this is a test api documentation for 2TM project 
+    title: 2TM API Documentation
+    description: this is a test api documentation for 2TM project
     version: 1.0.0
     serverUrl: https://api.2tm.store/
     serverName: server test

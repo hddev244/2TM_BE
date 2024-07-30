@@ -165,7 +165,7 @@ public class AccountService {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         Ward ward = wardRepository
-            .findById(request.getIdWard())
+            .findById(request.getWardId())
             .orElseThrow(() -> {
                 throw new AppException(ErrorCode.WARD_NOT_FOUND);
             });
@@ -182,7 +182,7 @@ public class AccountService {
         Address address = Address.builder()
             .account(savedAccount)
             .ward(ward)
-            .streetAddress(request.getAddress())
+            .streetAddress(request.getStreetAddress())
             .build();
         savedAccount.setAddress(addressRepository.save(address));
         accountRepository.save(savedAccount);
@@ -248,10 +248,15 @@ public class AccountService {
 
     @SuppressWarnings("static-access")
     public Page<AccountResponse> getAllStaff(Optional<Integer> pageNo) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+
         Pageable pageable = PageRequest.of(pageNo.orElse(0), 10);
         List<String> excludedRoles = Arrays.asList("CH", "KH", "ND");
         Page<Account> staffs = roleAccountRepository.findByRoleStaff(
             excludedRoles,
+            email,
             pageable
         );
         return staffs.map(account -> {
@@ -324,38 +329,50 @@ public class AccountService {
         String id,
         CreateStaffRequest request
     ) {
-        Account account = accountRepository
+        Account accountFound = accountRepository
             .findById(id)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        account.setFullName(request.getFullName());
-        account.setPhoneNumber(request.getPhoneNumber());
-        account.setEmail(request.getEmail());
-        account.setUsername(request.getUsername());
-        Account savedAccount = accountRepository.save(account);
+        accountFound.setFullName(request.getFullName());
+        accountFound.setPhoneNumber(request.getPhoneNumber());
+        accountFound.setEmail(request.getEmail());
+        accountFound.setUsername(request.getUsername());
 
         if (request.getRoleId() != null) {
-            List<RoleAccount> allRole = roleAccountRepository.findByAccount(
-                savedAccount
-            );
+            List<RoleAccount> allRole = accountFound.getRoles();
             allRole.forEach(role -> {
                 if (
                     role.getRole().getId().equals("NVCH") ||
                     role.getRole().getId().equals("NVGH") ||
                     role.getRole().getId().equals("QLCH")
                 ) {
-                    roleAccountRepository.delete(role);
+                    Role newRole = roleRepository
+                        .findById(request.getRoleId())
+                        .orElseThrow(() ->
+                            new AppException(ErrorCode.ROLE_NOT_FOUND)
+                        );
+                    role.setRole(newRole);
+                    roleAccountRepository.save(role);
                 }
             });
         }
 
-        Role role = roleRepository
-            .findById(request.getRoleId())
-            .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
-        RoleAccount roleAccount = RoleAccount.builder()
-            .account(savedAccount)
-            .role(role)
-            .build();
-        roleAccountRepository.save(roleAccount);
+        if (request.getWardId() != null) {
+            Address address = accountFound.getAddress();
+
+            Ward ward = wardRepository
+                .findById(request.getWardId())
+                .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
+
+            if (address == null) {
+                address = new Address();
+            }
+            address.setStreetAddress(request.getStreetAddress());
+            address.setWard(ward);
+            addressRepository.save(address);
+            accountFound.setAddress(address);
+        }
+
+        Account savedAccount = accountRepository.save(accountFound);
 
         CreateStaffResponse response = mapper.map(
             savedAccount,
@@ -425,10 +442,18 @@ public class AccountService {
             .findById(id)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        StateAccount lockedState = new StateAccount();
-        lockedState.setId(StateAccount.LOCKED); // Set trạng thái là 5 (bị khóa)
-        account.setState(lockedState);
-        accountRepository.save(account);
+        StateAccount currentState = account.getState();
+
+        if (currentState.getId().equals(StateAccount.LOCKED)) {
+            account.setState(
+                stateAccountRepository.findById(StateAccount.ACTIVE).get()
+            );
+        } else if (currentState.getId().equals(StateAccount.ACTIVE)) {
+            account.setState(
+                stateAccountRepository.findById(StateAccount.LOCKED).get()
+            );
+        }
+        account = accountRepository.save(account);
         return mapper.map(account, AccountResponse.class);
     }
 
@@ -660,5 +685,18 @@ public class AccountService {
         accountRepository.save(account);
 
         return ImageDtoUtil.convertToImageResponse(avatar);
+    }
+
+    public AccountResponse getAdminAccountById(String id) {
+        if (id == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
+        Account account = accountRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        throw new UnsupportedOperationException(
+            "Unimplemented method 'getAdminAccountById'"
+        );
     }
 }

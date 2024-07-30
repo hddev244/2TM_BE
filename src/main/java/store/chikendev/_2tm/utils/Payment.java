@@ -12,14 +12,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-
 import org.springframework.stereotype.Component;
 import store.chikendev._2tm.config.VNPTConfig;
 
 @Component
 public class Payment {
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public String createVNPT(Long sumTotalPrice, String paymentRecordId) throws UnsupportedEncodingException {
+    public String createVNPT(Long sumTotalPrice, String paymentRecordId)
+        throws UnsupportedEncodingException {
         String orderType = "other";
         long amount = sumTotalPrice * 100;
         String vnp_TxnRef = VNPTConfig.getRandomNumber(8);
@@ -37,7 +38,11 @@ public class Payment {
         vnp_Params.put("vnp_OrderInfo", "thanh toan hoa don:" + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", "http://localhost:8080/api/payment/" + paymentRecordId);
+
+        String vnp_ReturnUrl = "http://localhost:8080/api/payment/";
+        // String vnp_ReturnUrl = "http://api.2tm.store/api/payment/";
+
+        vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl + paymentRecordId);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -61,11 +66,26 @@ public class Payment {
                 // Build hash data
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                hashData.append(
+                    URLEncoder.encode(
+                        fieldValue,
+                        StandardCharsets.US_ASCII.toString()
+                    )
+                );
                 // Build query
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
+                query.append(
+                    URLEncoder.encode(
+                        fieldName,
+                        StandardCharsets.US_ASCII.toString()
+                    )
+                );
                 query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                query.append(
+                    URLEncoder.encode(
+                        fieldValue,
+                        StandardCharsets.US_ASCII.toString()
+                    )
+                );
                 if (itr.hasNext()) {
                     query.append('&');
                     hashData.append('&');
@@ -73,11 +93,12 @@ public class Payment {
             }
         }
         String queryUrl = query.toString();
-        String vnp_SecureHash = VNPTConfig.hmacSHA512(VNPTConfig.secretKey, hashData.toString());
+        String vnp_SecureHash = VNPTConfig.hmacSHA512(
+            VNPTConfig.secretKey,
+            hashData.toString()
+        );
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = VNPTConfig.vnp_PayUrl + "?" + queryUrl;
         return paymentUrl;
-
     }
-
 }
