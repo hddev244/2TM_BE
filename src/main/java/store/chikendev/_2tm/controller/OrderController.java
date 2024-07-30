@@ -72,4 +72,27 @@ public class OrderController {
 
         return new ApiResponse<Page<OrderResponse>>(200, null, orders);
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+    @GetMapping("/getByStore")
+    public ApiResponse<Page<OrderResponse>> getByStore(
+            @RequestParam(required = false, name = "stateId") Long stateId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Page<OrderResponse> orders = orderService.getOrdersByStoreAllOrState(
+                page,
+                size,
+                stateId);
+
+        return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+    @GetMapping("/confirm-order")
+    public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
+        return new ApiResponse<String>(
+                200,
+                null,
+                orderService.confirmOder(orderId));
+    }
 }

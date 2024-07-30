@@ -22,6 +22,7 @@ import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
@@ -35,6 +36,7 @@ import store.chikendev._2tm.entity.Ward;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
+import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.CartItemsRepository;
 import store.chikendev._2tm.repository.OrderDetailsRepository;
 import store.chikendev._2tm.repository.OrderRepository;
@@ -86,6 +88,9 @@ public class OrderService {
 
     @Autowired
     private PaymentRecordsRepository paymentRecordsRepository;
+
+    @Autowired
+    private AccountStoreRepository accountStoreRepository;
 
     private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final int ID_LENGTH = 10;
@@ -457,5 +462,42 @@ public class OrderService {
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
         return convertToOrderResponse(order);
 
+    }
+
+    public Page<OrderResponse> getOrdersByStoreAllOrState(int page, int size, Long stateId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        AccountStore store = accountStoreRepository.findByAccount(account).get();
+        Pageable pageable = PageRequest.of(page, size);
+        if (stateId == null) {
+            Page<Order> ordersPage = orderRepository.findByStore(store.getStore(), pageable);
+            return ordersPage.map(this::convertToOrderResponse);
+        } else {
+            StateOrder state = stateOrderRepository.findById(stateId).orElseThrow(() -> {
+                return new AppException(ErrorCode.STATE_ORDER_NOT_FOUND);
+            });
+            Page<Order> ordersPage = orderRepository.findByStoreAndStateId(store.getStore(), state, pageable);
+            return ordersPage.map(this::convertToOrderResponse);
+        }
+
+    }
+
+    public String confirmOder(Long orderId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        AccountStore store = accountStoreRepository.findByAccount(account).get();
+        if (order.getStore().getId() != store.getStore().getId()) {
+            throw new AppException(ErrorCode.ROLE_ERROR);
+        }
+        if (order.getStateOrder().getId() != StateOrder.IN_CONFIRM) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        order.setStateOrder(stateOrderRepository.findById(StateOrder.CONFIRMED).get());
+        orderRepository.save(order);
+        return "Xác nhận đơn hàng thành công";
     }
 }
