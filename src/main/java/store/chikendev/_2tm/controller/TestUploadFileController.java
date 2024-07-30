@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import store.chikendev._2tm.dto.request.NotificationPayload;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
@@ -34,12 +32,6 @@ public class TestUploadFileController {
 
     @Autowired
     private Payment payment;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
-    private HttpServletResponse response;
 
     @Autowired
     private AuthenticationService authenticationService;
@@ -63,7 +55,7 @@ public class TestUploadFileController {
 
     @PostMapping("refreshtoken")
     public ApiResponse<String> refreshToken() {
-            authenticationService.refreshToKenFromHttpServletRequest();
+        authenticationService.refreshToKenFromHttpServletRequest();
 
         return new ApiResponse<>(200, null, "Refresh token successfully");
     }
@@ -74,7 +66,7 @@ public class TestUploadFileController {
                 .objectId("111111111") // là id của order, thanh toán, ...
                 .accountId("c6cd2076-4c0b-4b9b-b345-374640888ba0")
                 .message("Test thông báo . lỗi cors origin") // nội dung thông báo
-                .type(NotificationPayload.TYPE_ORDER)  // loại thông báo theo objectId (order, payment, ...)
+                .type(NotificationPayload.TYPE_ORDER) // loại thông báo theo objectId (order, payment, ...)
                 .build();
 
         return notificationService.callCreateNotification(payload);

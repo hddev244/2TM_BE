@@ -91,44 +91,36 @@ public class AccountService {
     @Autowired
     private WardRepository wardRepository;
 
-    private final String CHARACTERS =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private final int PASSWORD_LENGTH = 6;
 
     public AccountResponse register(AccountRequest request) {
         Optional<Account> email = accountRepository.findByEmail(
-            request.getEmail()
-        );
+                request.getEmail());
         if (email.isPresent()) {
-            if (
-                email.get().getState().getName().equals("Verification Required")
-            ) {
+            if (email.get().getState().getName().equals("Verification Required")) {
                 accountRepository.delete(email.get());
             } else {
                 throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
             }
         }
         Optional<Account> phone = accountRepository.findByPhoneNumber(
-            request.getPhoneNumber()
-        );
+                request.getPhoneNumber());
         if (phone.isPresent()) {
-            if (
-                phone.get().getState().getName().equals("Verification Required")
-            ) {
+            if (phone.get().getState().getName().equals("Verification Required")) {
                 accountRepository.delete(phone.get());
             } else {
                 throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
             }
         }
         Optional<Account> username = accountRepository.findByUsername(
-            request.getUsername()
-        );
+                request.getUsername());
         if (username.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         StateAccount state = stateAccountRepository
-            .findById(StateAccount.VERIFICATION_REQUIRED)
-            .get();
+                .findById(StateAccount.VERIFICATION_REQUIRED)
+                .get();
         Account account = mapper.map(request, Account.class);
         account.setPassword(passwordEncoder.encode(request.getPassword()));
         account.setViolationPoints(100);
@@ -136,9 +128,9 @@ public class AccountService {
         Account save = accountRepository.save(account);
         Role role = roleRepository.findById(Role.ROLE_CUSTOMER).get();
         RoleAccount roleAccount = RoleAccount.builder()
-            .account(save)
-            .role(role)
-            .build();
+                .account(save)
+                .role(role)
+                .build();
         roleAccountRepository.save(roleAccount);
         AccountResponse response = mapper.map(account, AccountResponse.class);
         response.setStateName(save.getState().getName());
@@ -147,32 +139,29 @@ public class AccountService {
 
     public CreateStaffResponse createStaff(CreateStaffRequest request) {
         Optional<Account> email = accountRepository.findByEmail(
-            request.getEmail()
-        );
+                request.getEmail());
         if (email.isPresent()) {
             throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
         }
         Optional<Account> phone = accountRepository.findByPhoneNumber(
-            request.getPhoneNumber()
-        );
+                request.getPhoneNumber());
         if (phone.isPresent()) {
             throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
         }
         Optional<Account> username = accountRepository.findByUsername(
-            request.getUsername()
-        );
+                request.getUsername());
         if (username.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         Ward ward = wardRepository
-            .findById(request.getWardId())
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.WARD_NOT_FOUND);
-            });
+                .findById(request.getWardId())
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.WARD_NOT_FOUND);
+                });
 
         StateAccount state = stateAccountRepository
-            .findById(StateAccount.ACTIVE)
-            .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+                .findById(StateAccount.ACTIVE)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
         String password = generateRandomPassword();
         Account account = mapper.map(request, Account.class);
         account.setPassword(passwordEncoder.encode(password));
@@ -180,47 +169,43 @@ public class AccountService {
         account.setState(state);
         Account savedAccount = accountRepository.save(account);
         Address address = Address.builder()
-            .account(savedAccount)
-            .ward(ward)
-            .streetAddress(request.getStreetAddress())
-            .build();
+                .account(savedAccount)
+                .ward(ward)
+                .streetAddress(request.getStreetAddress())
+                .build();
         savedAccount.setAddress(addressRepository.save(address));
         accountRepository.save(savedAccount);
 
         Role role = roleRepository
-            .findById(request.getRoleId())
-            .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+                .findById(request.getRoleId())
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
         RoleAccount roleAccount = RoleAccount.builder()
-            .account(savedAccount)
-            .role(role)
-            .build();
+                .account(savedAccount)
+                .role(role)
+                .build();
         roleAccountRepository.save(roleAccount);
         CreateStaffResponse response = mapper.map(
-            savedAccount,
-            CreateStaffResponse.class
-        );
+                savedAccount,
+                CreateStaffResponse.class);
         response.setStateName(savedAccount.getState().getName());
         response.setRoles(
-            roleAccountRepository
-                .findByAccount(savedAccount)
-                .stream()
-                .map(roleStaff ->
-                    mapper.map(roleStaff.getRole(), RoleResponse.class)
-                )
-                .toList()
-        );
+                roleAccountRepository
+                        .findByAccount(savedAccount)
+                        .stream()
+                        .map(roleStaff -> mapper.map(roleStaff.getRole(), RoleResponse.class))
+                        .toList());
         response.setAddress(getAddress(savedAccount.getAddress()));
 
         if (request.getStoreId() != null) {
             System.out.println(request.getStoreId());
             Store store = storeRepository
-                .findById(request.getStoreId())
-                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+                    .findById(request.getStoreId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
             AccountStore accountStore = AccountStore.builder()
-                .account(savedAccount)
-                .store(store)
-                .build();
+                    .account(savedAccount)
+                    .store(store)
+                    .build();
             accountStoreRepository.save(accountStore);
             response.setNameStore(store.getName());
         }
@@ -228,19 +213,19 @@ public class AccountService {
         String content = "";
         if (response.getNameStore() != null) {
             content = "Chào mừng bạn đến với hệ thống 2TM. " +
-            "Bạn đã được phân công vào cửa hàng: " +
-            response.getNameStore() +
-            " \nTài khoản: " +
-            response.getUsername() +
-            "\nMật khẩu: " +
-            password;
+                    "Bạn đã được phân công vào cửa hàng: " +
+                    response.getNameStore() +
+                    " \nTài khoản: " +
+                    response.getUsername() +
+                    "\nMật khẩu: " +
+                    password;
         } else {
             content = "Chào mừng bạn đến với hệ thống 2TM. " +
-            "Bạn đã được phân công vào hệ thống 2TM" +
-            " \nTài khoản: " +
-            response.getUsername() +
-            "\nMật khẩu: " +
-            password;
+                    "Bạn đã được phân công vào hệ thống 2TM" +
+                    " \nTài khoản: " +
+                    response.getUsername() +
+                    "\nMật khẩu: " +
+                    password;
         }
         sendEmail.sendMail(request.getEmail(), subject, content);
         return response;
@@ -249,73 +234,64 @@ public class AccountService {
     @SuppressWarnings("static-access")
     public Page<AccountResponse> getAllStaff(Optional<Integer> pageNo) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
 
         Pageable pageable = PageRequest.of(pageNo.orElse(0), 10);
         List<String> excludedRoles = Arrays.asList("CH", "KH", "ND");
         Page<Account> staffs = roleAccountRepository.findByRoleStaff(
-            excludedRoles,
-            email,
-            pageable
-        );
+                excludedRoles,
+                email,
+                pageable);
         return staffs.map(account -> {
             AccountStore accountStore = accountStoreRepository
-                .findByAccount(account)
-                .orElse(null);
+                    .findByAccount(account)
+                    .orElse(null);
             Store store = accountStore == null ? null : accountStore.getStore();
             return AccountResponse.builder()
-                .id(account.getId())
-                .username(account.getUsername())
-                .fullName(account.getFullName())
-                .phoneNumber(account.getPhoneNumber())
-                .email(account.getEmail())
-                .roles(
-                    roleAccountRepository
-                        .findByAccount(account)
-                        .stream()
-                        .map(roleAccount ->
-                            mapper.map(
-                                roleAccount.getRole(),
-                                RoleResponse.class
-                            )
-                        )
-                        .toList()
-                )
-                .address(getAddress(account.getAddress()))
-                .violationPoints(account.getViolationPoints())
-                .createdAt(account.getCreatedAt())
-                .updatedAt(account.getUpdatedAt())
-                .stateName(account.getState().getName())
-                .primaryAddress(
-                    account.getAddress() != null
-                        ? addressService.convertAddressToAddressResponse(
-                            account.getAddress()
-                        )
-                        : null
-                )
-                .store(convertStoreTStoreResponse(store))
-                // .image(image)
-                .build();
+                    .id(account.getId())
+                    .username(account.getUsername())
+                    .fullName(account.getFullName())
+                    .phoneNumber(account.getPhoneNumber())
+                    .email(account.getEmail())
+                    .roles(
+                            roleAccountRepository
+                                    .findByAccount(account)
+                                    .stream()
+                                    .map(roleAccount -> mapper.map(
+                                            roleAccount.getRole(),
+                                            RoleResponse.class))
+                                    .toList())
+                    .address(getAddress(account.getAddress()))
+                    .violationPoints(account.getViolationPoints())
+                    .createdAt(account.getCreatedAt())
+                    .updatedAt(account.getUpdatedAt())
+                    .stateName(account.getState().getName())
+                    .primaryAddress(
+                            account.getAddress() != null
+                                    ? addressService.convertAddressToAddressResponse(
+                                            account.getAddress())
+                                    : null)
+                    .store(convertStoreTStoreResponse(store))
+                    // .image(image)
+                    .build();
         });
     }
 
     public boolean changePassword(ChangePasswordRequest request) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         boolean checkPass = passwordEncoder.matches(
-            request.getPasswordOld(),
-            account.getPassword()
-        );
+                request.getPasswordOld(),
+                account.getPassword());
         if (checkPass) {
             if (request.getPasswordNew().equals(request.getPasswordConfirm())) {
                 account.setPassword(
-                    passwordEncoder.encode(request.getPasswordNew())
-                );
+                        passwordEncoder.encode(request.getPasswordNew()));
                 accountRepository.save(account);
                 return true;
             } else {
@@ -326,12 +302,11 @@ public class AccountService {
     }
 
     public CreateStaffResponse updateStaff(
-        String id,
-        CreateStaffRequest request
-    ) {
+            String id,
+            CreateStaffRequest request) {
         Account accountFound = accountRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         accountFound.setFullName(request.getFullName());
         accountFound.setPhoneNumber(request.getPhoneNumber());
         accountFound.setEmail(request.getEmail());
@@ -340,16 +315,12 @@ public class AccountService {
         if (request.getRoleId() != null) {
             List<RoleAccount> allRole = accountFound.getRoles();
             allRole.forEach(role -> {
-                if (
-                    role.getRole().getId().equals("NVCH") ||
-                    role.getRole().getId().equals("NVGH") ||
-                    role.getRole().getId().equals("QLCH")
-                ) {
+                if (role.getRole().getId().equals("NVCH") ||
+                        role.getRole().getId().equals("NVGH") ||
+                        role.getRole().getId().equals("QLCH")) {
                     Role newRole = roleRepository
-                        .findById(request.getRoleId())
-                        .orElseThrow(() ->
-                            new AppException(ErrorCode.ROLE_NOT_FOUND)
-                        );
+                            .findById(request.getRoleId())
+                            .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
                     role.setRole(newRole);
                     roleAccountRepository.save(role);
                 }
@@ -360,8 +331,8 @@ public class AccountService {
             Address address = accountFound.getAddress();
 
             Ward ward = wardRepository
-                .findById(request.getWardId())
-                .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
+                    .findById(request.getWardId())
+                    .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
 
             if (address == null) {
                 address = new Address();
@@ -375,35 +346,30 @@ public class AccountService {
         Account savedAccount = accountRepository.save(accountFound);
 
         CreateStaffResponse response = mapper.map(
-            savedAccount,
-            CreateStaffResponse.class
-        );
+                savedAccount,
+                CreateStaffResponse.class);
         response.setStateName(savedAccount.getState().getName());
         response.setRoles(
-            roleAccountRepository
-                .findByAccount(savedAccount)
-                .stream()
-                .map(roleStaff ->
-                    mapper.map(roleStaff.getRole(), RoleResponse.class)
-                )
-                .toList()
-        );
+                roleAccountRepository
+                        .findByAccount(savedAccount)
+                        .stream()
+                        .map(roleStaff -> mapper.map(roleStaff.getRole(), RoleResponse.class))
+                        .toList());
 
         if (request.getStoreId() != null) {
-            Optional<AccountStore> storeOld =
-                accountStoreRepository.findByAccount(savedAccount);
+            Optional<AccountStore> storeOld = accountStoreRepository.findByAccount(savedAccount);
             if (storeOld.isPresent()) {
                 accountStoreRepository.delete(storeOld.get());
             }
 
             Store store = storeRepository
-                .findById(request.getStoreId())
-                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+                    .findById(request.getStoreId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
             AccountStore accountStore = AccountStore.builder()
-                .account(savedAccount)
-                .store(store)
-                .build();
+                    .account(savedAccount)
+                    .store(store)
+                    .build();
             accountStoreRepository.save(accountStore);
             response.setNameStore(store.getName());
         }
@@ -412,46 +378,41 @@ public class AccountService {
 
     public String updateRoleNV(String idAccount, String idRole) {
         Account account = accountRepository
-            .findById(idAccount)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findById(idAccount)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Role role = roleRepository
-            .findById(idRole)
-            .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+                .findById(idRole)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
         List<RoleAccount> allRole = roleAccountRepository.findByAccount(
-            account
-        );
+                account);
         allRole.forEach(roleAccount -> {
-            if (
-                roleAccount.getRole().getId().equals("NVCH") ||
-                roleAccount.getRole().getId().equals("NVGH") ||
-                roleAccount.getRole().getId().equals("QLCH")
-            ) {
+            if (roleAccount.getRole().getId().equals("NVCH") ||
+                    roleAccount.getRole().getId().equals("NVGH") ||
+                    roleAccount.getRole().getId().equals("QLCH")) {
                 roleAccountRepository.delete(roleAccount);
             }
         });
         RoleAccount roleAccount = RoleAccount.builder()
-            .account(account)
-            .role(role)
-            .build();
+                .account(account)
+                .role(role)
+                .build();
         roleAccountRepository.save(roleAccount);
         return "Cập nhật thành công";
     }
 
     public AccountResponse lockAccount(String id) {
         Account account = accountRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         StateAccount currentState = account.getState();
 
         if (currentState.getId().equals(StateAccount.LOCKED)) {
             account.setState(
-                stateAccountRepository.findById(StateAccount.ACTIVE).get()
-            );
+                    stateAccountRepository.findById(StateAccount.ACTIVE).get());
         } else if (currentState.getId().equals(StateAccount.ACTIVE)) {
             account.setState(
-                stateAccountRepository.findById(StateAccount.LOCKED).get()
-            );
+                    stateAccountRepository.findById(StateAccount.LOCKED).get());
         }
         account = accountRepository.save(account);
         return mapper.map(account, AccountResponse.class);
@@ -460,25 +421,23 @@ public class AccountService {
     @SuppressWarnings("static-access")
     public ResponseDocumentDto updateImage(String id, MultipartFile file) {
         Account account = accountRepository
-            .findById(id)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.USER_NOT_FOUND);
-            });
+                .findById(id)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USER_NOT_FOUND);
+                });
         Image avatar = account.getImage();
         if (avatar != null) {
             filesHelp.deleteFile(
-                account.getId(),
-                avatar.getFileId(),
-                EntityFileType.USER_AVATAR
-            );
+                    account.getId(),
+                    avatar.getFileId(),
+                    EntityFileType.USER_AVATAR);
         } else {
             avatar = new Image();
         }
         var fileSaved = filesHelp.saveFile(
-            file,
-            account.getId(),
-            EntityFileType.USER_AVATAR
-        );
+                file,
+                account.getId(),
+                EntityFileType.USER_AVATAR);
 
         avatar.setFileId(fileSaved.getFileId());
         avatar.setFileName(fileSaved.getFileName());
@@ -505,8 +464,8 @@ public class AccountService {
 
     public Account updateAccountById(String id, AccountRequest accountRequest) {
         Account account = accountRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         // Cập nhật thông tin tài khoản
         account.setUsername(accountRequest.getUsername());
@@ -522,83 +481,73 @@ public class AccountService {
     // Lấy thông tin Account
     public AccountResponse getAccountByToken() {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         ResponseDocumentDto image = FilesHelp.getOneDocument(
-            account.getId(),
-            EntityFileType.USER_AVATAR
-        );
+                account.getId(),
+                EntityFileType.USER_AVATAR);
         return AccountResponse.builder()
-            .id(account.getId())
-            .username(account.getUsername())
-            .fullName(account.getFullName())
-            .phoneNumber(account.getPhoneNumber())
-            .email(account.getEmail())
-            .roles(
-                roleAccountRepository
-                    .findByAccount(account)
-                    .stream()
-                    .map(roleAccount ->
-                        mapper.map(roleAccount.getRole(), RoleResponse.class)
-                    )
-                    .toList()
-            )
-            .address(getAddress(account.getAddress()))
-            .violationPoints(account.getViolationPoints())
-            .createdAt(account.getCreatedAt())
-            .updatedAt(account.getUpdatedAt())
-            .stateName(account.getState().getName())
-            .image(image)
-            .build();
+                .id(account.getId())
+                .username(account.getUsername())
+                .fullName(account.getFullName())
+                .phoneNumber(account.getPhoneNumber())
+                .email(account.getEmail())
+                .roles(
+                        roleAccountRepository
+                                .findByAccount(account)
+                                .stream()
+                                .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class))
+                                .toList())
+                .address(getAddress(account.getAddress()))
+                .violationPoints(account.getViolationPoints())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
+                .stateName(account.getState().getName())
+                .image(image)
+                .build();
     }
 
     public AccountResponse getStaffById(String id) {
         Account account = accountRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         ResponseDocumentDto image = FilesHelp.getOneDocument(
-            account.getId(),
-            EntityFileType.USER_AVATAR
-        );
+                account.getId(),
+                EntityFileType.USER_AVATAR);
 
         AccountStore accountStore = accountStoreRepository
-            .findByAccount(account)
-            .orElse(null);
+                .findByAccount(account)
+                .orElse(null);
         Store store = accountStore == null ? null : accountStore.getStore();
 
         return AccountResponse.builder()
-            .id(account.getId())
-            .username(account.getUsername())
-            .fullName(account.getFullName())
-            .phoneNumber(account.getPhoneNumber())
-            .email(account.getEmail())
-            .roles(
-                roleAccountRepository
-                    .findByAccount(account)
-                    .stream()
-                    .map(roleAccount ->
-                        mapper.map(roleAccount.getRole(), RoleResponse.class)
-                    )
-                    .toList()
-            )
-            .address(getAddress(account.getAddress()))
-            .violationPoints(account.getViolationPoints())
-            .createdAt(account.getCreatedAt())
-            .updatedAt(account.getUpdatedAt())
-            .stateName(account.getState().getName())
-            .primaryAddress(
-                account.getAddress() != null
-                    ? addressService.convertAddressToAddressResponse(
-                        account.getAddress()
-                    )
-                    : null
-            )
-            .store(convertStoreTStoreResponse(store))
-            .image(image)
-            .build();
+                .id(account.getId())
+                .username(account.getUsername())
+                .fullName(account.getFullName())
+                .phoneNumber(account.getPhoneNumber())
+                .email(account.getEmail())
+                .roles(
+                        roleAccountRepository
+                                .findByAccount(account)
+                                .stream()
+                                .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class))
+                                .toList())
+                .address(getAddress(account.getAddress()))
+                .violationPoints(account.getViolationPoints())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
+                .stateName(account.getState().getName())
+                .primaryAddress(
+                        account.getAddress() != null
+                                ? addressService.convertAddressToAddressResponse(
+                                        account.getAddress())
+                                : null)
+                .store(convertStoreTStoreResponse(store))
+                .image(image)
+                .build();
     }
 
     public StoreResponse convertStoreTStoreResponse(Store store) {
@@ -606,20 +555,19 @@ public class AccountService {
             return null;
         }
         return StoreResponse.builder()
-            .id(store.getId())
-            .name(store.getName())
-            .postalCode(store.getPostalCode())
-            .phone(store.getPhone())
-            .email(store.getEmail())
-            .streetAddress(store.getStreetAddress())
-            .description(store.getDescription())
-            .urlImage(
-                store.getImage() != null
-                    ? store.getImage().getFileDownloadUri()
-                    : null
-            )
-            .activeStatus(store.isActiveStatus())
-            .build();
+                .id(store.getId())
+                .name(store.getName())
+                .postalCode(store.getPostalCode())
+                .phone(store.getPhone())
+                .email(store.getEmail())
+                .streetAddress(store.getStreetAddress())
+                .description(store.getDescription())
+                .urlImage(
+                        store.getImage() != null
+                                ? store.getImage().getFileDownloadUri()
+                                : null)
+                .activeStatus(store.isActiveStatus())
+                .build();
     }
 
     // Lấy địa chỉ
@@ -631,21 +579,19 @@ public class AccountService {
             String addressWard = address.getWard().getName();
             String addressDistrict = address.getWard().getDistrict().getName();
             String addressProvince = address
-                .getWard()
-                .getDistrict()
-                .getProvinceCity()
-                .getName();
+                    .getWard()
+                    .getDistrict()
+                    .getProvinceCity()
+                    .getName();
             String addressAddress = address.getStreetAddress() == null
-                ? ""
-                : address.getStreetAddress() + ", ";
-            return (
-                addressAddress +
-                addressWard +
-                ", " +
-                addressDistrict +
-                ", " +
-                addressProvince
-            );
+                    ? ""
+                    : address.getStreetAddress() + ", ";
+            return (addressAddress +
+                    addressWard +
+                    ", " +
+                    addressDistrict +
+                    ", " +
+                    addressProvince);
         }
         return "";
     }
@@ -653,26 +599,24 @@ public class AccountService {
     @SuppressWarnings("static-access")
     public ResponseDocumentDto changeAvatar(MultipartFile image) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Image avatar = account.getImage();
         if (avatar != null) {
             filesHelp.deleteFile(
-                account.getId(),
-                avatar.getFileId(),
-                EntityFileType.USER_AVATAR
-            );
+                    account.getId(),
+                    avatar.getFileId(),
+                    EntityFileType.USER_AVATAR);
         } else {
             avatar = new Image();
         }
         var fileSaved = filesHelp.saveFile(
-            image,
-            account.getId(),
-            EntityFileType.USER_AVATAR
-        );
+                image,
+                account.getId(),
+                EntityFileType.USER_AVATAR);
         avatar.setFileId(fileSaved.getFileId());
         avatar.setFileName(fileSaved.getFileName());
         avatar.setFileType(fileSaved.getFileType());
@@ -692,11 +636,11 @@ public class AccountService {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
         Account account = accountRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        System.out.println(account.getFullName());
 
         throw new UnsupportedOperationException(
-            "Unimplemented method 'getAdminAccountById'"
-        );
+                "Unimplemented method 'getAdminAccountById'");
     }
 }

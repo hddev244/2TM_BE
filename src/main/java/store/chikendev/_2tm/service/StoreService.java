@@ -16,7 +16,6 @@ import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
-import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class StoreService {
@@ -38,8 +37,8 @@ public class StoreService {
         Store store = mapper.map(request, Store.class);
         if (request.getIdWard() != null) {
             Ward ward = wardRepository
-                .findById(request.getIdWard())
-                .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
+                    .findById(request.getIdWard())
+                    .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
             store.setWard(ward);
         }
         store.setActiveStatus(true);
@@ -50,9 +49,8 @@ public class StoreService {
             filesHelp.saveFile(file, save.getId(), EntityFileType.STORE_LOGO);
         }
         ResponseDocumentDto urlImage = filesHelp.getOneDocument(
-            save.getId(),
-            EntityFileType.STORE_LOGO
-        );
+                save.getId(),
+                EntityFileType.STORE_LOGO);
 
         StoreResponse response = mapper.map(store, StoreResponse.class);
         response.setUrlImage(urlImage.getFileDownloadUri());
@@ -62,17 +60,16 @@ public class StoreService {
     @SuppressWarnings("static-access")
     public StoreResponse updateImage(Long id, MultipartFile file) {
         Store store = storeRepository
-            .findById(id)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.STORE_NOT_FOUND);
-            });
+                .findById(id)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.STORE_NOT_FOUND);
+                });
         if (file.getOriginalFilename() != null) {
             filesHelp.saveFile(file, store.getId(), EntityFileType.STORE_LOGO);
         }
         ResponseDocumentDto urlImage = filesHelp.getOneDocument(
-            store.getId(),
-            EntityFileType.STORE_LOGO
-        );
+                store.getId(),
+                EntityFileType.STORE_LOGO);
         StoreResponse response = mapper.map(store, StoreResponse.class);
         response.setUrlImage(urlImage.getFileDownloadUri());
         return response;
@@ -82,21 +79,19 @@ public class StoreService {
     public List<StoreResponse> getAllStores() {
         List<Store> stores = storeRepository.findAll();
         List<StoreResponse> response = stores
-            .stream()
-            .map(store -> {
-                StoreResponse storeResponse = mapper.map(
-                    store,
-                    StoreResponse.class
-                );
-                storeResponse.setStreetAddress(getStoreAddress(store));
-                ResponseDocumentDto urlImage = filesHelp.getOneDocument(
-                    store.getId(),
-                    EntityFileType.STORE_LOGO
-                );
-                storeResponse.setUrlImage(urlImage.getFileDownloadUri());
-                return storeResponse;
-            })
-            .toList();
+                .stream()
+                .map(store -> {
+                    StoreResponse storeResponse = mapper.map(
+                            store,
+                            StoreResponse.class);
+                    storeResponse.setStreetAddress(getStoreAddress(store));
+                    ResponseDocumentDto urlImage = filesHelp.getOneDocument(
+                            store.getId(),
+                            EntityFileType.STORE_LOGO);
+                    storeResponse.setUrlImage(urlImage.getFileDownloadUri());
+                    return storeResponse;
+                })
+                .toList();
         return response;
     }
 
@@ -104,11 +99,11 @@ public class StoreService {
     public List<StoreResponse> getAllStoresAdmin() {
         List<Store> stores = storeRepository.findAll();
         List<StoreResponse> response = stores
-            .stream()
-            .map(store -> {
-                return convertStoreToResponse(store);
-            })
-            .toList();
+                .stream()
+                .map(store -> {
+                    return convertStoreToResponse(store);
+                })
+                .toList();
         return response;
     }
 
@@ -123,39 +118,39 @@ public class StoreService {
                 districtId = store.getWard().getDistrict().getId();
                 if (store.getWard().getDistrict().getProvinceCity() != null) {
                     provinceId = store
-                        .getWard()
-                        .getDistrict()
-                        .getProvinceCity()
-                        .getId();
+                            .getWard()
+                            .getDistrict()
+                            .getProvinceCity()
+                            .getId();
                 }
             }
             wardId = store.getWard().getId();
         }
 
         ResponseDocumentDto image = store.getImage() == null
-            ? null
-            : ResponseDocumentDto.builder()
-                .fileDownloadUri(store.getImage().getFileDownloadUri())
-                .fileType(store.getImage().getFileType())
-                .fileName(store.getImage().getFileName())
-                .size(store.getImage().getSize())
-                .build();
+                ? null
+                : ResponseDocumentDto.builder()
+                        .fileDownloadUri(store.getImage().getFileDownloadUri())
+                        .fileType(store.getImage().getFileType())
+                        .fileName(store.getImage().getFileName())
+                        .size(store.getImage().getSize())
+                        .build();
 
         return StoreResponse.builder()
-            .id(store.getId())
-            .name(store.getName())
-            .postalCode(store.getPostalCode())
-            .phone(store.getPhone())
-            .email(store.getEmail())
-            .fullAddress(getStoreAddress(store))
-            .streetAddress(store.getStreetAddress())
-            .description(store.getDescription())
-            .provinceId(provinceId)
-            .districtId(districtId)
-            .image(image)
-            .wardId(wardId)
-            .activeStatus(store.isActiveStatus())
-            .build();
+                .id(store.getId())
+                .name(store.getName())
+                .postalCode(store.getPostalCode())
+                .phone(store.getPhone())
+                .email(store.getEmail())
+                .fullAddress(getStoreAddress(store))
+                .streetAddress(store.getStreetAddress())
+                .description(store.getDescription())
+                .provinceId(provinceId)
+                .districtId(districtId)
+                .image(image)
+                .wardId(wardId)
+                .activeStatus(store.isActiveStatus())
+                .build();
     }
 
     private String getStoreAddress(Store store) {
@@ -167,21 +162,19 @@ public class StoreService {
                 String StoreWard = store.getWard().getName();
                 String StoreDistrict = store.getWard().getDistrict().getName();
                 String StoreProvince = store
-                    .getWard()
-                    .getDistrict()
-                    .getProvinceCity()
-                    .getName();
+                        .getWard()
+                        .getDistrict()
+                        .getProvinceCity()
+                        .getName();
                 String storeAddress = store.getStreetAddress() == null
-                    ? ""
-                    : store.getStreetAddress() + ", ";
-                return (
-                    storeAddress +
-                    StoreWard +
-                    ", " +
-                    StoreDistrict +
-                    ", " +
-                    StoreProvince
-                );
+                        ? ""
+                        : store.getStreetAddress() + ", ";
+                return (storeAddress +
+                        StoreWard +
+                        ", " +
+                        StoreDistrict +
+                        ", " +
+                        StoreProvince);
             } catch (Exception e) {
                 return "";
             }
@@ -198,21 +191,19 @@ public class StoreService {
 
         @SuppressWarnings("static-access")
         List<StoreResponse> response = stores
-            .stream()
-            .map(store -> {
-                StoreResponse storeResponse = mapper.map(
-                    store,
-                    StoreResponse.class
-                );
-                storeResponse.setStreetAddress(getStoreAddress(store));
-                ResponseDocumentDto urlImage = filesHelp.getOneDocument(
-                    store.getId(),
-                    EntityFileType.STORE_LOGO
-                );
-                storeResponse.setUrlImage(urlImage.getFileDownloadUri());
-                return storeResponse;
-            })
-            .toList();
+                .stream()
+                .map(store -> {
+                    StoreResponse storeResponse = mapper.map(
+                            store,
+                            StoreResponse.class);
+                    storeResponse.setStreetAddress(getStoreAddress(store));
+                    ResponseDocumentDto urlImage = filesHelp.getOneDocument(
+                            store.getId(),
+                            EntityFileType.STORE_LOGO);
+                    storeResponse.setUrlImage(urlImage.getFileDownloadUri());
+                    return storeResponse;
+                })
+                .toList();
         return response;
     }
 
@@ -230,8 +221,8 @@ public class StoreService {
 
     public StoreResponse getStoreById(Long id) {
         Store store = storeRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
         return convertStoreToResponse(store);
     }
 
@@ -241,8 +232,8 @@ public class StoreService {
         }
 
         Store store = storeRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
         store.setName(request.getName());
         store.setPostalCode(request.getPostalCode());
@@ -252,8 +243,8 @@ public class StoreService {
         store.setDescription(request.getDescription());
         if (request.getIdWard() != null) {
             Ward ward = wardRepository
-                .findById(request.getIdWard())
-                .orElse(null);
+                    .findById(request.getIdWard())
+                    .orElse(null);
             store.setWard(ward);
         }
 
@@ -263,8 +254,8 @@ public class StoreService {
 
     public StoreResponse updateState(Long id) {
         Store store = storeRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
         store.setActiveStatus(!store.isActiveStatus());
 

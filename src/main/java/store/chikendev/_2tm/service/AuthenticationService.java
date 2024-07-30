@@ -30,7 +30,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.NonFinal;
 import store.chikendev._2tm.dto.request.LoginRequest;
-import store.chikendev._2tm.dto.request.LogoutRequest;
 import store.chikendev._2tm.dto.request.RefreshTokenRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
@@ -172,7 +171,7 @@ public class AuthenticationService {
         response.setHeader("accessToken", token);
         response.setHeader("refreshToken", refreshToken);
         response.setHeader("Authorization", token);
-        
+
         List<CartItems> cartItems = user.getCartItems();
 
         List<CartResponse> cartResponses = null;
@@ -185,7 +184,6 @@ public class AuthenticationService {
                         .build();
             }).toList();
         }
-
 
         return AuthenticationResponse.builder()
                 .authenticated(authenticated)
