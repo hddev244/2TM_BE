@@ -28,7 +28,7 @@ public class PaymentController {
     public ResponseEntity<Void> redirectToExternalUrl() {
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(
-                URI.create("http://localhost:3001/thanh-toan/thanh-cong/1"));
+                URI.create("https://2tm.store/thanh-toan/that-bai/1"));
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
@@ -47,7 +47,12 @@ public class PaymentController {
                 vnpBankTranNo,
                 vnpPayDate,
                 status);
-        String url = "http://localhost:3001/thanh-toan/thanh-cong/" + id;
+        String url = "";
+        if (status.equals("00")) {
+            url = "http://2tm.store/thanh-toan/thanh-cong/" + id;
+        } else {
+            url = "http://2tm.store/thanh-toan/that-bai/" + id;
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(url));
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
