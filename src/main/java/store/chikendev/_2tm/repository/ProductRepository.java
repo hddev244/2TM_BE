@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Store;
 
@@ -62,4 +61,12 @@ public interface ProductRepository
     );
 
     Page<Product> findByCategoryPath(String path, Pageable pageable);
+
+    @Query(
+        "SELECT p FROM Product p WHERE p.store = :store AND p.state.id != 4 AND p.state.id != 1  ORDER BY p.createdAt DESC"
+    )
+    Page<Product> findAllProductsInStore(
+        @Param("store") Store store,
+        Pageable pageable
+    );
 }

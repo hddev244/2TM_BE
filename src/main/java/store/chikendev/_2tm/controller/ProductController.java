@@ -78,6 +78,20 @@ public class ProductController {
         return new ApiResponse<Page<ProductResponse>>(200, null, products);
     }
 
+    // @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+    @GetMapping("/store/all")
+    public ApiResponse<Page<ProductResponse>> getAllProductsInStore(
+        @RequestParam(required = false, name = "size") Optional<Integer> size,
+        @RequestParam(required = false, name = "pageNo") Optional<Integer> page,
+        @RequestParam(required = false, name = "sort") Optional<String> sort
+    ) {
+        Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
+        Page<ProductResponse> products = productService.getAllProductsInStore(
+            pageable
+        );
+        return new ApiResponse<Page<ProductResponse>>(200, null, products);
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<ProductResponse> getProductById(
         @PathVariable("id") Long id
@@ -161,10 +175,19 @@ public class ProductController {
 
     @GetMapping("/consignment")
     public ApiResponse<Page<ProductResponse>> getConsignmentProducts(
-            @RequestParam(value = "stateProduct", required = false) Long stateProductId,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
-        Page<ProductResponse> products = productService.getConsignmentProductsByStoreAndState(stateProductId, page, size);
+        @RequestParam(
+            value = "stateProduct",
+            required = false
+        ) Long stateProductId,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        Page<ProductResponse> products =
+            productService.getConsignmentProductsByStoreAndState(
+                stateProductId,
+                page,
+                size
+            );
         return new ApiResponse<Page<ProductResponse>>(200, null, products);
     }
 }

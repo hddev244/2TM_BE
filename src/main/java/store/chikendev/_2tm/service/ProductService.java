@@ -779,4 +779,93 @@ public class ProductService {
         );
         return products.map(this::convertToResponse);
     }
+
+    public Page<ProductResponse> getAllProductsInStore(Pageable pageable) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+        Account account = accountRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Store store = accountStoreRepository
+            .findByAccount(account)
+            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
+            .getStore();
+
+        Page<Product> products = productRepository.findAllProductsInStore(
+            store,
+            pageable
+        );
+        Page<ProductResponse> productResponses = products.map(product -> {
+            ResponseDocumentDto thumbnail = null;
+            // thay đổi ảnh thumbnail bằng image từ db
+            if (product.getImages().size() > 0) {
+                var image = product.getImages().get(0).getImage();
+                thumbnail = ImageDtoUtil.convertToImageResponse(image);
+            }
+
+            var address = getStoreAddress(product.getStore());
+            var storeName = product.getStore() == null
+                ? ""
+                : product.getStore().getName();
+
+            var type = "";
+            if (product.getType() != null) {
+                type = product.getType() ? "Cửa hàng" : "Ký gửi";
+            }
+
+            CategoryResponse category = null;
+            if (product.getCategory() != null) {
+                category = CategoryResponse.builder()
+                    .id(product.getCategory().getId())
+                    .name(product.getCategory().getName())
+                    .path(product.getCategory().getPath())
+                    .build();
+            }
+
+            List<AttributeProductResponse> attrs = new ArrayList<>();
+            if (product.getAttributes().size() > 0) {
+                product
+                    .getAttributes()
+                    .forEach(att -> {
+                        attrs.add(
+                            AttributeProductResponse.builder()
+                                .id(att.getAttributeDetail().getId())
+                                .name(
+                                    att
+                                        .getAttributeDetail()
+                                        .getAttribute()
+                                        .getName()
+                                )
+                                .value(
+                                    att.getAttributeDetail().getDescription()
+                                )
+                                .build()
+                        );
+                    });
+            }
+
+            return ProductResponse.builder()
+                .id(product.getId())
+                .thumbnail(thumbnail)
+                .name(product.getName())
+                .price(product.getPrice())
+                .quantity(product.getQuantity())
+                .description(product.getDescription())
+                .typeProduct(type)
+                .attributes(attrs)
+                .state(product.getState())
+                .type(product.getType())
+                .category(category)
+                .store(
+                    StoreResponse.builder()
+                        .name(storeName)
+                        .streetAddress(address)
+                        .build()
+                )
+                .build();
+        });
+        return productResponses;
+    }
 }
