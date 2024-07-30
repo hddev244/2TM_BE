@@ -442,7 +442,7 @@ public class OrderService {
         return ordersPage.map(this::convertToOrderResponse);
     }
 
-    public Page<OrderResponse> getOrdersBystatus(Long statusId, String email, int page, int size){
+    public Page<OrderResponse> getOrdersByStatus(Long statusId, String email, int page, int size) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -450,5 +450,12 @@ public class OrderService {
         Page<Order> ordersPage = orderRepository.findByAccountIdAndStateOrderId(account.getId(), statusId, pageable);
 
         return ordersPage.map(this::convertToOrderResponse);
+    }
+
+    public OrderResponse getDetail(Long idOder) {
+        Order order = orderRepository.findById(idOder)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        return convertToOrderResponse(order);
+
     }
 }

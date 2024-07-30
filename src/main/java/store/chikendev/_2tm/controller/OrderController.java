@@ -27,20 +27,17 @@ public class OrderController {
 
     @PostMapping
     public ApiResponse<OrderPaymentResponse> createOder(
-        @RequestBody @Valid OrderInformation request
-    ) throws UnsupportedEncodingException {
+            @RequestBody @Valid OrderInformation request) throws UnsupportedEncodingException {
         return new ApiResponse<OrderPaymentResponse>(
-            200,
-            null,
-            orderService.createOrder(request)
-        );
+                200,
+                null,
+                orderService.createOrder(request));
     }
 
     @GetMapping("/AllOrder")
     public ApiResponse<Page<OrderResponse>> getAllOrders(
-        @RequestParam(name = "page", defaultValue = "0") int page,
-        @RequestParam(name = "size", defaultValue = "10") int size
-    ) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         Page<OrderResponse> ordersPage = orderService.getAllOrders(page, size);
         return new ApiResponse<Page<OrderResponse>>(200, null, ordersPage);
     }
@@ -48,15 +45,12 @@ public class OrderController {
     @PreAuthorize("hasRole('ROLE_KH')")
     @GetMapping("/Ordered")
     public ApiResponse<Page<OrderResponse>> getOrdersForCustomer(
-        @RequestParam(name = "page", defaultValue = "0") int page,
-        @RequestParam(name = "size", defaultValue = "10") int size
-    ) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
-        Page<OrderResponse> orders = (Page<
-                OrderResponse
-            >) orderService.getOrdersByCustomer(email, page, size);
+                .getAuthentication()
+                .getName();
+        Page<OrderResponse> orders = (Page<OrderResponse>) orderService.getOrdersByCustomer(email, page, size);
 
         return new ApiResponse<Page<OrderResponse>>(200, null, orders);
     }
@@ -64,19 +58,17 @@ public class OrderController {
     @PreAuthorize("hasRole('ROLE_KH')")
     @GetMapping("/status")
     public ApiResponse<Page<OrderResponse>> getOrdersByStatusForCustomer(
-        @RequestParam Long statusId,
-        @RequestParam(name = "page", defaultValue = "0") int page,
-        @RequestParam(name = "size", defaultValue = "10") int size
-    ) {
+            @RequestParam Long statusId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
-        Page<OrderResponse> orders = orderService.getOrdersBystatus(
-            statusId,
-            email,
-            page,
-            size
-        );
+                .getAuthentication()
+                .getName();
+        Page<OrderResponse> orders = orderService.getOrdersByStatus(
+                statusId,
+                email,
+                page,
+                size);
 
         return new ApiResponse<Page<OrderResponse>>(200, null, orders);
     }
