@@ -500,4 +500,20 @@ public class OrderService {
         orderRepository.save(order);
         return "Xác nhận đơn hàng thành công";
     }
+
+    public OrderResponse getOrderDetails(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        OrderResponse orderResponse = convertToOrderResponse(order);
+
+        List<OrderDetails> orderDetailsList = orderDetailRepository.findByOrderId(orderId);
+        List<OrderDetailResponse> orderDetailResponses = orderDetailsList.stream()
+            .map(this::convertToOrderDetailResponse)
+            .collect(Collectors.toList());
+
+        orderResponse.setDetail(orderDetailResponses);
+
+        return orderResponse;
+    }
 }
