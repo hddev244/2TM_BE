@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -87,9 +86,6 @@ public class ProductService {
         private AccountRepository accountRepository;
 
         @Autowired
-        private ModelMapper mapper;
-
-        @Autowired
         private AccountStoreRepository accountStoreRepository;
 
         @Autowired
@@ -158,104 +154,30 @@ public class ProductService {
                 save.setImages(images);
                 // lưu attribute
                 List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
-                request
-                                .getIdAttributeDetail()
-                                .forEach(id -> {
-                                        ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
-                                                        .product(save)
-                                                        .attributeDetail(
-                                                                        attributeDetailRepository
-                                                                                        .findById(id)
-                                                                                        .orElseThrow(() -> {
-                                                                                                throw new AppException(
-                                                                                                                ErrorCode.ATTRIBUTE_NOT_FOUND);
-                                                                                        }))
-                                                        .build();
-                                        attributeDetails.add(attributeDetail);
-                                });
-                List<ProductAttributeDetail> saveAttribute = productAttributeDetailRepository.saveAll(attributeDetails);
-                List<AttributeProductResponse> attrs = new ArrayList<>();
-                saveAttribute.forEach(att -> {
-                        attrs.add(
-                                        AttributeProductResponse.builder()
-                                                        .id(att.getAttributeDetail().getAttribute().getId())
-                                                        .name(att.getAttributeDetail().getAttribute().getName())
-                                                        .value(att.getAttributeDetail().getDescription())
-                                                        .build());
+                request.getIdAttributeDetail().forEach(id -> {
+                        ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
+                                        .product(save)
+                                        .attributeDetail(attributeDetailRepository.findById(id)
+                                                        .orElseThrow(() -> {
+                                                                throw new AppException(ErrorCode.ATTRIBUTE_NOT_FOUND);
+                                                        }))
+                                        .build();
+                        attributeDetails.add(attributeDetail);
                 });
-                // store response
-                StoreResponse responseStore = mapper.map(
-                                save.getStore(),
-                                StoreResponse.class);
-                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(
-                                save.getStore().getId(),
-                                EntityFileType.STORE_LOGO);
-                responseStore.setUrlImage(imageStore.getFileDownloadUri());
-                responseStore.setStreetAddress(getStoreAddress(save.getStore()));
+                List<ProductAttributeDetail> saveAttribute = productAttributeDetailRepository.saveAll(attributeDetails);
+                save.setAttributes(saveAttribute);
                 // product response
-                ProductResponse response = convertToResponse(save);
-                response.setIdCategory(product.getCategory().getId());
-                response.setStore(responseStore);
-                response.setAttributes(attrs);
-
+                ProductResponse response = convertToResponse(save, true);
                 return response;
         }
 
+        // khach hang
         public Page<ProductResponse> getAllProducts(Pageable pageable) {
                 Page<Product> products = productRepository.findAvailableProducts(
                                 pageable);
                 Page<ProductResponse> productResponses = products.map(product -> {
-                        ResponseDocumentDto thumbnail = null;
-                        // thay đổi ảnh thumbnail bằng image từ db
-                        if (product.getImages().size() > 0) {
-                                var image = product.getImages().get(0).getImage();
-                                thumbnail = ImageDtoUtil.convertToImageResponse(image);
-                        }
-
-                        var address = getStoreAddress(product.getStore());
-                        var storeName = product.getStore() == null
-                                        ? ""
-                                        : product.getStore().getName();
-                        var type = "";
-                        if (product.getType() != null) {
-                                type = product.getType() ? "Cửa hàng" : "Ký gửi";
-                        }
-                        List<AttributeProductResponse> attrs = new ArrayList<>();
-                        if (product.getAttributes().size() > 0) {
-                                product
-                                                .getAttributes()
-                                                .forEach(att -> {
-                                                        attrs.add(
-                                                                        AttributeProductResponse.builder()
-                                                                                        .id(att.getAttributeDetail()
-                                                                                                        .getId())
-                                                                                        .name(
-                                                                                                        att
-                                                                                                                        .getAttributeDetail()
-                                                                                                                        .getAttribute()
-                                                                                                                        .getName())
-                                                                                        .value(
-                                                                                                        att.getAttributeDetail()
-                                                                                                                        .getDescription())
-                                                                                        .build());
-                                                });
-                        }
-
-                        return ProductResponse.builder()
-                                        .id(product.getId())
-                                        .thumbnail(thumbnail)
-                                        .name(product.getName())
-                                        .price(product.getPrice())
-                                        .quantity(product.getQuantity())
-                                        .description(product.getDescription())
-                                        .typeProduct(type)
-                                        .attributes(attrs)
-                                        .store(
-                                                        StoreResponse.builder()
-                                                                        .name(storeName)
-                                                                        .streetAddress(address)
-                                                                        .build())
-                                        .build();
+                        ProductResponse response = convertToResponse(product, false);
+                        return response;
                 });
                 return productResponses;
         }
@@ -285,90 +207,63 @@ public class ProductService {
                 return "";
         }
 
-        public ProductResponse convertToResponse(Product product) {
+        public ProductResponse convertToResponse(Product product, boolean multiImage) {
                 ProductResponse response = new ProductResponse();
                 response.setId(product.getId());
                 response.setName(product.getName());
                 response.setPrice(product.getPrice());
                 response.setQuantity(product.getQuantity());
                 response.setDescription(product.getDescription());
+                List<AttributeProductResponse> attrs = new ArrayList<>();
+                if (product.getAttributes().size() > 0) {
+                        product.getAttributes().forEach(att -> {
+                                attrs.add(AttributeProductResponse.builder()
+                                                .id(att.getAttributeDetail().getId())
+                                                .name(att.getAttributeDetail().getAttribute().getName())
+                                                .value(att.getAttributeDetail().getDescription())
+                                                .build());
+                        });
+                }
+                response.setAttributes(attrs);
+                if (product.getCategory() != null) {
+                        response.setCategory(CategoryResponse.builder()
+                                        .id(product.getCategory().getId())
+                                        .name(product.getCategory().getName())
+                                        .path(product.getCategory().getPath())
+                                        .build());
+                }
+                if (product.getStore() != null) {
+                        response.setStore(StoreResponse.builder()
+                                        .name(product.getStore().getName())
+                                        .streetAddress(getStoreAddress(product.getStore()))
+                                        .build());
+                }
+                response.setState(product.getState());
                 if (product.getType() != null) {
                         response.setTypeProduct(product.getType() ? "Cửa hàng" : "Ký gửi");
                 }
-
-                List<ResponseDocumentDto> responseDocument = product
-                                .getImages()
-                                .stream()
+                List<ResponseDocumentDto> responseDocument = product.getImages().stream()
                                 .map(img -> {
                                         Image image = img.getImage();
                                         return ImageDtoUtil.convertToImageResponse(image);
-                                })
-                                .toList();
-
-                if (!responseDocument.isEmpty()) {
-                        response.setThumbnail(responseDocument.get(0));
+                                }).toList();
+                if (multiImage) {
+                        if (responseDocument.size() > 0) {
+                                response.setImages(responseDocument);
+                        }
+                } else {
+                        if (responseDocument.size() > 0) {
+                                response.setThumbnail(responseDocument.get(0));
+                        }
                 }
                 return response;
         }
 
         public ProductResponse getById(Long id) {
-                Product product = productRepository
-                                .findById(id)
-                                .orElseThrow(() -> {
-                                        throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
-                                });
-
-                List<AttributeProductResponse> attrs = new ArrayList<>();
-
-                if (product.getAttributes().size() > 0) {
-                        product
-                                        .getAttributes()
-                                        .forEach(att -> {
-                                                attrs.add(
-                                                                AttributeProductResponse.builder()
-                                                                                .id(att.getAttributeDetail()
-                                                                                                .getAttribute().getId())
-                                                                                .name(
-                                                                                                att
-                                                                                                                .getAttributeDetail()
-                                                                                                                .getAttribute()
-                                                                                                                .getName())
-                                                                                .value(att.getAttributeDetail()
-                                                                                                .getDescription())
-                                                                                .build());
-                                        });
-                }
-                StoreResponse store = mapper.map(
-                                product.getStore(),
-                                StoreResponse.class);
-                if (store != null) {
-                        var image = product.getStore().getImage();
-                        if (image != null) {
-                                ResponseDocumentDto imageStore = ImageDtoUtil.convertToImageResponse(image);
-                                store.setUrlImage(imageStore.getFileDownloadUri());
-                        }
-                }
-                store.setStreetAddress(getStoreAddress(product.getStore()));
-
-                ProductResponse response = convertToResponse(product);
-
-                if (!product.getImages().isEmpty()) {
-                        List<ResponseDocumentDto> responseDocument = product
-                                        .getImages()
-                                        .stream()
-                                        .map(img -> {
-                                                Image image = img.getImage();
-                                                return ImageDtoUtil.convertToImageResponse(image);
-                                        })
-                                        .toList();
-                        response.setImages(responseDocument);
-                }
-
-                response.setAttributes(attrs);
-                response.setStore(store);
-                response.setIdCategory(product.getCategory().getId());
-
-                return response;
+                Product product = productRepository.findById(id).orElseThrow(() -> {
+                        throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+                });
+                return convertToResponse(product, true);
         }
 
         public Page<ProductResponse> getByNameAndDescription(
@@ -388,105 +283,7 @@ public class ProductService {
                                 pageable);
 
                 Page<ProductResponse> productResponses = products.map(product -> {
-                        List<AttributeProductResponse> attrs = new ArrayList<>();
-                        if (!product.getAttributes().isEmpty()) {
-                                product
-                                                .getAttributes()
-                                                .forEach(att -> {
-                                                        attrs.add(
-                                                                        AttributeProductResponse.builder()
-                                                                                        .id(
-                                                                                                        att
-                                                                                                                        .getAttributeDetail()
-                                                                                                                        .getAttribute()
-                                                                                                                        .getId())
-                                                                                        .name(
-                                                                                                        att
-                                                                                                                        .getAttributeDetail()
-                                                                                                                        .getAttribute()
-                                                                                                                        .getName())
-                                                                                        .value(
-                                                                                                        att.getAttributeDetail()
-                                                                                                                        .getDescription())
-                                                                                        .build());
-                                                });
-                        }
-
-                        StoreResponse store = null;
-                        if (product.getStore() != null) {
-                                store = mapper.map(product.getStore(), StoreResponse.class);
-                                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(
-                                                store.getId(),
-                                                EntityFileType.STORE_LOGO);
-                                store.setUrlImage(imageStore.getFileDownloadUri());
-                                store.setStreetAddress(getStoreAddress(product.getStore()));
-                        }
-
-                        ProductResponse response = convertToResponse(product);
-                        response.setAttributes(attrs);
-                        response.setStore(store);
-                        response.setIdCategory(product.getCategory().getId());
-
-                        // Set thumbnail
-                        if (!product.getImages().isEmpty()) {
-                                Image thumbnailImage = product.getImages().get(0).getImage();
-                                response.setThumbnail(
-                                                ImageDtoUtil.convertToImageResponse(thumbnailImage));
-                        }
-
-                        return response;
-                });
-
-                return productResponses;
-        }
-
-        public Page<ProductResponse> getAvailableProductsByCategory(
-                        Long categoryId,
-                        int page,
-                        int size) {
-                Pageable pageable = PageRequest.of(page, size);
-                Page<Product> products = productRepository.findAvailableProductsByCategory(
-                                categoryId,
-                                pageable);
-
-                Page<ProductResponse> productResponses = products.map(product -> {
-                        List<AttributeProductResponse> attrs = new ArrayList<>();
-                        if (product.getAttributes().size() > 0) {
-                                product
-                                                .getAttributes()
-                                                .forEach(att -> {
-                                                        attrs.add(
-                                                                        AttributeProductResponse.builder()
-                                                                                        .id(att.getAttributeDetail()
-                                                                                                        .getId())
-                                                                                        .name(
-                                                                                                        att
-                                                                                                                        .getAttributeDetail()
-                                                                                                                        .getAttribute()
-                                                                                                                        .getName())
-                                                                                        .value(
-                                                                                                        att.getAttributeDetail()
-                                                                                                                        .getDescription())
-                                                                                        .build());
-                                                });
-                        }
-
-                        StoreResponse store = null;
-                        if (product.getStore() != null) {
-                                store = mapper.map(product.getStore(), StoreResponse.class);
-                                ResponseDocumentDto imageStore = FilesHelp.getOneDocument(
-                                                store.getId(),
-                                                EntityFileType.STORE_LOGO);
-                                store.setUrlImage(imageStore.getFileDownloadUri());
-                                store.setStreetAddress(getStoreAddress(product.getStore()));
-                        }
-
-                        ProductResponse response = convertToResponse(product);
-                        response.setAttributes(attrs);
-                        response.setStore(store);
-                        response.setIdCategory(product.getCategory().getId());
-
-                        return response;
+                        return convertToResponse(product, false);
                 });
 
                 return productResponses;
@@ -557,27 +354,21 @@ public class ProductService {
                 List<ProductImages> imagesSave = saveProductImages(saveProduct, images);
                 // lưu attribute
                 List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
-                request
-                                .getIdAttributeDetail()
-                                .forEach(id -> {
-                                        ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
-                                                        .product(saveProduct)
-                                                        .attributeDetail(
-                                                                        attributeDetailRepository
-                                                                                        .findById(id)
-                                                                                        .orElseThrow(() -> {
-                                                                                                throw new AppException(
-                                                                                                                ErrorCode.ATTRIBUTE_NOT_FOUND);
-                                                                                        }))
-                                                        .build();
-                                        attributeDetails.add(attributeDetail);
-                                });
+                request.getIdAttributeDetail().forEach(id -> {
+                        ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
+                                        .product(saveProduct)
+                                        .attributeDetail(attributeDetailRepository
+                                                        .findById(id)
+                                                        .orElseThrow(() -> {
+                                                                throw new AppException(ErrorCode.ATTRIBUTE_NOT_FOUND);
+                                                        }))
+                                        .build();
+                        attributeDetails.add(attributeDetail);
+                });
                 productAttributeDetailRepository.saveAll(attributeDetails);
-
                 StateConsignmentOrder state = stateConsignmentOrderRepository
                                 .findById(StateConsignmentOrder.CREATED)
                                 .get();
-
                 ConsignmentOrders consignmentOrderSaved = ConsignmentOrders.builder()
                                 .note(request.getNote())
                                 .ordererId(account)
@@ -589,14 +380,11 @@ public class ProductService {
                                 .ward(ward)
                                 .deliveryPerson(deliveryPerson.get())
                                 .build();
-
                 consignmentOrdersRepository.save(consignmentOrderSaved);
-
                 saveProduct.setImages(imagesSave);
                 consignmentOrderSaved.setProduct(saveProduct);
                 ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(
                                 consignmentOrderSaved);
-
                 // Tạo thông báo realtime cho người dùng
                 NotificationPayload payload = NotificationPayload.builder()
                                 .objectId(consignmentOrderSaved.getId().toString()) // là id của order, thanh toán, ...
@@ -606,9 +394,7 @@ public class ProductService {
                                                                                   // (order, payment, //
                                                                                   // ...)
                                 .build();
-
                 notificationService.callCreateNotification(payload);
-
                 return response;
         }
 
@@ -654,15 +440,11 @@ public class ProductService {
                 List<RoleAccount> allRole = roleAccountRepository.findByAccount(
                                 account);
                 allRole.forEach(roleAccount -> {
-                        if (!roleAccount
-                                        .getRole()
-                                        .getId()
-                                        .equals(Role.ROLE_STORE_MANAGER) &&
+                        if (!roleAccount.getRole().getId().equals(Role.ROLE_STORE_MANAGER) &&
                                         !roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)) {
                                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
                         }
                 });
-
                 Product product = productRepository
                                 .findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -685,7 +467,7 @@ public class ProductService {
                 }
 
                 product = productRepository.save(product);
-                return convertToResponse(product);
+                return convertToResponse(product, true);
         }
 
         private boolean isManagerOfStore(Account account, Store store) {
@@ -721,71 +503,7 @@ public class ProductService {
                                 Product.TYPE_PRODUCT_OF_ACCOUNT,
                                 PageRequest.of(page, size));
                 Page<ProductResponse> productResponses = products.map(product -> {
-                        ResponseDocumentDto thumbnail = null;
-                        // thay đổi ảnh thumbnail bằng image từ db
-                        if (product.getImages().size() > 0) {
-                                var image = product.getImages().get(0).getImage();
-                                thumbnail = ImageDtoUtil.convertToImageResponse(image);
-                        }
-
-                        var address = getStoreAddress(product.getStore());
-                        var storeName = product.getStore() == null
-                                        ? ""
-                                        : product.getStore().getName();
-
-                        var type = "";
-                        if (product.getType() != null) {
-                                type = product.getType() ? "Cửa hàng" : "Ký gửi";
-                        }
-
-                        CategoryResponse category = null;
-                        if (product.getCategory() != null) {
-                                category = CategoryResponse.builder()
-                                                .id(product.getCategory().getId())
-                                                .name(product.getCategory().getName())
-                                                .path(product.getCategory().getPath())
-                                                .build();
-                        }
-
-                        List<AttributeProductResponse> attrs = new ArrayList<>();
-                        if (product.getAttributes().size() > 0) {
-                                product
-                                                .getAttributes()
-                                                .forEach(att -> {
-                                                        attrs.add(
-                                                                        AttributeProductResponse.builder()
-                                                                                        .id(att.getAttributeDetail()
-                                                                                                        .getId())
-                                                                                        .name(
-                                                                                                        att
-                                                                                                                        .getAttributeDetail()
-                                                                                                                        .getAttribute()
-                                                                                                                        .getName())
-                                                                                        .value(
-                                                                                                        att.getAttributeDetail()
-                                                                                                                        .getDescription())
-                                                                                        .build());
-                                                });
-                        }
-
-                        return ProductResponse.builder()
-                                        .id(product.getId())
-                                        .thumbnail(thumbnail)
-                                        .name(product.getName())
-                                        .price(product.getPrice())
-                                        .quantity(product.getQuantity())
-                                        .description(product.getDescription())
-                                        .typeProduct(type)
-                                        .attributes(attrs)
-                                        .state(product.getState())
-                                        .type(product.getType())
-                                        .category(category)
-                                        .store(
-                                                        StoreResponse.builder()
-                                                                        .name(storeName)
-                                                                        .streetAddress(address)
-                                                                        .build())
-                                        .build();
+                        return convertToResponse(product, false);
                 });
                 return productResponses;
         }
@@ -795,12 +513,19 @@ public class ProductService {
                         int page,
                         int size) {
                 Pageable pageable = PageRequest.of(page, size);
-                Page<Product> products = productRepository.findByCategoryPath(
-                                path,
+                Category category = categoryRepository.findByPath(path).orElseThrow(
+                                () -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                System.out.println(category.getPath());
+                Page<Product> products = productRepository.findByPathCategory(
+                                category,
                                 pageable);
-                return products.map(this::convertToResponse);
+                Page<ProductResponse> productResponses = products.map(product -> {
+                        return convertToResponse(product, false);
+                });
+                return productResponses;
         }
 
+        // nv xem san pham theo store
         public Page<ProductResponse> getAllProductsInStore(Pageable pageable) {
                 String email = SecurityContextHolder.getContext()
                                 .getAuthentication()
@@ -818,71 +543,7 @@ public class ProductService {
                                 store,
                                 pageable);
                 Page<ProductResponse> productResponses = products.map(product -> {
-                        ResponseDocumentDto thumbnail = null;
-                        // thay đổi ảnh thumbnail bằng image từ db
-                        if (product.getImages().size() > 0) {
-                                var image = product.getImages().get(0).getImage();
-                                thumbnail = ImageDtoUtil.convertToImageResponse(image);
-                        }
-
-                        var address = getStoreAddress(product.getStore());
-                        var storeName = product.getStore() == null
-                                        ? ""
-                                        : product.getStore().getName();
-
-                        var type = "";
-                        if (product.getType() != null) {
-                                type = product.getType() ? "Cửa hàng" : "Ký gửi";
-                        }
-
-                        CategoryResponse category = null;
-                        if (product.getCategory() != null) {
-                                category = CategoryResponse.builder()
-                                                .id(product.getCategory().getId())
-                                                .name(product.getCategory().getName())
-                                                .path(product.getCategory().getPath())
-                                                .build();
-                        }
-
-                        List<AttributeProductResponse> attrs = new ArrayList<>();
-                        if (product.getAttributes().size() > 0) {
-                                product
-                                                .getAttributes()
-                                                .forEach(att -> {
-                                                        attrs.add(
-                                                                        AttributeProductResponse.builder()
-                                                                                        .id(att.getAttributeDetail()
-                                                                                                        .getId())
-                                                                                        .name(
-                                                                                                        att
-                                                                                                                        .getAttributeDetail()
-                                                                                                                        .getAttribute()
-                                                                                                                        .getName())
-                                                                                        .value(
-                                                                                                        att.getAttributeDetail()
-                                                                                                                        .getDescription())
-                                                                                        .build());
-                                                });
-                        }
-
-                        return ProductResponse.builder()
-                                        .id(product.getId())
-                                        .thumbnail(thumbnail)
-                                        .name(product.getName())
-                                        .price(product.getPrice())
-                                        .quantity(product.getQuantity())
-                                        .description(product.getDescription())
-                                        .typeProduct(type)
-                                        .attributes(attrs)
-                                        .state(product.getState())
-                                        .type(product.getType())
-                                        .category(category)
-                                        .store(
-                                                        StoreResponse.builder()
-                                                                        .name(storeName)
-                                                                        .streetAddress(address)
-                                                                        .build())
-                                        .build();
+                        return convertToResponse(product, false);
                 });
                 return productResponses;
         }

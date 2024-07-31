@@ -180,7 +180,7 @@ public class AuthenticationService {
                 return CartResponse.builder()
                         .id(cartItem.getId())
                         .quantity(cartItem.getQuantity())
-                        .product(productService.convertToResponse(cartItem.getProduct()))
+                        .product(productService.convertToResponse(cartItem.getProduct(), false))
                         .build();
             }).toList();
         }
