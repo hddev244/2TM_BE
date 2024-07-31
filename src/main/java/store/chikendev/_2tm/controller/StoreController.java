@@ -29,27 +29,23 @@ public class StoreController {
     @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PostMapping(value = "/store", consumes = "multipart/form-data")
     public ApiResponse<StoreResponse> createStore(
-        @RequestPart("storeRequest") @Valid StoreRequest request,
-        @RequestPart(name = "image", required = false) MultipartFile image
-    ) {
+            @RequestPart("storeRequest") @Valid StoreRequest request,
+            @RequestPart(name = "image", required = false) MultipartFile image) {
         return new ApiResponse<>(
-            200,
-            null,
-            storeService.createStore(request, image)
-        );
+                200,
+                null,
+                storeService.createStore(request, image));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_QTV', 'ROLE_QLCH')")
     @PostMapping(value = "store/updateImage", consumes = "multipart/form-data")
     public ApiResponse<StoreResponse> updateImage(
-        @RequestPart("id") Long id,
-        @RequestPart("image") MultipartFile image
-    ) {
+            @RequestPart("id") Long id,
+            @RequestPart("image") MultipartFile image) {
         return new ApiResponse<>(
-            200,
-            null,
-            storeService.updateImage(id, image)
-        );
+                200,
+                null,
+                storeService.updateImage(id, image));
     }
 
     /**
@@ -60,11 +56,9 @@ public class StoreController {
      */
     @GetMapping("store/district")
     public ApiResponse<List<StoreResponse>> getStoreByDistrictId(
-        @RequestParam("id") Long districtId
-    ) {
+            @RequestParam("id") Long districtId) {
         List<StoreResponse> storeResponse = storeService.getStoreByDistrictId(
-            districtId
-        );
+                districtId);
         return new ApiResponse<>(200, null, storeResponse);
     }
 
@@ -83,8 +77,7 @@ public class StoreController {
     // @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @GetMapping("admin/store/{id}")
     public ApiResponse<StoreResponse> getAdminStoreById(
-        @PathVariable("id") Long id
-    ) {
+            @PathVariable("id") Long id) {
         StoreResponse responses = storeService.getStoreById(id);
         return new ApiResponse<StoreResponse>(200, null, responses);
     }
@@ -92,9 +85,8 @@ public class StoreController {
     // @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PutMapping("admin/store/{id}")
     public ApiResponse<StoreResponse> updateStore(
-        @PathVariable("id") Long id,
-        @RequestBody StoreRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @RequestBody StoreRequest request) {
         StoreResponse responses = storeService.updateStore(id, request);
         return new ApiResponse<StoreResponse>(200, null, responses);
     }

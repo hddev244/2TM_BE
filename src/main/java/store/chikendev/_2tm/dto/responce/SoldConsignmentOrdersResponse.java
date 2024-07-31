@@ -14,8 +14,6 @@ import lombok.NoArgsConstructor;
 public class SoldConsignmentOrdersResponse {
     private Long orderId;
     private Long productId;
-    private String customerId;
-    private String customerName;
     private int quantitySold;
     private int quantityReturned;
     private Date saleDate;

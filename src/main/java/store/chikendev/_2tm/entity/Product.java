@@ -37,9 +37,8 @@ public class Product {
     private String name;
     private Double price;
     private Integer quantity;
-   @Column(length = 500, columnDefinition = "NVARCHAR(500)")
+    @Column(length = 500, columnDefinition = "NVARCHAR(500)")
     private String description;
-    
 
     @CreationTimestamp
     @Column(updatable = false)
