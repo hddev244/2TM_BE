@@ -22,77 +22,85 @@ import store.chikendev._2tm.service.OrderService;
 @RequestMapping("/api/order")
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+        @Autowired
+        private OrderService orderService;
 
-    @PostMapping
-    public ApiResponse<OrderPaymentResponse> createOder(
-            @RequestBody @Valid OrderInformation request) throws UnsupportedEncodingException {
-        return new ApiResponse<OrderPaymentResponse>(
-                200,
-                null,
-                orderService.createOrder(request));
-    }
+        @PostMapping
+        public ApiResponse<OrderPaymentResponse> createOder(
+                        @RequestBody @Valid OrderInformation request) throws UnsupportedEncodingException {
+                return new ApiResponse<OrderPaymentResponse>(
+                                200,
+                                null,
+                                orderService.createOrder(request));
+        }
 
-    @GetMapping("/AllOrder")
-    public ApiResponse<Page<OrderResponse>> getAllOrders(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        Page<OrderResponse> ordersPage = orderService.getAllOrders(page, size);
-        return new ApiResponse<Page<OrderResponse>>(200, null, ordersPage);
-    }
+        @GetMapping("/AllOrder")
+        public ApiResponse<Page<OrderResponse>> getAllOrders(
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        @RequestParam(name = "size", defaultValue = "10") int size) {
+                Page<OrderResponse> ordersPage = orderService.getAllOrders(page, size);
+                return new ApiResponse<Page<OrderResponse>>(200, null, ordersPage);
+        }
 
-    @PreAuthorize("hasRole('ROLE_KH')")
-    @GetMapping("/Ordered")
-    public ApiResponse<Page<OrderResponse>> getOrdersForCustomer(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-        Page<OrderResponse> orders = (Page<OrderResponse>) orderService.getOrdersByCustomer(email, page, size);
+        @PreAuthorize("hasRole('ROLE_KH')")
+        @GetMapping("/Ordered")
+        public ApiResponse<Page<OrderResponse>> getOrdersForCustomer(
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        @RequestParam(name = "size", defaultValue = "10") int size) {
+                String email = SecurityContextHolder.getContext()
+                                .getAuthentication()
+                                .getName();
+                Page<OrderResponse> orders = (Page<OrderResponse>) orderService.getOrdersByCustomer(email, page, size);
 
-        return new ApiResponse<Page<OrderResponse>>(200, null, orders);
-    }
+                return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+        }
 
-    @PreAuthorize("hasRole('ROLE_KH')")
-    @GetMapping("/status")
-    public ApiResponse<Page<OrderResponse>> getOrdersByStatusForCustomer(
-            @RequestParam Long statusId,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-        Page<OrderResponse> orders = orderService.getOrdersByStatus(
-                statusId,
-                email,
-                page,
-                size);
+        @PreAuthorize("hasRole('ROLE_KH')")
+        @GetMapping("/status")
+        public ApiResponse<Page<OrderResponse>> getOrdersByStatusForCustomer(
+                        @RequestParam Long statusId,
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        @RequestParam(name = "size", defaultValue = "10") int size) {
+                String email = SecurityContextHolder.getContext()
+                                .getAuthentication()
+                                .getName();
+                Page<OrderResponse> orders = orderService.getOrdersByStatus(
+                                statusId,
+                                email,
+                                page,
+                                size);
 
-        return new ApiResponse<Page<OrderResponse>>(200, null, orders);
-    }
+                return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+        }
 
-    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
-    @GetMapping("/getByStore")
-    public ApiResponse<Page<OrderResponse>> getByStore(
-            @RequestParam(required = false, name = "stateId") Long stateId,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        Page<OrderResponse> orders = orderService.getOrdersByStoreAllOrState(
-                page,
-                size,
-                stateId);
+        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+        @GetMapping("/getByStore")
+        public ApiResponse<Page<OrderResponse>> getByStore(
+                        @RequestParam(required = false, name = "stateId") Long stateId,
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        @RequestParam(name = "size", defaultValue = "10") int size) {
+                Page<OrderResponse> orders = orderService.getOrdersByStoreAllOrState(
+                                page,
+                                size,
+                                stateId);
 
-        return new ApiResponse<Page<OrderResponse>>(200, null, orders);
-    }
+                return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+        }
 
-    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
-    @GetMapping("/confirm-order")
-    public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
-        return new ApiResponse<String>(
-                200,
-                null,
-                orderService.confirmOder(orderId));
-    }
+        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+        @GetMapping("/confirm-order")
+        public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
+                return new ApiResponse<String>(
+                                200,
+                                null,
+                                orderService.confirmOder(orderId));
+        }
+
+        @GetMapping("getDetail")
+        public ApiResponse<OrderResponse> getOrderDetail(@RequestParam(name = "orderId") Long orderId) {
+                return new ApiResponse<OrderResponse>(
+                                200,
+                                null,
+                                orderService.getDetail(orderId));
+        }
 }
