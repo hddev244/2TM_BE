@@ -715,12 +715,79 @@ public class ProductService {
                                 !stateProductId.equals(StateProduct.DELYVERING))
                                                 ? null
                                                 : stateProductId;
-                Page<Product> productsPage = productRepository.findConsignmentProductsByStoreAndState(
+                Page<Product> products = productRepository.findConsignmentProductsByStoreAndState(
                                 store,
                                 stateProductFilter,
                                 Product.TYPE_PRODUCT_OF_ACCOUNT,
                                 PageRequest.of(page, size));
-                return productsPage.map(this::convertToResponse);
+                Page<ProductResponse> productResponses = products.map(product -> {
+                        ResponseDocumentDto thumbnail = null;
+                        // thay đổi ảnh thumbnail bằng image từ db
+                        if (product.getImages().size() > 0) {
+                                var image = product.getImages().get(0).getImage();
+                                thumbnail = ImageDtoUtil.convertToImageResponse(image);
+                        }
+
+                        var address = getStoreAddress(product.getStore());
+                        var storeName = product.getStore() == null
+                                        ? ""
+                                        : product.getStore().getName();
+
+                        var type = "";
+                        if (product.getType() != null) {
+                                type = product.getType() ? "Cửa hàng" : "Ký gửi";
+                        }
+
+                        CategoryResponse category = null;
+                        if (product.getCategory() != null) {
+                                category = CategoryResponse.builder()
+                                                .id(product.getCategory().getId())
+                                                .name(product.getCategory().getName())
+                                                .path(product.getCategory().getPath())
+                                                .build();
+                        }
+
+                        List<AttributeProductResponse> attrs = new ArrayList<>();
+                        if (product.getAttributes().size() > 0) {
+                                product
+                                                .getAttributes()
+                                                .forEach(att -> {
+                                                        attrs.add(
+                                                                        AttributeProductResponse.builder()
+                                                                                        .id(att.getAttributeDetail()
+                                                                                                        .getId())
+                                                                                        .name(
+                                                                                                        att
+                                                                                                                        .getAttributeDetail()
+                                                                                                                        .getAttribute()
+                                                                                                                        .getName())
+                                                                                        .value(
+                                                                                                        att.getAttributeDetail()
+                                                                                                                        .getDescription())
+                                                                                        .build());
+                                                });
+                        }
+
+                        return ProductResponse.builder()
+                                        .id(product.getId())
+                                        .thumbnail(thumbnail)
+                                        .name(product.getName())
+                                        .price(product.getPrice())
+                                        .quantity(product.getQuantity())
+                                        .description(product.getDescription())
+                                        .typeProduct(type)
+                                        .attributes(attrs)
+                                        .state(product.getState())
+                                        .type(product.getType())
+                                        .category(category)
+                                        .store(
+                                                        StoreResponse.builder()
+                                                                        .name(storeName)
+                                                                        .streetAddress(address)
+                                                                        .build())
+                                        .build();
+                });
+                return productResponses;
         }
 
         public Page<ProductResponse> getProductsByCategoryPath(
