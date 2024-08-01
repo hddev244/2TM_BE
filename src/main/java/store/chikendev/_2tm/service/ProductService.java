@@ -547,4 +547,30 @@ public class ProductService {
                 });
                 return productResponses;
         }
+
+        // kh xem san pham theo store
+        public Page<ProductResponse> getAllProductsInStoreKH(Long storeId, Pageable pageable) {
+                Store store = storeRepository.findById(storeId).orElseThrow(() -> {
+                        throw new AppException(ErrorCode.STORE_NOT_FOUND);
+                });
+                Page<Product> products = productRepository.findAllProductsInStoreKH(
+                                store,
+                                pageable);
+                Page<ProductResponse> productResponses = products.map(product -> {
+                        return convertToResponse(product, false);
+                });
+                return productResponses;
+        }
+
+        // loc san pham
+        public Page<ProductResponse> findProductByCondition(Long categoryId, Long storeId,
+                        Long minPrice, Long maxPrice, Pageable pageable) {
+                Page<Product> products = productRepository.findProductByCondition(categoryId,
+                                storeId, minPrice, maxPrice, pageable);
+                Page<ProductResponse> productResponses = products.map(product -> {
+                        return convertToResponse(product, false);
+                });
+                return productResponses;
+        }
+
 }

@@ -85,6 +85,17 @@ public class ProductController {
                 return new ApiResponse<Page<ProductResponse>>(200, null, products);
         }
 
+        // kh xem san pham theo store
+        @GetMapping("/store")
+        public ApiResponse<Page<ProductResponse>> getAllProductsInStoreKH(
+                        @RequestParam(required = false, name = "size") Optional<Integer> size,
+                        @RequestParam(required = false, name = "pageNo") Optional<Integer> page,
+                        @RequestParam(required = false, name = "storeId") Long storeId) {
+                Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
+                Page<ProductResponse> products = productService.getAllProductsInStoreKH(storeId, pageable);
+                return new ApiResponse<Page<ProductResponse>>(200, null, products);
+        }
+
         @GetMapping("/{id}")
         public ApiResponse<ProductResponse> getProductById(
                         @PathVariable("id") Long id) {
@@ -115,6 +126,24 @@ public class ProductController {
                                 pageIndex,
                                 size);
                 System.out.println(products.getSize());
+                return new ApiResponse<>(200, null, products);
+        }
+
+        @GetMapping("/condition")
+        public ApiResponse<Page<ProductResponse>> getProductByCondition(
+                        @RequestParam(required = false, name = "categoryId") Long categoryId,
+                        @RequestParam(required = false, name = "storeId") Long storeId,
+                        @RequestParam(required = false, name = "minPrice") Long minPrice,
+                        @RequestParam(required = false, name = "maxPrice") Long maxPrice,
+                        @RequestParam(required = false, name = "size") Optional<Integer> size,
+                        @RequestParam(required = false, name = "pageNo") Optional<Integer> page) {
+                Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
+                Page<ProductResponse> products = productService.findProductByCondition(
+                                categoryId,
+                                storeId,
+                                minPrice,
+                                maxPrice,
+                                pageable);
                 return new ApiResponse<>(200, null, products);
         }
 

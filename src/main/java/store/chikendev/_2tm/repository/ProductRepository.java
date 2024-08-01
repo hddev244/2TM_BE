@@ -52,4 +52,18 @@ public interface ProductRepository
         Page<Product> findAllProductsInStore(
                         @Param("store") Store store,
                         Pageable pageable);
+
+        // kh xem san pham theo store
+        @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.store = :store AND (p.state.id = 2 OR p.state.id = 4)  ORDER BY p.createdAt DESC")
+        Page<Product> findAllProductsInStoreKH(
+                        @Param("store") Store store,
+                        Pageable pageable);
+
+        @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND (p.state.id = 2 OR p.state.id = 4) AND (:categoryId IS NULL OR p.category.id = :categoryId) AND (:storeId IS NULL OR p.store.id = :storeId) AND (:minPrice IS NULL OR p.price >= :minPrice) AND (:maxPrice IS NULL OR p.price <= :maxPrice) ORDER BY p.createdAt DESC")
+        Page<Product> findProductByCondition(
+                        @Param("categoryId") Long categoryId,
+                        @Param("storeId") Long storeId,
+                        @Param("minPrice") Long minPrice,
+                        @Param("maxPrice") Long maxPrice,
+                        Pageable pageable);
 }
