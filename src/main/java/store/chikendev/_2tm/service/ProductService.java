@@ -218,7 +218,7 @@ public class ProductService {
                 if (product.getAttributes().size() > 0) {
                         product.getAttributes().forEach(att -> {
                                 attrs.add(AttributeProductResponse.builder()
-                                                .id(att.getAttributeDetail().getId())
+                                                .id(att.getAttributeDetail().getAttribute().getId())
                                                 .name(att.getAttributeDetail().getAttribute().getName())
                                                 .value(att.getAttributeDetail().getDescription())
                                                 .build());
