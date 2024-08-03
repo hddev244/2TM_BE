@@ -39,7 +39,7 @@ public class PaymentRecords {
     @JoinColumn(name = "accountId")
     private Account account;
 
-     @CreationTimestamp
+    @CreationTimestamp
     @Column(updatable = false)
     private Date createdAt;
 

@@ -30,6 +30,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "orders")
 public class Order {
+    public static final Boolean TYPE_ORDER_OF_CUSTOMER = true;
+    public static final Boolean TYPE_ORDER_OF_OWNER = false;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,6 +55,7 @@ public class Order {
     @Column(length = 10)
     private String consigneePhoneNumber;
     private Double totalPrice;
+    private Boolean type;
 
     @ManyToOne
     @JoinColumn(name = "ordererId")
@@ -77,6 +80,12 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "consigneeWard")
     private Ward ward;
+
+    @ManyToOne
+    @JoinColumn(name = "voucher")
+    private Voucher voucher;
+
+    private Double ShippingCost;
 
     @OneToOne(mappedBy = "order")
     private BillOfLading billOfLading;

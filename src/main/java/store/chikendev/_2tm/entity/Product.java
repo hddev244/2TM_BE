@@ -69,6 +69,10 @@ public class Product {
     @JoinColumn(name = "storeId")
     private Store store;
 
+    @ManyToOne
+    @JoinColumn(name = "productCommission")
+    private ProductCommission productCommission;
+
     @OneToMany(mappedBy = "product")
     private List<ProductAttributeDetail> attributes;
 

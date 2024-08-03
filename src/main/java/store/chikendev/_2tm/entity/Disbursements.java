@@ -39,4 +39,8 @@ public class Disbursements {
     @ManyToOne
     @JoinColumn(name = "paymentClerkId")
     private Account paymentClerk;
+
+    @ManyToOne
+    @JoinColumn(name = "paymentDisbursementId")
+    private PaymentDisbursement paymentDisbursement;
 }
