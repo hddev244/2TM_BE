@@ -103,4 +103,15 @@ public class OrderController {
                 OrderResponse orderResponse = orderService.getOrderDetails(orderId);
                 return new ApiResponse<OrderResponse>(200, null, orderResponse);
         }
+
+        @PreAuthorize("hasAnyRole('ROLE_KH')")
+        @GetMapping("/state")
+        public ApiResponse<Page<OrderResponse>> getOrderByStateId(
+                        @RequestParam(name = "size", defaultValue = "10") int size,
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        @RequestParam(required = false, name = "stateId") Long stateId) {
+                Page<OrderResponse> orders = orderService.getOrderByStateId(size, page,
+                                stateId);
+                return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+        }
 }

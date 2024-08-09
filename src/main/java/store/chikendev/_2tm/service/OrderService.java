@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.request.OrderInformation;
+import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderPaymentResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
@@ -23,6 +24,7 @@ import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
+import store.chikendev._2tm.entity.BillOfLading;
 import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
@@ -503,17 +505,35 @@ public class OrderService {
 
     public OrderResponse getOrderDetails(Long orderId) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
         OrderResponse orderResponse = convertToOrderResponse(order);
 
         List<OrderDetails> orderDetailsList = orderDetailRepository.findByOrderId(orderId);
         List<OrderDetailResponse> orderDetailResponses = orderDetailsList.stream()
-            .map(this::convertToOrderDetailResponse)
-            .collect(Collectors.toList());
+                .map(this::convertToOrderDetailResponse)
+                .collect(Collectors.toList());
 
         orderResponse.setDetail(orderDetailResponses);
 
         return orderResponse;
     }
+
+    public Page<OrderResponse> getOrderByStateId(int size, int page, Long stateId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Pageable pageable = PageRequest.of(page, size);
+        if (stateId == null) {
+            Page<Order> ordersPage = orderRepository.findByAccountId(account.getId(), pageable);
+            return ordersPage.map(this::convertToOrderResponse);
+        } else {
+            StateOrder state = stateOrderRepository.findById(stateId).orElseThrow(() -> {
+                return new AppException(ErrorCode.STATE_ORDER_NOT_FOUND);
+            });
+            Page<Order> ordersPage = orderRepository.findByAccountIdAndStateId(account, state, pageable);
+            return ordersPage.map(this::convertToOrderResponse);
+        }
+    }
+
 }
