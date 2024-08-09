@@ -25,6 +25,7 @@ import store.chikendev._2tm.dto.request.ProductRequest;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.ConsignmentOrdersResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
+import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.service.ProductService;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
@@ -90,15 +91,15 @@ public class ProductController {
 
         // kh xem san pham theo store
         @GetMapping("/store")
-        public ApiResponse<Page<ProductResponse>> getAllProductsInStoreKH(
+        public ApiResponse<StoreResponse> getAllProductsInStoreKH(
                         @RequestParam(required = false, name = "size") Optional<Integer> size,
                         @RequestParam(required = false, name = "pageNo") Optional<Integer> page,
                         @RequestParam(required = false, name = "storeId") Long storeId) {
-                Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
-                Page<ProductResponse> products = productService.getAllProductsInStoreKH(
+                Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(8));
+                StoreResponse storeResponse = productService.getAllProductsInStoreKH(
                                 storeId,
                                 pageable);
-                return new ApiResponse<Page<ProductResponse>>(200, null, products);
+                return new ApiResponse<StoreResponse>(200, null, storeResponse);
         }
 
         @GetMapping("/{id}")

@@ -205,7 +205,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    // tao token
+    // tao token đăng nhập
     public String generateToken(Account account, Long duration, String signerKey) {
         // Tạo HMAC signer
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
