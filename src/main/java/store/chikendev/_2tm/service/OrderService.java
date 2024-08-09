@@ -536,4 +536,25 @@ public class OrderService {
         }
     }
 
+    public void cancelOrder(Long orderId, String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.getAccount().equals(account)) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+
+        if (!order.getStateOrder().getId().equals(StateOrder.IN_CONFIRM)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateOrder cancelledState = stateOrderRepository.findById(StateOrder.CANCELLED_ORDER)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+        order.setStateOrder(cancelledState);
+
+        orderRepository.save(order);
+    }
 }
