@@ -1,5 +1,7 @@
 package store.chikendev._2tm.dto.responce;
 
+import org.springframework.data.domain.Page;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,4 +29,5 @@ public class StoreResponse {
     private String urlImage;
     private ResponseDocumentDto image;
     private boolean activeStatus;
+    private Page<ProductResponse> product;
 }

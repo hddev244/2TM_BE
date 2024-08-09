@@ -536,4 +536,33 @@ public class ConsignmentOrdersService {
             return convertToResponse(response);
         }
     }
+
+    public void cancelConsignmentOrder(Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        ConsignmentOrders consignmentOrder = consignmentOrdersRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
+
+        if (!consignmentOrder.getStore().getAccountStores().contains(account)) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+
+        Long currentState = consignmentOrder.getStateId().getId();
+        if (!currentState.equals(StateConsignmentOrder.CREATED)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateConsignmentOrder cancelState = stateConsignmentOrderRepository.findById(StateConsignmentOrder.CANCEL)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+        consignmentOrder.setStateId(cancelState);
+        consignmentOrdersRepository.save(consignmentOrder);
+
+        Product product = consignmentOrder.getProduct();
+        StateProduct canceledState = stateProductRepository.findById(StateProduct.CANCELED)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+        product.setState(canceledState);
+        productRepository.save(product);
+    }
 }

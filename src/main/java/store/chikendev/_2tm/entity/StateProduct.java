@@ -25,6 +25,7 @@ public class StateProduct {
     public static final Long CONFIRM = 2L;
     public static final Long REFUSE = 3L;
     public static final Long DELYVERING = 4L;
+    public static final Long CANCELED = 6L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

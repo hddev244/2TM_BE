@@ -4,7 +4,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,6 +75,12 @@ public class ConsignmentOrdersController {
     @GetMapping("/find-by-id/{id}")
     public ApiResponse<ConsignmentOrdersResponse> getConsignmentOrderById(@PathVariable("id") Long id) {
         ConsignmentOrdersResponse response = consignmentOrdersService.getConsignmentOrderById(id);
-        return new ApiResponse<ConsignmentOrdersResponse>(200,null, response);
+        return new ApiResponse<ConsignmentOrdersResponse>(200, null, response);
+    }
+    @PreAuthorize("hasRole('ROLE_CH')")
+    @PostMapping("/Cannel_consignmentOrder/{consignmentOrderId}")
+    public ApiResponse<String> cancelConsignmentOrder(@PathVariable("consignmentOrderId") Long id) {
+        consignmentOrdersService.cancelConsignmentOrder(id);
+        return new ApiResponse<>(200,null,"Yêu cầu ký gửi đã được hủy thành công.");
     }
 }
