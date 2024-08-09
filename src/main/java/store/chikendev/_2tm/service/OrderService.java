@@ -525,7 +525,7 @@ public class OrderService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Pageable pageable = PageRequest.of(page, size);
         if (stateId == null) {
-            Page<Order> ordersPage = orderRepository.findByAccountId(account.getId(), pageable);
+            Page<Order> ordersPage = orderRepository.findByAccountIdAndType(account, pageable);
             return ordersPage.map(this::convertToOrderResponse);
         } else {
             StateOrder state = stateOrderRepository.findById(stateId).orElseThrow(() -> {
