@@ -111,30 +111,28 @@ public class ProductService {
     }
 
     public ProductResponse staffCreateProduct(
-        CreateProductRequest request,
-        MultipartFile[] files
-    ) {
+            CreateProductRequest request,
+            MultipartFile[] files) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.USER_NOT_FOUND);
-            });
+                .findByEmail(email)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USER_NOT_FOUND);
+                });
         Category category = categoryRepository
-            .findById(request.getIdCategory())
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
-            });
+                .findById(request.getIdCategory())
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+                });
         StateProduct state = stateProductRepository
-            .findById(StateProduct.CONFIRM)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.STATE_NOT_FOUND);
-            });
+                .findById(StateProduct.CONFIRM)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.STATE_NOT_FOUND);
+                });
         Optional<AccountStore> store = accountStoreRepository.findByAccount(
-            account
-        );
+                account);
 
         Product product = new Product();
         product.setName(request.getName());
@@ -157,25 +155,21 @@ public class ProductService {
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
         request
-            .getIdAttributeDetail()
-            .forEach(id -> {
-                ProductAttributeDetail attributeDetail =
-                    ProductAttributeDetail.builder()
-                        .product(save)
-                        .attributeDetail(
-                            attributeDetailRepository
-                                .findById(id)
-                                .orElseThrow(() -> {
-                                    throw new AppException(
-                                        ErrorCode.ATTRIBUTE_NOT_FOUND
-                                    );
-                                })
-                        )
-                        .build();
-                attributeDetails.add(attributeDetail);
-            });
-        List<ProductAttributeDetail> saveAttribute =
-            productAttributeDetailRepository.saveAll(attributeDetails);
+                .getIdAttributeDetail()
+                .forEach(id -> {
+                    ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
+                            .product(save)
+                            .attributeDetail(
+                                    attributeDetailRepository
+                                            .findById(id)
+                                            .orElseThrow(() -> {
+                                                throw new AppException(
+                                                        ErrorCode.ATTRIBUTE_NOT_FOUND);
+                                            }))
+                            .build();
+                    attributeDetails.add(attributeDetail);
+                });
+        List<ProductAttributeDetail> saveAttribute = productAttributeDetailRepository.saveAll(attributeDetails);
         save.setAttributes(saveAttribute);
         // product response
         ProductResponse response = convertToResponse(save, true);
@@ -188,8 +182,7 @@ public class ProductService {
     // không thêm chức nang khác vào đây
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         Page<Product> products = productRepository.findAvailableProducts(
-            pageable
-        );
+                pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
             ProductResponse response = convertToResponse(product, false);
             return response;
@@ -205,29 +198,26 @@ public class ProductService {
             String StoreWard = store.getWard().getName();
             String StoreDistrict = store.getWard().getDistrict().getName();
             String StoreProvince = store
-                .getWard()
-                .getDistrict()
-                .getProvinceCity()
-                .getName();
+                    .getWard()
+                    .getDistrict()
+                    .getProvinceCity()
+                    .getName();
             String storeAddress = store.getStreetAddress() == null
-                ? ""
-                : store.getStreetAddress() + ", ";
-            return (
-                storeAddress +
-                StoreWard +
-                ", " +
-                StoreDistrict +
-                ", " +
-                StoreProvince
-            );
+                    ? ""
+                    : store.getStreetAddress() + ", ";
+            return (storeAddress +
+                    StoreWard +
+                    ", " +
+                    StoreDistrict +
+                    ", " +
+                    StoreProvince);
         }
         return "";
     }
 
     public ProductResponse convertToResponse(
-        Product product,
-        boolean multiImage
-    ) {
+            Product product,
+            boolean multiImage) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
         response.setName(product.getName());
@@ -237,52 +227,48 @@ public class ProductService {
         List<AttributeProductResponse> attrs = new ArrayList<>();
         if (product.getAttributes().size() > 0) {
             product
-                .getAttributes()
-                .forEach(att -> {
-                    attrs.add(
-                        AttributeProductResponse.builder()
-                            .id(att.getAttributeDetail().getAttribute().getId())
-                            .name(
-                                att
-                                    .getAttributeDetail()
-                                    .getAttribute()
-                                    .getName()
-                            )
-                            .value(att.getAttributeDetail().getDescription())
-                            .build()
-                    );
-                });
+                    .getAttributes()
+                    .forEach(att -> {
+                        attrs.add(
+                                AttributeProductResponse.builder()
+                                        .id(att.getAttributeDetail().getAttribute().getId())
+                                        .name(
+                                                att
+                                                        .getAttributeDetail()
+                                                        .getAttribute()
+                                                        .getName())
+                                        .value(att.getAttributeDetail().getDescription())
+                                        .build());
+                    });
         }
         response.setAttributes(attrs);
         if (product.getCategory() != null) {
             response.setCategory(
-                CategoryResponse.builder()
-                    .id(product.getCategory().getId())
-                    .name(product.getCategory().getName())
-                    .path(product.getCategory().getPath())
-                    .build()
-            );
+                    CategoryResponse.builder()
+                            .id(product.getCategory().getId())
+                            .name(product.getCategory().getName())
+                            .path(product.getCategory().getPath())
+                            .build());
         }
         if (product.getStore() != null) {
             response.setStore(
-                StoreResponse.builder()
-                    .name(product.getStore().getName())
-                    .streetAddress(getStoreAddress(product.getStore()))
-                    .build()
-            );
+                    StoreResponse.builder()
+                            .name(product.getStore().getName())
+                            .streetAddress(getStoreAddress(product.getStore()))
+                            .build());
         }
         response.setState(product.getState());
         if (product.getType() != null) {
             response.setTypeProduct(product.getType() ? "Cửa hàng" : "Ký gửi");
         }
         List<ResponseDocumentDto> responseDocument = product
-            .getImages()
-            .stream()
-            .map(img -> {
-                Image image = img.getImage();
-                return ImageDtoUtil.convertToImageResponse(image);
-            })
-            .toList();
+                .getImages()
+                .stream()
+                .map(img -> {
+                    Image image = img.getImage();
+                    return ImageDtoUtil.convertToImageResponse(image);
+                })
+                .toList();
         if (multiImage) {
             if (responseDocument.size() > 0) {
                 response.setImages(responseDocument);
@@ -297,18 +283,17 @@ public class ProductService {
 
     public ProductResponse getById(Long id) {
         Product product = productRepository
-            .findById(id)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
-            });
+                .findById(id)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+                });
         return convertToResponse(product, true);
     }
 
     public Page<ProductResponse> getByNameAndDescription(
-        String value,
-        Integer pageIndex,
-        Integer size
-    ) {
+            String value,
+            Integer pageIndex,
+            Integer size) {
         if (pageIndex == null) {
             pageIndex = 0;
         }
@@ -318,9 +303,8 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(pageIndex, size);
         Page<Product> products = productRepository.findProductsBySearchTerm(
-            "%" + value + "%",
-            pageable
-        );
+                "%" + value + "%",
+                pageable);
 
         Page<ProductResponse> productResponses = products.map(product -> {
             return convertToResponse(product, false);
@@ -330,66 +314,63 @@ public class ProductService {
     }
 
     public ConsignmentOrdersResponse ownerCreateProduct(
-        @Valid ConsignmentOrdersRequest request,
-        MultipartFile[] images
-    ) {
+            @Valid ConsignmentOrdersRequest request,
+            MultipartFile[] images) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.USER_NOT_FOUND);
-            });
+                .findByEmail(email)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USER_NOT_FOUND);
+                });
         Category category = categoryRepository
-            .findById(request.getIdCategory())
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
-            });
+                .findById(request.getIdCategory())
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+                });
         StateProduct stateProduct = stateProductRepository
-            .findById(StateProduct.DELYVERING)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.STATE_NOT_FOUND);
-            });
+                .findById(StateProduct.DELYVERING)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.STATE_NOT_FOUND);
+                });
         Store store = storeRepository
-            .findById(request.getStoreId())
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.STORE_NOT_FOUND);
-            });
+                .findById(request.getStoreId())
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.STORE_NOT_FOUND);
+                });
 
         Ward ward = wardRepository
-            .findById(request.getWardId())
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.WARD_NOT_FOUND);
-            });
+                .findById(request.getWardId())
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.WARD_NOT_FOUND);
+                });
 
         Optional<Account> deliveryPerson = store
-            .getAccountStores()
-            .stream()
-            .flatMap(acc ->
-                acc
-                    .getAccount()
-                    .getRoles()
-                    .stream()
-                    .filter(role -> role.getRole().getId().equals("NVGH"))
-                    .map(role -> acc.getAccount())
-            )
-            .findFirst();
+                .getAccountStores()
+                .stream()
+                .flatMap(acc -> acc
+                        .getAccount()
+                        .getRoles()
+                        .stream()
+                        .filter(role -> role.getRole().getId().equals("NVGH"))
+                        .map(role -> acc.getAccount()))
+                .findFirst();
 
         if (deliveryPerson.isPresent() == false) {
             throw new AppException(ErrorCode.DELIVERY_PERSON_NOT_FOUND);
         }
 
         Product product = Product.builder()
-            .name(request.getName())
-            .price(request.getPrice())
-            .quantity(request.getQuantity())
-            .description(request.getDescription())
-            .category(category)
-            .state(stateProduct)
-            .store(store)
-            .ownerId(account)
-            .build();
+                .name(request.getName())
+                .price(request.getPrice())
+                .quantity(request.getQuantity())
+                .description(request.getDescription())
+                .category(category)
+                .state(stateProduct)
+                .store(store)
+                .ownerId(account)
+                .build();
 
         // lưu ảnh
         Product saveProduct = productRepository.save(product);
@@ -398,118 +379,106 @@ public class ProductService {
         // lưu attribute
         List<ProductAttributeDetail> attributeDetails = new ArrayList<>();
         request
-            .getIdAttributeDetail()
-            .forEach(id -> {
-                ProductAttributeDetail attributeDetail =
-                    ProductAttributeDetail.builder()
-                        .product(saveProduct)
-                        .attributeDetail(
-                            attributeDetailRepository
-                                .findById(id)
-                                .orElseThrow(() -> {
-                                    throw new AppException(
-                                        ErrorCode.ATTRIBUTE_NOT_FOUND
-                                    );
-                                })
-                        )
-                        .build();
-                attributeDetails.add(attributeDetail);
-            });
+                .getIdAttributeDetail()
+                .forEach(id -> {
+                    ProductAttributeDetail attributeDetail = ProductAttributeDetail.builder()
+                            .product(saveProduct)
+                            .attributeDetail(
+                                    attributeDetailRepository
+                                            .findById(id)
+                                            .orElseThrow(() -> {
+                                                throw new AppException(
+                                                        ErrorCode.ATTRIBUTE_NOT_FOUND);
+                                            }))
+                            .build();
+                    attributeDetails.add(attributeDetail);
+                });
         productAttributeDetailRepository.saveAll(attributeDetails);
         StateConsignmentOrder state = stateConsignmentOrderRepository
-            .findById(StateConsignmentOrder.CREATED)
-            .get();
+                .findById(StateConsignmentOrder.CREATED)
+                .get();
         ConsignmentOrders consignmentOrderSaved = ConsignmentOrders.builder()
-            .note(request.getNote())
-            .ordererId(account)
-            .product(saveProduct)
-            .store(store)
-            .stateId(state)
-            .phoneNumber(request.getPhoneNumber())
-            .detailAddress(request.getDetailAddress())
-            .ward(ward)
-            .deliveryPerson(deliveryPerson.get())
-            .build();
+                .note(request.getNote())
+                .ordererId(account)
+                .product(saveProduct)
+                .store(store)
+                .stateId(state)
+                .phoneNumber(request.getPhoneNumber())
+                .detailAddress(request.getDetailAddress())
+                .ward(ward)
+                .deliveryPerson(deliveryPerson.get())
+                .build();
         consignmentOrdersRepository.save(consignmentOrderSaved);
         saveProduct.setImages(imagesSave);
         consignmentOrderSaved.setProduct(saveProduct);
-        ConsignmentOrdersResponse response =
-            consignmentOrdersService.convertToConsignmentOrdersResponse(
-                consignmentOrderSaved
-            );
+        ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(
+                consignmentOrderSaved);
         // Tạo thông báo realtime cho người dùng
         NotificationPayload payload = NotificationPayload.builder()
-            .objectId(consignmentOrderSaved.getId().toString()) // là id của order, thanh toán, ...
-            .accountId(consignmentOrderSaved.getDeliveryPerson().getId())
-            .message("Bạn có đơn vận chuyển mới cần xác nhận!") // nội dung thông báo
-            .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông báo theo objectId
-            // (order, payment, //
-            // ...)
-            .build();
+                .objectId(consignmentOrderSaved.getId().toString()) // là id của order, thanh toán, ...
+                .accountId(consignmentOrderSaved.getDeliveryPerson().getId())
+                .message("Bạn có đơn vận chuyển mới cần xác nhận!") // nội dung thông báo
+                .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông báo theo objectId
+                // (order, payment, //
+                // ...)
+                .build();
         notificationService.callCreateNotification(payload);
         return response;
     }
 
     private List<ProductImages> saveProductImages(
-        Product product,
-        MultipartFile[] images
-    ) {
+            Product product,
+            MultipartFile[] images) {
         List<ProductImages> productImages = new ArrayList<>();
         for (MultipartFile file : images) {
             ResponseDocumentDto fileSaved = FilesHelp.saveFile(
-                file,
-                product.getId(),
-                EntityFileType.PRODUCT
-            );
+                    file,
+                    product.getId(),
+                    EntityFileType.PRODUCT);
             Image image = Image.builder()
-                .fileId(fileSaved.getFileId())
-                .fileName(fileSaved.getFileName())
-                .fileDownloadUri(fileSaved.getFileDownloadUri())
-                .fileType(fileSaved.getFileType())
-                .size(fileSaved.getSize())
-                .build();
+                    .fileId(fileSaved.getFileId())
+                    .fileName(fileSaved.getFileName())
+                    .fileDownloadUri(fileSaved.getFileDownloadUri())
+                    .fileType(fileSaved.getFileType())
+                    .size(fileSaved.getSize())
+                    .build();
             Image imageSaved = imageRepository.save(image);
 
             ProductImages productImage = ProductImages.builder()
-                .product(product)
-                .image(imageSaved)
-                .build();
+                    .product(product)
+                    .image(imageSaved)
+                    .build();
             productImages.add(productImage);
         }
         System.out.println(
-            productImages.get(0).getImage().getFileDownloadUri()
-        );
+                productImages.get(0).getImage().getFileDownloadUri());
         return productImagesRepository.saveAll(productImages);
     }
 
     public ProductResponse updateProduct(
-        Long id,
-        ProductRequest productRequest
-    ) {
+            Long id,
+            ProductRequest productRequest) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         List<RoleAccount> allRole = roleAccountRepository.findByAccount(
-            account
-        );
+                account);
         allRole.forEach(roleAccount -> {
-            if (
-                !roleAccount
+            if (!roleAccount
                     .getRole()
                     .getId()
                     .equals(Role.ROLE_STORE_MANAGER) &&
-                !roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)
-            ) {
+                    !roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)) {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
         });
         Product product = productRepository
-            .findById(id)
-            .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         Store store = product.getStore();
         if (store == null || !isManagerOfStore(account, store)) {
@@ -523,10 +492,8 @@ public class ProductService {
 
         if (productRequest.getCategoryId() != null) {
             Category category = categoryRepository
-                .findById(productRequest.getCategoryId())
-                .orElseThrow(() ->
-                    new AppException(ErrorCode.CATEGORY_NOT_FOUND)
-                );
+                    .findById(productRequest.getCategoryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
             product.setCategory(category);
         }
 
@@ -536,40 +503,36 @@ public class ProductService {
 
     private boolean isManagerOfStore(Account account, Store store) {
         return store
-            .getAccountStores()
-            .stream()
-            .anyMatch(accountStore -> accountStore.getAccount().equals(account)
-            );
+                .getAccountStores()
+                .stream()
+                .anyMatch(accountStore -> accountStore.getAccount().equals(account));
     }
 
     public Page<ProductResponse> getConsignmentProductsByStoreAndState(
-        Long stateProductId,
-        int page,
-        int size
-    ) {
+            Long stateProductId,
+            int page,
+            int size) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Store store = accountStoreRepository
-            .findByAccount(account)
-            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
-            .getStore();
+                .findByAccount(account)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
+                .getStore();
 
         Long stateProductFilter = (stateProductId == null ||
                 !stateProductId.equals(StateProduct.DELYVERING))
-            ? null
-            : stateProductId;
-        Page<Product> products =
-            productRepository.findConsignmentProductsByStoreAndState(
+                        ? null
+                        : stateProductId;
+        Page<Product> products = productRepository.findConsignmentProductsByStoreAndState(
                 store,
                 stateProductFilter,
                 Product.TYPE_PRODUCT_OF_ACCOUNT,
-                PageRequest.of(page, size)
-            );
+                PageRequest.of(page, size));
         Page<ProductResponse> productResponses = products.map(product -> {
             return convertToResponse(product, false);
         });
@@ -577,19 +540,17 @@ public class ProductService {
     }
 
     public Page<ProductResponse> getProductsByCategoryPath(
-        String path,
-        int page,
-        int size
-    ) {
+            String path,
+            int page,
+            int size) {
         Pageable pageable = PageRequest.of(page, size);
         Category category = categoryRepository
-            .findByPath(path)
-            .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                .findByPath(path)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         System.out.println(category.getPath());
         Page<Product> products = productRepository.findByPathCategory(
-            category,
-            pageable
-        );
+                category,
+                pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
             return convertToResponse(product, false);
         });
@@ -599,21 +560,20 @@ public class ProductService {
     // nv xem san pham theo store
     public Page<ProductResponse> getAllProductsInStore(Pageable pageable) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Store store = accountStoreRepository
-            .findByAccount(account)
-            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
-            .getStore();
+                .findByAccount(account)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
+                .getStore();
 
         Page<Product> products = productRepository.findAllProductsInStore(
-            store,
-            pageable
-        );
+                store,
+                pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
             return convertToResponse(product, false);
         });
@@ -621,40 +581,49 @@ public class ProductService {
     }
 
     // kh xem san pham theo store
-    public Page<ProductResponse> getAllProductsInStoreKH(
-        Long storeId,
-        Pageable pageable
-    ) {
+    public StoreResponse getAllProductsInStoreKH(
+            Long storeId,
+            Pageable pageable) {
         Store store = storeRepository
-            .findById(storeId)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.STORE_NOT_FOUND);
-            });
+                .findById(storeId)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.STORE_NOT_FOUND);
+                });
         Page<Product> products = productRepository.findAllProductsInStoreKH(
-            store,
-            pageable
-        );
+                store,
+                pageable);
+        StoreResponse storeResponse = StoreResponse.builder()
+                .name(store.getName())
+                .streetAddress(getStoreAddress(store))
+                .postalCode(store.getPostalCode())
+                .phone(store.getPhone())
+                .email(store.getEmail())
+                .description(store.getDescription())
+                .build();
+        if (store.getImage() != null) {
+            storeResponse.setUrlImage(store.getImage().getFileDownloadUri());
+        }
         Page<ProductResponse> productResponses = products.map(product -> {
-            return convertToResponse(product, false);
+            ProductResponse response = convertToResponse(product, false);
+            return response;
         });
-        return productResponses;
+        storeResponse.setProduct(productResponses);
+        return storeResponse;
     }
 
     // loc san pham
     public Page<ProductResponse> findProductByCondition(
-        Long categoryId,
-        Long storeId,
-        Long minPrice,
-        Long maxPrice,
-        Pageable pageable
-    ) {
+            Long categoryId,
+            Long storeId,
+            Long minPrice,
+            Long maxPrice,
+            Pageable pageable) {
         Page<Product> products = productRepository.findProductByCondition(
-            categoryId,
-            storeId,
-            minPrice,
-            maxPrice,
-            pageable
-        );
+                categoryId,
+                storeId,
+                minPrice,
+                maxPrice,
+                pageable);
         Page<ProductResponse> productResponses = products.map(product -> {
             return convertToResponse(product, false);
         });
