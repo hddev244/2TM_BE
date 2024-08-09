@@ -73,6 +73,6 @@ public class ConsignmentOrdersController {
     @GetMapping("/find-by-id/{id}")
     public ApiResponse<ConsignmentOrdersResponse> getConsignmentOrderById(@PathVariable("id") Long id) {
         ConsignmentOrdersResponse response = consignmentOrdersService.getConsignmentOrderById(id);
-        return new ApiResponse<ConsignmentOrdersResponse>(200,null, response);
+        return new ApiResponse<ConsignmentOrdersResponse>(200, null, response);
     }
 }
