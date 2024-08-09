@@ -543,7 +543,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        if (!order.getAccount().equals(account)) {
+        if (!order.getAccount().getId().equals(account.getId())) {
             throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
         }
 
