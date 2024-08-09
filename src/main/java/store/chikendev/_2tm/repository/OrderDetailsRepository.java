@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
 
 @Repository
@@ -18,5 +19,7 @@ public interface OrderDetailsRepository extends JpaRepository<OrderDetails, Long
     Page<OrderDetails> findByStateId(@Param("account") Account account, Pageable pageable);
 
     List<OrderDetails> findByOrderId(Long orderId);
+
+    List<OrderDetails> findByOrder(Order order);
 
 }

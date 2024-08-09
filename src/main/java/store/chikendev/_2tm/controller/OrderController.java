@@ -118,7 +118,7 @@ public class OrderController {
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 
-        @PreAuthorize("hasAnyRole('ROLE_KH')")
+        // @PreAuthorize("hasAnyRole('ROLE_KH')")
         @PostMapping("/Cancelled/{orderId}")
         public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId) {
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();

@@ -550,7 +550,14 @@ public class OrderService {
         if (!order.getStateOrder().getId().equals(StateOrder.IN_CONFIRM)) {
             throw new AppException(ErrorCode.STATE_ERROR);
         }
+        List<OrderDetails> orderDetailsList = orderDetailRepository.findByOrder(order);
 
+        for (OrderDetails orderDetail : orderDetailsList) {
+            Product product = orderDetail.getProduct();
+            int updatedQuantity = product.getQuantity() + orderDetail.getQuantity();
+            product.setQuantity(updatedQuantity);
+            productRepository.save(product);
+        }
         StateOrder cancelledState = stateOrderRepository.findById(StateOrder.CANCELLED_ORDER)
                 .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
         order.setStateOrder(cancelledState);
