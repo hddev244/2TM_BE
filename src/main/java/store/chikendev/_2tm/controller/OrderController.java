@@ -2,8 +2,11 @@ package store.chikendev._2tm.controller;
 
 import jakarta.validation.Valid;
 import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -114,4 +117,12 @@ public class OrderController {
                                 stateId);
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
+
+        @PreAuthorize("hasAnyRole('ROLE_KH')")
+        @PostMapping("/Cancelled/{orderId}")
+        public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId) {
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
+                orderService.cancelOrder(orderId, email);
+                return new ApiResponse<>(200,null,"Order has been successfully cancelled.");
+    }
 }
