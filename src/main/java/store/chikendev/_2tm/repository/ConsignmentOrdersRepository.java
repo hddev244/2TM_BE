@@ -30,13 +30,14 @@ public interface ConsignmentOrdersRepository extends JpaRepository<ConsignmentOr
         @Query("SELECT co FROM ConsignmentOrders co WHERE co.product.ownerId = :owner AND co.stateId = :state")
         Page<ConsignmentOrders> getByStateOrAllWithOwner(@Param("owner") Account account,
                         @Param("state") StateConsignmentOrder state, Pageable pageable);
-                        @Query("SELECT co FROM ConsignmentOrders co WHERE co.product.ownerId = :owner")
-        Page<ConsignmentOrders> getByStateOrAllWithOwner(@Param("owner") Account account, Pageable pageable);
 
+        @Query("SELECT co FROM ConsignmentOrders co WHERE co.product.ownerId = :owner")
+        Page<ConsignmentOrders> getByStateOrAllWithOwner(@Param("owner") Account account, Pageable pageable);
 
         Page<ConsignmentOrders> findByDeliveryPerson(Account deliveryPerson, Pageable pageable);
 
         Page<ConsignmentOrders> findByStore(Store store, Pageable pageable);
 
         Page<ConsignmentOrders> findByOrdererId(Account ordererId, Pageable pageable);
+
 }

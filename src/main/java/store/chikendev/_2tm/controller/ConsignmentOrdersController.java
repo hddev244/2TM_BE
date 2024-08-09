@@ -77,10 +77,19 @@ public class ConsignmentOrdersController {
         ConsignmentOrdersResponse response = consignmentOrdersService.getConsignmentOrderById(id);
         return new ApiResponse<ConsignmentOrdersResponse>(200, null, response);
     }
+
     @PreAuthorize("hasRole('ROLE_CH')")
     @PostMapping("/Cannel_consignmentOrder/{consignmentOrderId}")
     public ApiResponse<String> cancelConsignmentOrder(@PathVariable("consignmentOrderId") Long id) {
         consignmentOrdersService.cancelConsignmentOrder(id);
-        return new ApiResponse<>(200,null,"Yêu cầu ký gửi đã được hủy thành công.");
+        return new ApiResponse<>(200, null, "Yêu cầu ký gửi đã được hủy thành công.");
     }
+
+    @PreAuthorize("hasRole('ROLE_CH')")
+    @GetMapping("/details")
+    public ApiResponse<ConsignmentOrdersResponse> getConsignmentOrders(@RequestParam(name = "id") Long id) {
+        ConsignmentOrdersResponse response = consignmentOrdersService.getConsignmentOrders(id);
+        return new ApiResponse<ConsignmentOrdersResponse>(200, null, response);
+    }
+
 }
