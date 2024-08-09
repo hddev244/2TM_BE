@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.request.OtpRequest;
+import store.chikendev._2tm.dto.responce.ForgotPasswordResponse;
 import store.chikendev._2tm.dto.responce.OtpResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.Otp;
@@ -61,6 +62,42 @@ public class OtpService {
         } else {
             throw new RuntimeException("Vui lòng kiểm tra lại email hoặc SDT");
         }
+    }
+
+    // QMK - kiểm tra email xem có tồn tại và gửi mã OTP
+    public ForgotPasswordResponse checkEmail(String email) {
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        });
+        if (account.getState().getId() == StateAccount.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
+        }
+        String otp = generateOtp();
+        List<Otp> otpDatabase = otpRepository.findByAccount(account);
+        if (otpDatabase.size() > 0) {
+            otpRepository.deleteAllInBatch(otpDatabase);
+        }
+        otpRepository.saveAndFlush(Otp.builder()
+                .account(account)
+                .tokenCode(otp)
+                .build());
+        ForgotPasswordResponse response = ForgotPasswordResponse.builder()
+                .emailOrToken(email)
+                .status(true)
+                .build();
+        String emailContent = "<html>"
+                + "<body>"
+                + "<h3>Xin chào,</h3>"
+                + "<p>Bạn đã yêu cầu lấy lại mật khẩu của mình. Vui lòng sử dụng mã OTP sau để tiếp tục quá trình đặt lại mật khẩu:</p>"
+                + "<h2 style='color:blue;'>" + otp + "</h2>"
+                + "<p>Mã này sẽ hết hạn sau 5 phút. Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>"
+                + "<br>"
+                + "<p>Trân trọng,</p>"
+                + "<p>Đội ngũ hỗ trợ của 2TM</p>"
+                + "</body>"
+                + "</html>";
+        otpEmail.sendMail(email, "QUÊN MẬT KHẨU TÀI KHOẢN 2TM", emailContent);
+        return response;
     }
 
     public String validateOtp(OtpRequest otp) {
