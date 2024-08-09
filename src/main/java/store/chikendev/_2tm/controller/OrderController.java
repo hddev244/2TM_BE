@@ -118,10 +118,11 @@ public class OrderController {
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 
-        // @PreAuthorize("hasAnyRole('ROLE_KH')")
+        @PreAuthorize("hasAnyRole('ROLE_KH')")
         @PostMapping("/Cancelled/{orderId}")
-        public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId, Principal principal) {
-                orderService.cancelOrder(orderId, principal.getName());
+        public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId) {
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
+                orderService.cancelOrder(orderId, email);
                 return new ApiResponse<>(200,null,"Order has been successfully cancelled.");
     }
 }
