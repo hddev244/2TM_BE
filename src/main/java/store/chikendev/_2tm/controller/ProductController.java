@@ -190,4 +190,13 @@ public class ProductController {
                                 size);
                 return new ApiResponse<Page<ProductResponse>>(200, null, products);
         }
+
+        @PreAuthorize("hasAnyRole('ROLE_CH')")
+        @GetMapping("/ownerId")
+        public ApiResponse<Page<ProductResponse>> getProductsByOwnerId(
+                        @RequestParam(value = "size", defaultValue = "10") int size,
+                        @RequestParam(value = "page", defaultValue = "0") int page) {
+                Page<ProductResponse> products = productService.findProductByOwnerId(size, page);
+                return new ApiResponse<Page<ProductResponse>>(200, null, products);
+        }
 }
