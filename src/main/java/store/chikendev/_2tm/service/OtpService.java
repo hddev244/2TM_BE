@@ -7,19 +7,35 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Pattern;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+
+import lombok.experimental.NonFinal;
+import store.chikendev._2tm.dto.request.ForgotPasswordRequest;
 import store.chikendev._2tm.dto.request.OtpRequest;
-import store.chikendev._2tm.dto.responce.ForgotPasswordResponse;
 import store.chikendev._2tm.dto.responce.OtpResponse;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.InvaLidatedToken;
 import store.chikendev._2tm.entity.Otp;
 import store.chikendev._2tm.entity.StateAccount;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
+import store.chikendev._2tm.repository.InvaLidatedTokenRepository;
 import store.chikendev._2tm.repository.OtpRepository;
 import store.chikendev._2tm.repository.StateAccountRepository;
 import store.chikendev._2tm.utils.SendEmail;
@@ -38,6 +54,25 @@ public class OtpService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private InvaLidatedTokenRepository invaLidatedTokenRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @NonFinal
+    @Value("${jwt.signerKey}")
+    private String SIGNER_KEY;
+
+    @NonFinal
+    @Value("${jwt.signerKeyRefresh}")
+    private String SIGNER_KEY_REFRESH;
+
+    // thoi gian hieu luc cua token
+    @NonFinal
+    @Value("${jwt.valid-duration}")
+    private Long VALID_DURATION;
 
     private static final String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
     private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
@@ -65,7 +100,7 @@ public class OtpService {
     }
 
     // QMK - kiểm tra email xem có tồn tại và gửi mã OTP
-    public ForgotPasswordResponse checkEmail(String email) {
+    public String checkEmail(String email) {
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         });
@@ -81,10 +116,6 @@ public class OtpService {
                 .account(account)
                 .tokenCode(otp)
                 .build());
-        ForgotPasswordResponse response = ForgotPasswordResponse.builder()
-                .emailOrToken(email)
-                .status(true)
-                .build();
         String emailContent = "<html>"
                 + "<body>"
                 + "<h3>Xin chào,</h3>"
@@ -97,7 +128,78 @@ public class OtpService {
                 + "</body>"
                 + "</html>";
         otpEmail.sendMail(email, "QUÊN MẬT KHẨU TÀI KHOẢN 2TM", emailContent);
-        return response;
+        return account.getEmail();
+    }
+
+    public String checkOtp(String email, String otp) {
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        });
+        Otp checkOtp = otpRepository.findById(otp).orElseThrow(() -> {
+            throw new AppException(ErrorCode.OTP_INVALID);
+        });
+
+        if (!isWithinFiveMinutes(checkOtp.getCreatedAt())) {
+            throw new AppException(ErrorCode.OTP_EXPIRED);
+        }
+        if (!checkOtp.getAccount().getId().equals(account.getId())) {
+            throw new AppException(ErrorCode.OTP_INVALID);
+        }
+        return generateToken(account, otp);
+    }
+
+    public String changePassword(ForgotPasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getReNewPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+        String otp;
+        String email;
+        String id;
+        try {
+            // Giải mã token
+            SignedJWT signedJWT = SignedJWT.parse(request.getToken());
+            // Xác thực token với khóa ký
+            boolean isVerified = signedJWT.verify(new MACVerifier(SIGNER_KEY.getBytes()));
+            if (isVerified) {
+                // Đọc các claims từ token
+                JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+                if (claimsSet.getSubject() != null) {
+                    email = claimsSet.getSubject();
+                } else {
+                    throw new AppException(ErrorCode.TOKEN_INVALID);
+                }
+                if (claimsSet.getStringClaim("otp") != null) {
+                    otp = claimsSet.getStringClaim("otp");
+                } else {
+                    throw new AppException(ErrorCode.TOKEN_INVALID);
+                }
+                if (claimsSet.getJWTID() != null) {
+                    id = claimsSet.getJWTID();
+                } else {
+                    throw new AppException(ErrorCode.TOKEN_INVALID);
+                }
+            } else {
+                throw new AppException(ErrorCode.TOKEN_INVALID);
+            }
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+        Otp checkOtp = otpRepository.findById(otp).orElseThrow(() -> {
+            throw new AppException(ErrorCode.OTP_INVALID);
+        });
+        if (!checkOtp.getAccount().getEmail().equals(email)) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+        InvaLidatedToken checkToken = invaLidatedTokenRepository.findById(id).orElseThrow(() -> {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        });
+        if (!isWithinFiveMinutes(checkToken.getExpiryTime())) {
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
+        }
+        Account account = checkOtp.getAccount();
+        account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.saveAndFlush(account);
+        return "Đổi mật khẩu thành công";
     }
 
     public String validateOtp(OtpRequest otp) {
@@ -172,5 +274,33 @@ public class OtpService {
         return dateToConvert.toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
+    }
+
+    // tao token QMK
+    public String generateToken(Account account, String otp) {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        // Chuẩn bị JWT với tập hợp các khai báo
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(account.getEmail())
+                .issuer("2tm.demo")
+                .jwtID(UUID.randomUUID().toString())
+                .claim("otp", otp)
+                .build();
+        invaLidatedTokenRepository.saveAndFlush(InvaLidatedToken.builder()
+                .id(claimsSet.getJWTID())
+                .expiryTime(new Date())
+                .build());
+        System.out.println(claimsSet.getJWTID());
+        Payload payload = new Payload(claimsSet.toJSONObject());
+
+        JWSObject jwsObject = new JWSObject(header, payload);
+        // Ký token
+        try {
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            return jwsObject.serialize();
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

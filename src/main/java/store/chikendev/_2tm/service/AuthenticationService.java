@@ -213,7 +213,7 @@ public class AuthenticationService {
         // Chuẩn bị JWT với tập hợp các khai báo
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(account.getEmail())
-                .issuer("dnrea.demo")
+                .issuer("2tm.demo")
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
