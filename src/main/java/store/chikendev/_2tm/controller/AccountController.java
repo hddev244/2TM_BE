@@ -189,4 +189,11 @@ public class AccountController {
         public ApiResponse<String> changeForgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
                 return new ApiResponse<String>(200, null, otpService.changePassword(request));
         }
+
+        @PreAuthorize("hasAnyRole('ROLE_QTV')")
+        @GetMapping("/username")
+        public ApiResponse<AccountResponse> getByUsername(@RequestParam(name = "username") String username) {
+                AccountResponse accountResponses = accountService.findByUsername(username);
+                return new ApiResponse<AccountResponse>(200, null, accountResponses);
+        }
 }

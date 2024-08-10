@@ -645,4 +645,33 @@ public class AccountService {
                 throw new UnsupportedOperationException(
                                 "Unimplemented method 'getAdminAccountById'");
         }
+
+        public AccountResponse findByUsername(String username) {
+                Account account = accountRepository
+                                .findByUsername(username)
+                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                ResponseDocumentDto image = FilesHelp.getOneDocument(
+                                account.getId(),
+                                EntityFileType.USER_AVATAR);
+                return AccountResponse.builder()
+                                .id(account.getId())
+                                .username(account.getUsername())
+                                .fullName(account.getFullName())
+                                .phoneNumber(account.getPhoneNumber())
+                                .email(account.getEmail())
+                                .roles(
+                                                roleAccountRepository
+                                                                .findByAccount(account)
+                                                                .stream()
+                                                                .map(roleAccount -> mapper.map(roleAccount.getRole(),
+                                                                                RoleResponse.class))
+                                                                .toList())
+                                .address(getAddress(account.getAddress()))
+                                .violationPoints(account.getViolationPoints())
+                                .createdAt(account.getCreatedAt())
+                                .updatedAt(account.getUpdatedAt())
+                                .stateName(account.getState().getName())
+                                .image(image)
+                                .build();
+        }
 }
