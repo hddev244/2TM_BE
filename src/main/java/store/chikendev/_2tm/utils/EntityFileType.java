@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum EntityFileType {
     USER_AVATAR(false, "files_dev/users/user-"),
     STORE_LOGO(false, "files_dev/stores/store-"),
+    BILL_OF_LANDING(false, "files_dev/stores/bill-"),
 
     PRODUCT(true, "files_dev/products/product-"),
     CATEGORY(true, "files_dev/categories/category-"),

@@ -45,6 +45,9 @@ public enum ErrorCode {
         DELIVERY_PERSON_EMPTY(454, "Không tìm thấy nhân viên giao hàng", HttpStatus.BAD_REQUEST),
         STATE_ORDER_NOT_FOUND(453, "Không tìm thấy trạng thái order", HttpStatus.BAD_REQUEST),
         ROLE_ERROR(452, "Vai trò không phù hợp để thực hiện chức năng", HttpStatus.BAD_REQUEST),
+        BILL_OF_LADING_NOT_FOUND(462, "Không tìm thấy vận đơn", HttpStatus.BAD_REQUEST),
+        INVALID_STATUS_CHANGE(463, "Trạng thái thay đổi không phù hợp", HttpStatus.BAD_REQUEST),
+
         // payment
         PAYMENT_ERROR_05(470, "Tài khoản của bạn không đủ số dư để thực hiện giao dịch", HttpStatus.BAD_REQUEST),
         PAYMENT_ERROR_06(471, "Bạn nhập sai mã OTP", HttpStatus.BAD_REQUEST),
