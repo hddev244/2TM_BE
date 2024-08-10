@@ -13,9 +13,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BillOfLadingResponse {
     private Long id;
-    private Long orderId;
     private String deliveryPerson;
     private String createBy;
     private Date createdAt;
     private String urlImage;
+    private Double totalAmount;
+    private AccountResponse orderer;
+    private OrderResponse orderId;
 }
