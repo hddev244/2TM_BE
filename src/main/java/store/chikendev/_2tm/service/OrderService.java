@@ -561,7 +561,6 @@ public class OrderService {
         StateOrder cancelledState = stateOrderRepository.findById(StateOrder.CANCELLED_ORDER)
                 .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
         order.setStateOrder(cancelledState);
-
         orderRepository.save(order);
     }
 }

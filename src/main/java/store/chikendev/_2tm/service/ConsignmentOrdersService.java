@@ -546,7 +546,7 @@ public class ConsignmentOrdersService {
                 ConsignmentOrders consignmentOrder = consignmentOrdersRepository.findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
 
-                if (!consignmentOrder.getStore().getAccountStores().contains(account)) {
+                if (!consignmentOrder.getOrdererId().getId().equals(account.getId())) {
                         throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
                 }
 
