@@ -16,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.request.OrderInformation;
-import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderPaymentResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
@@ -24,7 +23,6 @@ import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
-import store.chikendev._2tm.entity.BillOfLading;
 import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
@@ -563,4 +561,5 @@ public class OrderService {
         order.setStateOrder(cancelledState);
         orderRepository.save(order);
     }
+
 }

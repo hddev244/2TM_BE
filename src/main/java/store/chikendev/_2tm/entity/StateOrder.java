@@ -22,8 +22,17 @@ import lombok.NoArgsConstructor;
 @Data
 public class StateOrder {
     public static final Long IN_CONFIRM = 1L;
+    public static final Long ORDER_RETRIEVING = 2L;
+    public static final Long ORDER_SUCCESSFULLY_RETRIEVED = 3L;
     public static final Long CONFIRMED = 12L;
     public static final Long CANCELLED_ORDER = 13L;
+    public static final Long DELIVERING = 4L;
+    public static final Long DELIVERED_SUCCESS = 5L;
+    public static final Long ORDER_RETURN = 6L;
+    public static final Long DELIVERED_FAIL = 9L;
+    public static final Long RETURNED = 7L;
+    public static final Long RETURNED_SUCCESS = 8L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
