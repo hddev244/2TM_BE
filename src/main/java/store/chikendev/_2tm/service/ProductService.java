@@ -255,6 +255,7 @@ public class ProductService {
                 if (product.getStore() != null) {
                         response.setStore(
                                         StoreResponse.builder()
+                                                        .id(product.getStore().getId())
                                                         .name(product.getStore().getName())
                                                         .streetAddress(getStoreAddress(product.getStore()))
                                                         .build());
