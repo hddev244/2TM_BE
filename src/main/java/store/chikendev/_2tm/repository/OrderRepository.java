@@ -14,6 +14,7 @@ import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.PaymentRecords;
 import store.chikendev._2tm.entity.StateOrder;
 import store.chikendev._2tm.entity.Store;
+import store.chikendev._2tm.entity.Voucher;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -35,7 +36,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
         @Query("SELECT o FROM Order o WHERE o.account = :account and o.type = true")
         Page<Order> findByAccountIdAndType(@Param("account") Account account, Pageable pageable);
-        
+
         @Query("SELECT o FROM Order o WHERE o.id IN :orderIds")
         Page<Order> findByIdIn(@Param("orderIds") List<Long> orderIds, Pageable pageable);
+
+        @Query("SELECT o FROM Order o WHERE o.voucher = :voucher")
+        List<Order> findByVoucher(@Param("voucher") Voucher voucher);
 }
