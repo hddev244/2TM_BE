@@ -36,6 +36,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "http://192.168.1.197:3001",
                         "https://admin.2tm.store",
                         "https://delivery-person.2tm.store",
+                        "https://delivery.2tm.store",
+                        "http://delivery.2tm.store",
                         "https://store-manager.2tm.store",
                         "http://test-onserver.2tm.store",
                         "https://api.2tm.store",
