@@ -374,40 +374,24 @@ public class ConsignmentOrdersService {
                 return "";
         }
 
-        public String updateStatus(
-                        Long idStatus,
-                        Long idConsignmentOrders,
-                        MultipartFile file) {
-                String email = SecurityContextHolder.getContext()
-                                .getAuthentication()
-                                .getName();
-                Account account = accountRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> {
-                                        throw new AppException(ErrorCode.USER_NOT_FOUND);
-                                });
-                ConsignmentOrders consignmentOrders = consignmentOrdersRepository
-                                .findById(idConsignmentOrders)
+        public String updateStatus(Long idStatus, Long idConsignmentOrders, MultipartFile file) {
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
+                Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
+                        throw new AppException(ErrorCode.USER_NOT_FOUND);
+                });
+                ConsignmentOrders consignmentOrders = consignmentOrdersRepository.findById(idConsignmentOrders)
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
                                 });
-                StateConsignmentOrder state = stateConsignmentOrderRepository
-                                .findById(idStatus)
-                                .orElseThrow(() -> {
-                                        throw new AppException(ErrorCode.STATE_NOT_FOUND);
-                                });
-
-                if (consignmentOrders
-                                .getDeliveryPerson()
-                                .getId()
-                                .equals(account.getId())) {
+                StateConsignmentOrder state = stateConsignmentOrderRepository.findById(idStatus).orElseThrow(() -> {
+                        throw new AppException(ErrorCode.STATE_NOT_FOUND);
+                });
+                if (consignmentOrders.getDeliveryPerson().getId().equals(account.getId())) {
                         if (state.getId() == StateConsignmentOrder.PICKED_UP) {
                                 if (file == null) {
                                         throw new AppException(ErrorCode.FILE_NOT_FOUND);
                                 }
-                                ResponseDocumentDto fileSaved = FilesHelp.saveFile(
-                                                file,
-                                                consignmentOrders.getId(),
+                                ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, consignmentOrders.getId(),
                                                 EntityFileType.CONSIGNMENT_ORDER);
                                 Image image = Image.builder()
                                                 .fileId(fileSaved.getFileId())
@@ -417,7 +401,6 @@ public class ConsignmentOrdersService {
                                                 .size(fileSaved.getSize())
                                                 .build();
                                 Image imageSaved = imageRepository.save(image);
-
                                 consignmentOrders.setImage(imageSaved);
                         }
 
@@ -440,10 +423,7 @@ public class ConsignmentOrdersService {
 
                         if (state.getId() == StateConsignmentOrder.COMPLETED) {
                                 Product product = consignmentOrders.getProduct();
-                                product.setState(
-                                                stateProductRepository
-                                                                .findById(StateProduct.IN_CONFIRM)
-                                                                .get());
+                                product.setState(stateProductRepository.findById(StateProduct.CONFIRM).get());
                                 productRepository.save(product);
                         }
 
