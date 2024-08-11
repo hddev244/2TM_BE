@@ -15,7 +15,7 @@ import store.chikendev._2tm.entity.Store;
 @Repository
 public interface ConsignmentOrdersRepository extends JpaRepository<ConsignmentOrders, Long> {
 
-        @Query("SELECT co FROM ConsignmentOrders co WHERE co.deliveryPerson = :deliveryPerson AND co.stateId = :state")
+        @Query("SELECT co FROM ConsignmentOrders co WHERE co.deliveryPerson = :deliveryPerson AND co.stateId = :state AND co.product.state.id = 4")
         Page<ConsignmentOrders> findByDeliveryPersonAndStateId(@Param("deliveryPerson") Account deliveryPerson,
                         @Param("state") StateConsignmentOrder state, Pageable pageable);
 
@@ -34,7 +34,8 @@ public interface ConsignmentOrdersRepository extends JpaRepository<ConsignmentOr
         @Query("SELECT co FROM ConsignmentOrders co WHERE co.product.ownerId = :owner")
         Page<ConsignmentOrders> getByStateOrAllWithOwner(@Param("owner") Account account, Pageable pageable);
 
-        Page<ConsignmentOrders> findByDeliveryPerson(Account deliveryPerson, Pageable pageable);
+        @Query("SELECT co FROM ConsignmentOrders co WHERE co.product.ownerId = :owner AND co.product.state.id = 4")
+        Page<ConsignmentOrders> findByDeliveryPerson2(@Param("owner") Account deliveryPerson, Pageable pageable);
 
         Page<ConsignmentOrders> findByStore(Store store, Pageable pageable);
 

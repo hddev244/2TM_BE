@@ -70,13 +70,25 @@ public class ConsignmentOrdersController {
         return new ApiResponse<String>(200, null, consignmentOrdersService.successConsignmentOrders(id));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_QLCH','ROLE_NVCH')")
+    @GetMapping("confirm/{consignmentOrderId}")
+    public ApiResponse<String> confirm(@PathVariable("consignmentOrderId") Long id) {
+        return new ApiResponse<String>(200, null, consignmentOrdersService.confirmOrder(id));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_QLCH','ROLE_NVCH')")
+    @GetMapping("refuse/{consignmentOrderId}")
+    public ApiResponse<String> refuse(@PathVariable("consignmentOrderId") Long id) {
+        return new ApiResponse<String>(200, null, consignmentOrdersService.refuseOrder(id));
+    }
+
     @GetMapping("/find-by-id/{id}")
     public ApiResponse<ConsignmentOrdersResponse> getConsignmentOrderById(@PathVariable("id") Long id) {
         ConsignmentOrdersResponse response = consignmentOrdersService.getConsignmentOrderById(id);
         return new ApiResponse<ConsignmentOrdersResponse>(200, null, response);
     }
 
-    @PreAuthorize("hasRole('ROLE_CH')")
+    @PreAuthorize("hasAnyRole('ROLE_CH')")
     @PostMapping("/Cannel_consignmentOrder/{consignmentOrderId}")
     public ApiResponse<String> cancelConsignmentOrder(@PathVariable("consignmentOrderId") Long id) {
         consignmentOrdersService.cancelConsignmentOrder(id);
