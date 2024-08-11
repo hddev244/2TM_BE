@@ -42,6 +42,8 @@ public enum ErrorCode {
         CART_ITEM_NOT_MATCHING_ACCOUNT(456, "Sản phẩm trong giỏ hàng không phù hợp với tài khoản",
                         HttpStatus.BAD_REQUEST),
         VOUCHER_NOT_FOUND(457, "Không tìm thấy voucher", HttpStatus.BAD_REQUEST),
+        PAYMENT_DISBURSEMENT_NOT_FOUND(458, "Không tìm thấy thông tin thanh toán", HttpStatus.BAD_REQUEST),
+
         ORDER_NOT_CONFIRMED(455, "Đơn hàng chưa xác nhận", HttpStatus.BAD_REQUEST),
         DELIVERY_PERSON_EMPTY(454, "Không tìm thấy nhân viên giao hàng", HttpStatus.BAD_REQUEST),
         STATE_ORDER_NOT_FOUND(453, "Không tìm thấy trạng thái order", HttpStatus.BAD_REQUEST),
