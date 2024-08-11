@@ -1,6 +1,7 @@
 package store.chikendev._2tm.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Address;
 import store.chikendev._2tm.entity.BillOfLading;
+import store.chikendev._2tm.entity.Disbursements;
 import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
@@ -31,15 +33,19 @@ import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.StateOrder;
 import store.chikendev._2tm.entity.Store;
+import store.chikendev._2tm.entity.ViolationRecord;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.BillOfLadingRepository;
+import store.chikendev._2tm.repository.DisbursementsRepository;
 import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.OrderRepository;
+import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
+import store.chikendev._2tm.repository.ViolationRecordRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
@@ -71,6 +77,15 @@ public class BillOfLadingService {
     @Autowired
     private ImageRepository imageRepository;
 
+    @Autowired
+    private DisbursementsRepository disbursementsRepository;
+
+    @Autowired
+    private ViolationRecordRepository recordRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
     public BillOfLadingResponse addBillOfLading(Long idOrder) {
         BillOfLading bill = new BillOfLading();
         if (idOrder != null) {
@@ -98,6 +113,7 @@ public class BillOfLadingService {
         if (bill.getDeliveryPerson() == null) {
             throw new AppException(ErrorCode.DELIVERY_PERSON_EMPTY);
         }
+        bill.setCreatedAt(new Date());
         bill.setCreateBy(createBy);
         BillOfLading save = billOfLRepository.save(bill);
         BillOfLadingResponse response = getResponse(save);
@@ -187,10 +203,11 @@ public class BillOfLadingService {
             }
             updateStatusOrder(billOfLading, stateOrder, file);
         } else if (stateOrder.getId() == StateOrder.RETURNED) {
-            if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.ORDER_RETURN) {
-                throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
+            if (billOfLading.getOrder().getStateOrder().getId() == StateOrder.ORDER_RETURN
+                    || billOfLading.getOrder().getStateOrder().getId() == StateOrder.DELIVERED_FAIL) {
+                updateStatusOrder(billOfLading, stateOrder, file);
             }
-            updateStatusOrder(billOfLading, stateOrder, file);
+            throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
         } else if (stateOrder.getId() == StateOrder.RETURNED_SUCCESS) {
             if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.RETURNED) {
                 throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
@@ -205,7 +222,8 @@ public class BillOfLadingService {
 
     private void updateStatusOrder(BillOfLading billOfLading, StateOrder stateOrder, MultipartFile file) {
         Order order = billOfLading.getOrder();
-        if (stateOrder.getId() == StateOrder.DELIVERED_SUCCESS) {
+        Account account = billOfLading.getOrder().getAccount();
+        if (stateOrder.getId() == StateOrder.DELIVERED_SUCCESS || stateOrder.getId() == StateOrder.RETURNED_SUCCESS) {
             if (file == null) {
                 throw new AppException(ErrorCode.FILE_NOT_FOUND);
             }
@@ -223,8 +241,45 @@ public class BillOfLadingService {
             Image imageSaved = imageRepository.saveAndFlush(image);
             billOfLading.setImage(imageSaved);
         }
+        if (stateOrder.getId() == StateOrder.DELIVERED_SUCCESS) {
+            order.setCompleteAt(new Date());
+            order.setPaymentStatus(true);
+            order.getDetails().forEach(detail -> {
+                if (detail.getProduct().getOwnerId() != null) {
+                    Double commissionRate = ((detail.getPrice()
+                            * detail.getProduct().getProductCommission().getCommissionRate()) / 100)
+                            * detail.getQuantity();
+                    Disbursements disbursements = Disbursements.builder()
+                            .commissionRate(commissionRate)
+                            .orderDetail(detail)
+                            .state(false)
+                            .build();
+                    disbursementsRepository.saveAndFlush(disbursements);
+                }
+            });
+
+        }
+        if (stateOrder.getId() == StateOrder.RETURNED_SUCCESS) {
+            if (order.getType() == true) {
+                order.getDetails().forEach(detail -> {
+                    Product product = detail.getProduct();
+                    product.setQuantity(product.getQuantity() + detail.getQuantity());
+                    productRepository.save(product);
+                });
+            }
+        }
+        if (stateOrder.getId() == StateOrder.DELIVERED_FAIL) {
+            account.setViolationPoints(account.getViolationPoints() - 10);
+            ViolationRecord record = ViolationRecord.builder()
+                    .account(account)
+                    .order(order)
+                    .build();
+            recordRepository.save(record);
+        }
         order.setStateOrder(stateOrder);
-        orderRepository.save(order);
+        orderRepository.saveAndFlush(order);
+        billOfLRepository.saveAndFlush(billOfLading);
+        accountRepository.saveAndFlush(account);
     }
 
     public String getAddress(Address address) {
