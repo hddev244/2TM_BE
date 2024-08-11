@@ -6,12 +6,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import store.chikendev._2tm.entity.Category;
 import store.chikendev._2tm.entity.Product;
+import store.chikendev._2tm.entity.ProductCommission;
 import store.chikendev._2tm.entity.Store;
 
 @Repository
@@ -78,4 +81,9 @@ public interface ProductRepository
         Page<Product> findProductsByOwnerIdAndState(
                         @Param("ownerId") String ownerId,
                         Pageable pageable);
+
+        @Transactional
+        @Modifying
+        @Query("UPDATE Product p SET p.productCommission = :productCommission WHERE p.id = :productId")
+        void updateProductCommission(@Param("productCommission") ProductCommission productCommission, @Param("productId") Long productId);
 }
