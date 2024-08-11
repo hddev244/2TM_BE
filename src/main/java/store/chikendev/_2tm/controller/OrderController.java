@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -122,5 +123,16 @@ public class OrderController {
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();
                 orderService.cancelOrder(orderId, email);
                 return new ApiResponse<>(200, null, "Order has been successfully cancelled.");
+        }
+
+        @GetMapping("/paid")
+        public ApiResponse<Page<OrderResponse>> getPaidOrders(
+                @RequestParam(name = "page", defaultValue = "0") int page,
+                @RequestParam(name = "size", defaultValue = "10") int size,
+                @RequestParam(name = "state",required = false) Boolean state) {
+            
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            Page<OrderResponse> orders = orderService.getPaidOrdersByStore(email, state, PageRequest.of(page, size));
+            return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 }

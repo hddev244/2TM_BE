@@ -35,5 +35,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
         @Query("SELECT o FROM Order o WHERE o.account = :account and o.type = true")
         Page<Order> findByAccountIdAndType(@Param("account") Account account, Pageable pageable);
-
+        
+        @Query("SELECT o FROM Order o WHERE o.id IN :orderIds")
+        Page<Order> findByIdIn(@Param("orderIds") List<Long> orderIds, Pageable pageable);
 }

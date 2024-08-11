@@ -38,6 +38,7 @@ import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.CartItemsRepository;
+import store.chikendev._2tm.repository.DisbursementsRepository;
 import store.chikendev._2tm.repository.OrderDetailsRepository;
 import store.chikendev._2tm.repository.OrderRepository;
 import store.chikendev._2tm.repository.PaymentMethodsRepository;
@@ -91,6 +92,9 @@ public class OrderService {
 
     @Autowired
     private AccountStoreRepository accountStoreRepository;
+
+    @Autowired
+    private DisbursementsRepository disbursementsRepository;
 
     private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final int ID_LENGTH = 10;
@@ -562,4 +566,11 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    public Page<OrderResponse> getPaidOrdersByStore(String email, Boolean state, Pageable pageable) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        List<Long> orderIds = disbursementsRepository.findOrderIdsByPaymentClerkAndState(account.getId(), state);
+        return orderRepository.findByIdIn(orderIds, pageable).map(this::convertToOrderResponse);
+    }
 }
