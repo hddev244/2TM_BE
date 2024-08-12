@@ -50,9 +50,13 @@ import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.Payment;
 import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
+import store.chikendev._2tm.utils.dtoUtil.response.OrderDtoUtil;
 
 @Service
 public class OrderService {
+
+    @Autowired
+    private OrderDtoUtil orderDtoUtil;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -170,12 +174,13 @@ public class OrderService {
                         .stateOrder(stateOrderRepository.findById(StateOrder.IN_CONFIRM).get())
                         .paymentMethod(methods)
                         .ward(ward)
+                        .type(true)
                         .store(store)
                         .build();
 
                 Order savedOrder = orderRepository.save(order);
 
-                OrderResponse orderResponse = convertToOrderResponse(savedOrder);
+                OrderResponse orderResponse = orderDtoUtil.convertToOrderResponse(savedOrder);
 
                 Double totalPrice = 0.0;
 
@@ -215,7 +220,7 @@ public class OrderService {
                 }
 
                 List<OrderDetailResponse> orderDetailResponses = orderDetails.stream().map(orderDetail -> {
-                    return convertToOrderDetailResponse(orderDetail);
+                    return orderDtoUtil.convertToOrderDetailResponse(orderDetail);
                 }).collect(Collectors.toList());
 
                 totalPrice += detail.getDeliveryCost();
@@ -295,83 +300,6 @@ public class OrderService {
 
         orderDetailRepository.deleteAll(savedOrderDetailsList);
         orderRepository.deleteAll(savedOrdersList);
-    }
-
-    private String getAddress(Order order) {
-        if (order == null) {
-            return "";
-        }
-        if (order.getWard() != null) {
-            String addressWard = order.getWard().getName();
-            String addressDistrict = order.getWard().getDistrict().getName();
-            String addressProvince = order.getWard().getDistrict().getProvinceCity().getName();
-            String addressAddress = order.getConsigneeDetailAddress() == null ? ""
-                    : order.getConsigneeDetailAddress() + ", ";
-            return addressAddress + addressWard + ", " + addressDistrict + ", " +
-                    addressProvince;
-        }
-        return "";
-
-    }
-
-    private OrderDetailResponse convertToOrderDetailResponse(OrderDetails detail) {
-        return OrderDetailResponse.builder()
-                .id(detail.getId())
-                .price(detail.getPrice())
-                .quantity(detail.getQuantity())
-                .product(convertToProductResponse(detail.getProduct()))
-                .build();
-    }
-
-    private ProductResponse convertToProductResponse(Product product) {
-        ProductResponse response = new ProductResponse();
-        response.setId(product.getId());
-        response.setName(product.getName());
-        response.setPrice(product.getPrice());
-        response.setQuantity(product.getQuantity());
-        response.setDescription(product.getDescription());
-        if (product.getType() != null) {
-            response.setTypeProduct(product.getType() ? "Cửa hàng" : "Ký gửi");
-        }
-
-        List<ResponseDocumentDto> responseDocument = product.getImages().stream().map(img -> {
-            Image image = img.getImage();
-            return ImageDtoUtil.convertToImageResponse(image);
-        }).toList();
-        response.setImages(responseDocument);
-        return response;
-    }
-
-    private OrderResponse convertToOrderResponse(Order order) {
-        List<OrderDetails> details = order.getDetails();
-        List<OrderDetailResponse> orderDetailResponses = new ArrayList<>();
-        if (details != null) {
-            orderDetailResponses = details.stream().map(detail -> {
-                return convertToOrderDetailResponse(detail);
-            }).collect(Collectors.toList());
-        }
-
-        String storeName = (order.getStore() != null) ? order.getStore().getName() : "";
-
-        return OrderResponse.builder()
-                .id(order.getId())
-                .deliveryCost(order.getDeliveryCost())
-                .note(order.getNote())
-                .createdAt(order.getCreatedAt())
-                .completeAt(order.getCompleteAt())
-                .paymentStatus(order.getPaymentStatus())
-                .paymentId(order.getPaymentId())
-                .address(getAddress(order))
-                .consigneeName(order.getConsigneeName())
-                .consigneePhoneNumber(order.getConsigneePhoneNumber())
-                .totalPrice(order.getTotalPrice())
-                .accountName(order.getAccount() != null ? order.getAccount().getFullName() : "")
-                .state(order.getStateOrder() != null ? order.getStateOrder().getStatus() : "")
-                .paymentMethodName(order.getPaymentMethod() != null ? order.getPaymentMethod().getName() : "")
-                .detail(orderDetailResponses)
-                .storeName(storeName)
-                .paymentRecordId(order.getPaymentRecord() != null ? order.getPaymentRecord().getId() : "")
-                .build();
     }
 
     private String generateOrdersSummaryHtml(List<OrderResponse> orders) {
@@ -572,5 +500,13 @@ public class OrderService {
 
         List<Long> orderIds = disbursementsRepository.findOrderIdsByPaymentClerkAndState(account.getId(), state);
         return orderRepository.findByIdIn(orderIds, pageable).map(this::convertToOrderResponse);
+    }
+
+    private OrderResponse convertToOrderResponse(Order order) {
+        return orderDtoUtil.convertToOrderResponse(order);
+    }
+
+    private OrderDetailResponse convertToOrderDetailResponse(OrderDetails detail) {
+        return orderDtoUtil.convertToOrderDetailResponse(detail);
     }
 }
