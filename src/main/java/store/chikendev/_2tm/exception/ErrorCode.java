@@ -52,6 +52,7 @@ public enum ErrorCode {
         INVALID_STATUS_CHANGE(463, "Trạng thái thay đổi không phù hợp", HttpStatus.BAD_REQUEST),
 
         INVALID_COMMISSION_RATE(464,"Tỷ lệ hoa hồng phải dưới 10%",HttpStatus.BAD_REQUEST),
+        SHIPPING_COST_NOT_FOUND(465,"Không tìm thấy chi phí vận chuyển",HttpStatus.BAD_REQUEST),
 
         // payment
         PAYMENT_ERROR_05(470, "Tài khoản của bạn không đủ số dư để thực hiện giao dịch", HttpStatus.BAD_REQUEST),
