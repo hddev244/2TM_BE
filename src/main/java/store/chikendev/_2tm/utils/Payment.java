@@ -39,8 +39,8 @@ public class Payment {
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
 
-        String vnp_ReturnUrl = "http://localhost:8080/api/payment/";
-        // String vnp_ReturnUrl = "http://api.2tm.store/api/payment/";
+        // String vnp_ReturnUrl = "http://localhost:8080/api/payment/";
+        String vnp_ReturnUrl = "http://api.2tm.store/api/payment/";
 
         vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl + paymentRecordId);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
