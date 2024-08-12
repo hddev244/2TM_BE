@@ -80,7 +80,7 @@ public class AddressController {
         );
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_CH')")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/primary/account")
     public ApiResponse<AddressResponse> updatePrimaryAddress(
         @RequestParam(name = "addressId", required = true) Long addressId
