@@ -15,4 +15,6 @@ public interface OwnerPermissionRepository extends JpaRepository<OwnerPermission
     @Query("SELECT co FROM OwnerPermission co WHERE co.state = :state")
     Page<OwnerPermission> findByStateId(@Param("state") StateOwnerPermission state, Pageable pageable);
 
+    OwnerPermission findByAccountId(String id);
+
 }

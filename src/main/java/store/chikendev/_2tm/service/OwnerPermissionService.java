@@ -42,7 +42,19 @@ public class OwnerPermissionService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        System.out.println(request.getBankAccountNumber());
+
+        OwnerPermission found = ownerRep.findByAccountId(account.getId());
+        if (found != null) {
+            return OwnerPermissionResponse.builder()
+                    .id(found.getId())
+                    .bankName(found.getBankName())
+                    .BankAccountNumber(found.getBankAccountNumber())
+                    .accountHolderName(found.getAccountHolderName())
+                    .state(found.getState().getDescription())
+                    .createdAt(found.getCreatedAt())
+                    .build();
+        }
+
         OwnerPermission ownerPermission = new OwnerPermission();
         ownerPermission.setBankName(request.getBankName());
         ownerPermission.setBankAccountNumber(request.getBankAccountNumber());
@@ -52,15 +64,11 @@ public class OwnerPermissionService {
         ownerPermission.setAccount(account);
         OwnerPermission save = ownerRep.save(ownerPermission);
 
-        return OwnerPermissionResponse.builder()
-                .id(save.getId())
-                .bankName(save.getBankName())
-                .BankAccountNumber(save.getBankAccountNumber())
-                .accountHolderName(save.getAccountHolderName())
-                .state(save.getState().getDescription())
-                .createdAt(save.getCreatedAt())
-                .accountResponse(accountService.getAccountByToken())
-                .build();
+        if (save == null) {
+            throw new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND);
+        }
+
+        return null;
     }
 
     public Page<OwnerPermissionResponse> getOwnerPer(int size, int page, Long stateId) {

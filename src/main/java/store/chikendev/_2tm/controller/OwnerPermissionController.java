@@ -2,6 +2,9 @@ package store.chikendev._2tm.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +27,17 @@ public class OwnerPermissionController {
     @Autowired
     private OwnerPermissionService ownerPermissionService;
 
-    @PostMapping("/addOwnerPermission")
-    public ApiResponse<OwnerPermissionResponse> addOwnerPermission(@RequestBody OwnerPermissionRequest request) {
-        System.out.println(request.getBankAccountNumber());
+    @PreAuthorize("hasAnyRole('ROLE_KH')")
+    @PostMapping("/require")
+    public ApiResponse<OwnerPermissionResponse> addOwnerPermission(@RequestBody @Valid OwnerPermissionRequest request) {
         OwnerPermissionResponse response = ownerPermissionService.addOwnerPermission(request);
-        return new ApiResponse<OwnerPermissionResponse>(200, null, response);
+
+        if (response == null) {
+            return new ApiResponse<OwnerPermissionResponse>(200,
+                    List.of("Tạo thành công yêu cầu"), null);
+        }
+
+        return new ApiResponse<OwnerPermissionResponse>(777, null, response);
     }
 
     @PreAuthorize("hasRole('ROLE_QTV')")

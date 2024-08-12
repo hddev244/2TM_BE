@@ -23,6 +23,8 @@ public enum ErrorCode {
         LOGIN_ROLE_REQUIRED(403, "Tài khoản không có quyền truy cập!", HttpStatus.FORBIDDEN),
         NO_MANAGEMENT_RIGHTS(418, "Đơn hàng này hiện không thuộc quản lý của bạn", HttpStatus.BAD_REQUEST),
         USER_NAME_EXISTED(419, "Tên người dùng đã tồn tại", HttpStatus.BAD_REQUEST),
+        OWNER_PERMISSION_NOT_FOUND(424, "Yêu cầu thất bại", HttpStatus.BAD_REQUEST),
+        OWNER_PERMISSION_EXIST(425, "Yêu cầu đã tồn tại", HttpStatus.BAD_REQUEST),
 
         STATE_NOT_FOUND(431, "Không tìm thấy trạng thái", HttpStatus.BAD_REQUEST),
         CATEGORY_NOT_FOUND(432, "Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),
