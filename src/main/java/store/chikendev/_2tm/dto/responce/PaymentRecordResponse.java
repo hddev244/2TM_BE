@@ -26,6 +26,8 @@ public class PaymentRecordResponse {
     private AccountResponse account;
     private Date createdAt;
     private Date updatedAt;
+
+    private Boolean isPaid;
     private List<OrderResponse> orders;
 
 }

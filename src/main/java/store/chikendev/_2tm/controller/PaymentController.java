@@ -48,11 +48,8 @@ public class PaymentController {
                 vnpPayDate,
                 status);
         String url = "";
-        if (status.equals("00")) {
-            url = "http://2tm.store/thanh-toan/thanh-cong/" + id;
-        } else {
-            url = "http://2tm.store/thanh-toan/that-bai/" + id;
-        }
+
+        url = "http://2tm.store/thanh-toan/" + id;
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(url));
         return new ResponseEntity<>(headers, HttpStatus.FOUND);

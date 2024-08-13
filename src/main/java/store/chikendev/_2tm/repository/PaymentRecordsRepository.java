@@ -1,6 +1,8 @@
 package store.chikendev._2tm.repository;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,4 +33,6 @@ public interface PaymentRecordsRepository
         @Param("account") Account account,
         Pageable pageable
     );
+
+    Optional<PaymentRecords> findByIdAndAccount(String id, Account account);
 }
