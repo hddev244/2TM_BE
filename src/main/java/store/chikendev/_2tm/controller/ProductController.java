@@ -77,7 +77,7 @@ public class ProductController {
                 return new ApiResponse<Page<ProductResponse>>(200, null, products);
         }
 
-        // @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
         @GetMapping("/store/all")
         public ApiResponse<Page<ProductResponse>> getAllProductsInStore(
                         @RequestParam(required = false, name = "size") Optional<Integer> size,

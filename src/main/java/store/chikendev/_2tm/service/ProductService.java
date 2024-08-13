@@ -56,9 +56,13 @@ import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
+import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
 @Service
 public class ProductService {
+
+        @Autowired
+        private AccountServiceUtill accountServiceUtill;
 
         @Autowired
         private ConsignmentOrdersRepository consignmentOrdersRepository;
@@ -324,14 +328,7 @@ public class ProductService {
         public ConsignmentOrdersResponse ownerCreateProduct(
                         @Valid ConsignmentOrdersRequest request,
                         MultipartFile[] images) {
-                String email = SecurityContextHolder.getContext()
-                                .getAuthentication()
-                                .getName();
-                Account account = accountRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> {
-                                        throw new AppException(ErrorCode.USER_NOT_FOUND);
-                                });
+                Account account = accountServiceUtill.getAccount();
                 Category category = categoryRepository
                                 .findById(request.getIdCategory())
                                 .orElseThrow(() -> {
@@ -466,13 +463,7 @@ public class ProductService {
         public ProductResponse updateProduct(
                         Long id,
                         ProductRequest productRequest) {
-                String email = SecurityContextHolder.getContext()
-                                .getAuthentication()
-                                .getName();
-                Account account = accountRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
+                Account account = accountServiceUtill.getAccount();
                 List<RoleAccount> allRole = roleAccountRepository.findByAccount(
                                 account);
                 allRole.forEach(roleAccount -> {
@@ -567,12 +558,7 @@ public class ProductService {
 
         // nv xem san pham theo store
         public Page<ProductResponse> getAllProductsInStore(Pageable pageable) {
-                String email = SecurityContextHolder.getContext()
-                                .getAuthentication()
-                                .getName();
-                Account account = accountRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                Account account = accountServiceUtill.getAccount();
 
                 Store store = accountStoreRepository
                                 .findByAccount(account)
