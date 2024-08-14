@@ -1,5 +1,6 @@
 package store.chikendev._2tm.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -42,4 +43,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
         @Query("SELECT o FROM Order o WHERE o.voucher = :voucher")
         List<Order> findByVoucher(@Param("voucher") Voucher voucher);
+
+        @Query("SELECT o FROM Order o WHERE o.completeAt = :completeAt")
+        Page<Order> findByCompleteAt(@Param("completeAt") Date completeAt, Pageable pageable);
 }
