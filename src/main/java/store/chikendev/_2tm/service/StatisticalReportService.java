@@ -38,8 +38,8 @@ public class StatisticalReportService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        Page<OrderDetails> orderDetails = orderDetailsRepository.findByCompleteAtAndOwnerId(dateString, account,
-                pageable);
+        Date date = convertStringToDate(dateString);
+        Page<OrderDetails> orderDetails = orderDetailsRepository.findByCompleteAtAndOwnerId(date, account, pageable);
         return convertToStatisticalReportResponse(orderDetails);
 
     }
@@ -57,4 +57,15 @@ public class StatisticalReportService {
         });
     }
 
+    private Date convertStringToDate(String dateString) {
+        // Định dạng ngày: "dd/MM/yyyy"
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        try {
+            // Chuyển đổi từ chuỗi sang đối tượng Date
+            return formatter.parse(dateString);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // Hoặc ném ngoại lệ tùy theo logic của bạn
+        }
+    }
 }

@@ -24,7 +24,7 @@ public interface OrderDetailsRepository extends JpaRepository<OrderDetails, Long
     List<OrderDetails> findByOrder(Order order);
 
     @Query("SELECT o FROM OrderDetails o WHERE o.order.completeAt = :completeAt AND o.product.ownerId =:account")
-    Page<OrderDetails> findByCompleteAtAndOwnerId(@Param("completeAt") String completeAt,
+    Page<OrderDetails> findByCompleteAtAndOwnerId(@Param("completeAt") Date completeAt,
             @Param("account") Account account, Pageable pageable);
 
 }
