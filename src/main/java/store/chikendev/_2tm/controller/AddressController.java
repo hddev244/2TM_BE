@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -85,12 +86,35 @@ public class AddressController {
     public ApiResponse<AddressResponse> updatePrimaryAddress(
         @RequestParam(name = "addressId", required = true) Long addressId
     ) {
-        res.addHeader("test", "21123123");
         AddressResponse response = addressService.updatePrimaryAddress(
             addressId
         );
         return new ApiResponse<AddressResponse>(200, null, response);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping()
+    public ApiResponse<AddressResponse> updateAddress(
+        @RequestBody AddressRequest request
+    ) {
+        AddressResponse response = addressService.updateAddress(
+            request
+        );
+        return new ApiResponse<AddressResponse>(200, null, response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping()
+    public ApiResponse<String> delete(
+        @RequestParam(name = "addressId", required = true) Long addressId
+    ) {
+        String response = addressService.deleteAddress(
+            addressId
+        );
+        return new ApiResponse<String>(200, null, response);
+    }
+
+
 
     @GetMapping("/user")
     public ApiResponse<Page<AddressResponse>> getUserAddresses(

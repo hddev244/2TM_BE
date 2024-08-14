@@ -25,6 +25,7 @@ public enum ErrorCode {
         USER_NAME_EXISTED(419, "Tên người dùng đã tồn tại", HttpStatus.BAD_REQUEST),
         OWNER_PERMISSION_NOT_FOUND(424, "Yêu cầu thất bại", HttpStatus.BAD_REQUEST),
         OWNER_PERMISSION_EXIST(425, "Yêu cầu đã tồn tại", HttpStatus.BAD_REQUEST),
+        DATA_ERROR(000,"Lỗi cơ sở dữ liệu",HttpStatus.BAD_REQUEST),
 
         STATE_NOT_FOUND(431, "Không tìm thấy trạng thái", HttpStatus.BAD_REQUEST),
         CATEGORY_NOT_FOUND(432, "Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),

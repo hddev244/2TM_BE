@@ -28,9 +28,12 @@ import store.chikendev._2tm.repository.AddressRepository;
 import store.chikendev._2tm.repository.DistrictRepository;
 import store.chikendev._2tm.repository.ProvinceCityRepository;
 import store.chikendev._2tm.repository.WardRepository;
+import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
 @Service
 public class AddressService {
+    @Autowired
+    private AccountServiceUtill accountServiceUtil;
 
     @Autowired
     private AddressRepository addressRepository;
@@ -161,6 +164,35 @@ public class AddressService {
                 .wardId(address.getWard().getId())
                 .phoneNumber(address.getPhoneNumber())
                 .build();
+    }
+
+    public String deleteAddress(Long addressId) {
+        Account account = accountServiceUtil.getAccount();
+        Address addressFound = addressRepository.findByAccountAndId(account, addressId)
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        try {
+            addressRepository.delete(addressFound);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        }
+
+        return "Xóa thành công!";
+    }
+
+    public AddressResponse updateAddress(AddressRequest request) {
+        Account account = accountServiceUtil.getAccount();
+        Address addressFound = addressRepository.findAllByIdAndAccount(request.getId(),account).orElseThrow(
+           () -> new AppException(ErrorCode.ADDRESS_NOT_FOUND)
+        );
+        addressFound.setPhoneNumber(request.getPhoneNumber());
+        addressFound.setStreetAddress(request.getStreetAddress());
+        Ward ward = wardRepository.findById(request.getWardId())
+                .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
+        addressFound.setWard(ward);
+        Address save = addressRepository.save(addressFound);
+        return convertAddressToAddressResponse(save);
+
     }
 
 }
