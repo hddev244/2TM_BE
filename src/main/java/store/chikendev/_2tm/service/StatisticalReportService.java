@@ -1,6 +1,9 @@
 package store.chikendev._2tm.service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +41,10 @@ public class StatisticalReportService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        Date date = convertStringToDate(dateString);
-        Page<OrderDetails> orderDetails = orderDetailsRepository.findByCompleteAtAndOwnerId(date, account, pageable);
+        LocalDate date = convertToDate(dateString);
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+        Page<OrderDetails> orderDetails = orderDetailsRepository.findAllByDate(startOfDay, endOfDay, account, pageable);
         return convertToStatisticalReportResponse(orderDetails);
 
     }
@@ -57,15 +62,8 @@ public class StatisticalReportService {
         });
     }
 
-    private Date convertStringToDate(String dateString) {
-        // Định dạng ngày: "dd/MM/yyyy"
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        try {
-            // Chuyển đổi từ chuỗi sang đối tượng Date
-            return formatter.parse(dateString);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null; // Hoặc ném ngoại lệ tùy theo logic của bạn
-        }
+    public LocalDate convertToDate(String dateStr) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return LocalDate.parse(dateStr, formatter);
     }
 }
