@@ -99,7 +99,7 @@ public class OrderController {
                                 orderService.confirmOder(orderId));
         }
 
-        // @PreAuthorize("hasRole('ROLE_KH')")
+        @PreAuthorize("hasRole('ROLE_KH, ROLE_NVCH, ROLE_QLCH, ROLE_QTV')")
         @GetMapping("/{orderId}")
         public ApiResponse<OrderResponse> getOrderDetails(@PathVariable("orderId") Long orderId) {
                 OrderResponse orderResponse = orderService.getOrderDetails(orderId);

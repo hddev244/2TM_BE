@@ -27,15 +27,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
         Page<Order> findByStore(Store store, Pageable pageable);
 
-        @Query("SELECT o FROM Order o WHERE o.store = :store AND o.stateOrder = :state")
+        @Query("SELECT o FROM Order o WHERE o.store = :store AND o.stateOrder = :state ")
         Page<Order> findByStoreAndStateId(@Param("store") Store store,
                         @Param("state") StateOrder state, Pageable pageable);
 
-        @Query("SELECT o FROM Order o WHERE o.account = :account AND o.stateOrder = :state and o.type = true")
+        @Query("SELECT o FROM Order o WHERE o.account = :account AND o.stateOrder = :state and o.type = true AND (o.paymentStatus = true or (o.paymentStatus = false AND o.paymentMethod.id = 1))")
         Page<Order> findByAccountIdAndStateId(@Param("account") Account account,
                         @Param("state") StateOrder state, Pageable pageable);
 
-        @Query("SELECT o FROM Order o WHERE o.account = :account and o.type = true")
+        @Query("SELECT o FROM Order o WHERE o.account = :account and o.type = true AND (o.paymentStatus = true or (o.paymentStatus = false AND o.paymentMethod.id = 1)) ")
         Page<Order> findByAccountIdAndType(@Param("account") Account account, Pageable pageable);
 
         @Query("SELECT o FROM Order o WHERE o.id IN :orderIds")

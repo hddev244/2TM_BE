@@ -51,12 +51,15 @@ import store.chikendev._2tm.utils.Payment;
 import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 import store.chikendev._2tm.utils.dtoUtil.response.OrderDtoUtil;
+import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
 @Service
 public class OrderService {
 
     @Autowired
     private OrderDtoUtil orderDtoUtil;
+    @Autowired
+    private AccountServiceUtill accountServiceUtill;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -450,9 +453,8 @@ public class OrderService {
     }
 
     public Page<OrderResponse> getOrderByStateId(int size, int page, Long stateId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Account account = accountServiceUtill.getAccount();
+        
         Pageable pageable = PageRequest.of(page, size);
         if (stateId == null) {
             Page<Order> ordersPage = orderRepository.findByAccountIdAndType(account, pageable);
