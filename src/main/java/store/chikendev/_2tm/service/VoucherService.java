@@ -1,6 +1,7 @@
 package store.chikendev._2tm.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +24,6 @@ public class VoucherService {
 
     @Autowired
     private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderService orderService;
 
     @Autowired
     private ModelMapper mapper;
@@ -76,5 +74,16 @@ public class VoucherService {
         voucher.setMaximumDiscountAmount(request.getMaximumDiscountAmount());
         Voucher save = voucherRepository.save(voucher);
         return getResponse(save);
+    }
+
+    public List<VoucherResponse> getAll() {
+        List<Voucher> voucher = voucherRepository.findAll();
+        return voucher.stream().map(this::getResponse).collect(Collectors.toList());
+    }
+
+    public VoucherResponse getById(String id) {
+        Voucher voucher = voucherRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
+        return getResponse(voucher);
     }
 }
