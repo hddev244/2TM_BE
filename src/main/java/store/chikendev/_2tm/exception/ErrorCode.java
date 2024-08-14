@@ -25,7 +25,7 @@ public enum ErrorCode {
         USER_NAME_EXISTED(419, "Tên người dùng đã tồn tại", HttpStatus.BAD_REQUEST),
         OWNER_PERMISSION_NOT_FOUND(424, "Yêu cầu thất bại", HttpStatus.BAD_REQUEST),
         OWNER_PERMISSION_EXIST(425, "Yêu cầu đã tồn tại", HttpStatus.BAD_REQUEST),
-        DATA_ERROR(000,"Lỗi cơ sở dữ liệu",HttpStatus.BAD_REQUEST),
+        DATA_ERROR(000, "Lỗi cơ sở dữ liệu", HttpStatus.BAD_REQUEST),
 
         STATE_NOT_FOUND(431, "Không tìm thấy trạng thái", HttpStatus.BAD_REQUEST),
         CATEGORY_NOT_FOUND(432, "Không tìm thấy danh mục", HttpStatus.BAD_REQUEST),
@@ -54,8 +54,9 @@ public enum ErrorCode {
         BILL_OF_LADING_NOT_FOUND(462, "Không tìm thấy vận đơn", HttpStatus.BAD_REQUEST),
         INVALID_STATUS_CHANGE(463, "Trạng thái thay đổi không phù hợp", HttpStatus.BAD_REQUEST),
 
-        INVALID_COMMISSION_RATE(464,"Tỷ lệ hoa hồng phải dưới 10%",HttpStatus.BAD_REQUEST),
-        SHIPPING_COST_NOT_FOUND(465,"Không tìm thấy chi phí vận chuyển",HttpStatus.BAD_REQUEST),
+        INVALID_COMMISSION_RATE(464, "Tỷ lệ hoa hồng phải dưới 10%", HttpStatus.BAD_REQUEST),
+        SHIPPING_COST_NOT_FOUND(465, "Không tìm thấy chi phí vận chuyển", HttpStatus.BAD_REQUEST),
+        INVAL_DATETIME_INPUT(466, "Định dạng ngày tháng sai", HttpStatus.BAD_REQUEST),
 
         // payment
         PAYMENT_ERROR_05(470, "Tài khoản của bạn không đủ số dư để thực hiện giao dịch", HttpStatus.BAD_REQUEST),

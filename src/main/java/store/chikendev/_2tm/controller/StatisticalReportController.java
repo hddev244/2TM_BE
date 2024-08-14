@@ -28,4 +28,15 @@ public class StatisticalReportController {
                 page, size);
         return new ApiResponse<Page<StatisticalReportResponse>>(200, null, statisticalReport);
     }
+
+    // CH - xem báo cáo doanh thu theo tháng truyền vào
+    @GetMapping("by-month")
+    public ApiResponse<Page<StatisticalReportResponse>> getByMonth(
+            @RequestParam(name = "month") String month,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "8") int size) {
+        Page<StatisticalReportResponse> statisticalReport = statisticalReportService.getStatisticalReportByMonth(month,
+                page, size);
+        return new ApiResponse<Page<StatisticalReportResponse>>(200, null, statisticalReport);
+    }
 }

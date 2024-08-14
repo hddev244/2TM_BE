@@ -27,4 +27,9 @@ public interface OrderDetailsRepository extends JpaRepository<OrderDetails, Long
     Page<OrderDetails> findAllByDate(@Param("startOfDay") LocalDateTime startOfDay,
             @Param("endOfDay") LocalDateTime endOfDay, @Param("account") Account account, Pageable pageable);
 
+    @Query("SELECT e FROM OrderDetails e WHERE (e.order.completeAt >= :startOfMonth AND e.order.completeAt < :endOfMonth) AND e.product.ownerId =:account")
+    Page<OrderDetails> findAllByMonth(@Param("startOfMonth") LocalDateTime startOfMonth,
+            @Param("endOfMonth") LocalDateTime endOfMonth,
+            @Param("account") Account account, Pageable pageable);
+
 }
