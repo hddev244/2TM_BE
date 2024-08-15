@@ -103,29 +103,4 @@ public class OwnerPermissionService {
                 .accountResponse(accountService.getAccountByToken())
                 .build();
     }
-
-    // public String updateState(Long id, UpdateStateOwwnerPermissionRequest
-    // request) {
-    // OwnerPermission ownerPermission = ownerRep.findById(id)
-    // .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND));
-    // if (ownerPermission != null) {
-    // StateOwnerPermission state = stateRep.findById(request.getIdState())
-    // .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
-    // ownerPermission.setState(state);
-    // OwnerPermission saveState = ownerRep.save(ownerPermission);
-    // if (saveState.getState().getId() == 2) {
-    // RoleAccount roleAccount = new RoleAccount();
-    // Account account = accountRepository.findById(saveState.getAccount().getId())
-    // .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-    // Role role = roleRepository.findById("CH").orElseThrow(() -> new
-    // AppException(ErrorCode.ROLE_NOT_FOUND));
-    // roleAccount.setAccount(account);
-    // roleAccount.setRole(role);
-    // roleAccountRepository.save(roleAccount);
-    // return "Thêm vài trò thành công";
-    // }
-    // return "Thay đỗi trạng thái yêu cầu thành công";
-    // }
-    // return "Thay đổi trạng thái yêu cầu thất bại";
-    // }
 }
