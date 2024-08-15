@@ -1,6 +1,5 @@
 package store.chikendev._2tm.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -14,25 +13,19 @@ import store.chikendev._2tm.entity.PaymentRecords;
 
 @Repository
 public interface PaymentRecordsRepository
-    extends JpaRepository<PaymentRecords, String> {
-    @Query(
-        "SELECT co FROM PaymentRecords co WHERE co.account = :account AND co.status = :status"
-    )
+        extends JpaRepository<PaymentRecords, String> {
+    @Query("SELECT co FROM PaymentRecords co WHERE co.account = :account AND co.status = :status")
     Page<PaymentRecords> findByAccountAndStatus(
-        @Param("account") Account account,
-        @Param("status") Boolean status,
-        Pageable pageable
-    );
+            @Param("account") Account account,
+            @Param("status") Boolean status,
+            Pageable pageable);
 
     Page<PaymentRecords> findByAccount(Account account, Pageable pageable);
 
-    @Query(
-        "SELECT pr FROM PaymentRecords pr JOIN pr.orders o WHERE o.type = true AND o.account = :account AND o.paymentStatus = false"
-    )
+    @Query("SELECT pr FROM PaymentRecords pr JOIN pr.orders o WHERE o.type = true AND o.account = :account AND o.paymentStatus = false")
     Page<PaymentRecords> getAllNotPaidYet(
-        @Param("account") Account account,
-        Pageable pageable
-    );
+            @Param("account") Account account,
+            Pageable pageable);
 
     Optional<PaymentRecords> findByIdAndAccount(String id, Account account);
 }

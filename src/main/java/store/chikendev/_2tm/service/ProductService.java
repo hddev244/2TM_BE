@@ -28,7 +28,6 @@ import store.chikendev._2tm.entity.ConsignmentOrders;
 import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Product;
 import store.chikendev._2tm.entity.ProductAttributeDetail;
-import store.chikendev._2tm.entity.ProductCommission;
 import store.chikendev._2tm.entity.ProductImages;
 import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.RoleAccount;
@@ -45,7 +44,6 @@ import store.chikendev._2tm.repository.CategoryRepository;
 import store.chikendev._2tm.repository.ConsignmentOrdersRepository;
 import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.ProductAttributeDetailRepository;
-import store.chikendev._2tm.repository.ProductCommissionRepository;
 import store.chikendev._2tm.repository.ProductImagesRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.RoleAccountRepository;
@@ -111,9 +109,6 @@ public class ProductService {
 
         @Autowired
         private RoleAccountRepository roleAccountRepository;
-
-        @Autowired
-        private ProductCommissionRepository productCommissionRepository;
 
         public void deleteProduct(Long id) {
                 productRepository.deleteById(id);

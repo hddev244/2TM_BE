@@ -3,7 +3,6 @@ package store.chikendev._2tm.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,9 +28,11 @@ public class ShippingCostController {
         response.setCost(shippingCost.getCost());
         return new ApiResponse<ShippingCostResponse>(200, null, response);
     }
+
     @PreAuthorize("hasAnyRole('ROLE_QTV')")
     @PutMapping("/update-ship-cost/{id}")
-    public ApiResponse<ShippingCostResponse> updateShippingCost(@PathVariable("id") Long id, @RequestBody ShippingCostRequest request) {
+    public ApiResponse<ShippingCostResponse> updateShippingCost(@PathVariable("id") Long id,
+            @RequestBody ShippingCostRequest request) {
         ShippingCost shippingCost = shippingCostService.updateShippingCost(id, request.getCost());
         ShippingCostResponse response = new ShippingCostResponse();
         response.setId(shippingCost.getId());
@@ -50,11 +51,13 @@ public class ShippingCostController {
         return new ApiResponse<ShippingCostResponse>(200, null, response);
     }
 
+    // tìm phí ship thích hợp
     @GetMapping("/findOne")
     public ApiResponse<ShippingCostResponse> getShippingCost(
-            @RequestParam("wardIdStore") String wardIdStore,
-            @RequestParam("wardIdDelivery") String wardIdDelivery) {
-        return new ApiResponse<ShippingCostResponse>(200, null,shippingCostService.findShippingCost(wardIdStore, wardIdDelivery));
+            @RequestParam("wardIdStore") Long wardIdStore,
+            @RequestParam("wardIdDelivery") Long wardIdDelivery) {
+        return new ApiResponse<ShippingCostResponse>(200, null,
+                shippingCostService.findShippingCost(wardIdStore, wardIdDelivery));
     }
-    
+
 }

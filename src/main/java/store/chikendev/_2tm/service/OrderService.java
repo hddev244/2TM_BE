@@ -19,17 +19,15 @@ import store.chikendev._2tm.dto.request.OrderInformation;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderPaymentResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
-import store.chikendev._2tm.dto.responce.ProductResponse;
-import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.CartItems;
-import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
 import store.chikendev._2tm.entity.PaymentMethods;
 import store.chikendev._2tm.entity.PaymentRecords;
 import store.chikendev._2tm.entity.Product;
+import store.chikendev._2tm.entity.ShippingCost;
 import store.chikendev._2tm.entity.StateOrder;
 import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.entity.Ward;
@@ -44,12 +42,12 @@ import store.chikendev._2tm.repository.OrderRepository;
 import store.chikendev._2tm.repository.PaymentMethodsRepository;
 import store.chikendev._2tm.repository.PaymentRecordsRepository;
 import store.chikendev._2tm.repository.ProductRepository;
+import store.chikendev._2tm.repository.ShippingCostRepository;
 import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.Payment;
 import store.chikendev._2tm.utils.SendEmail;
-import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 import store.chikendev._2tm.utils.dtoUtil.response.OrderDtoUtil;
 import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
@@ -102,6 +100,9 @@ public class OrderService {
 
     @Autowired
     private DisbursementsRepository disbursementsRepository;
+
+    @Autowired
+    private ShippingCostRepository shippingCostRepository;
 
     private final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final int ID_LENGTH = 10;
@@ -179,6 +180,7 @@ public class OrderService {
                         .ward(ward)
                         .type(true)
                         .store(store)
+                        .ShippingCost(getShipCost(store.getWard(), ward).getCost())
                         .build();
 
                 Order savedOrder = orderRepository.save(order);
@@ -454,7 +456,7 @@ public class OrderService {
 
     public Page<OrderResponse> getOrderByStateId(int size, int page, Long stateId) {
         Account account = accountServiceUtill.getAccount();
-        
+
         Pageable pageable = PageRequest.of(page, size);
         if (stateId == null) {
             Page<Order> ordersPage = orderRepository.findByAccountIdAndType(account, pageable);
@@ -510,5 +512,18 @@ public class OrderService {
 
     private OrderDetailResponse convertToOrderDetailResponse(OrderDetails detail) {
         return orderDtoUtil.convertToOrderDetailResponse(detail);
+    }
+
+    private ShippingCost getShipCost(Ward wardStore, Ward wardDelivery) {
+        if (wardStore.getId() == wardDelivery.getId()) {
+            ShippingCost shippingCost = shippingCostRepository.findById(ShippingCost.IN_THE_WARD).get();
+            return shippingCost;
+        }
+        if (wardStore.getDistrict().getId() == wardDelivery.getDistrict().getId()) {
+            ShippingCost shippingCost = shippingCostRepository.findById(ShippingCost.IN_THE_DISTRICT).get();
+            return shippingCost;
+        }
+        ShippingCost shippingCost = shippingCostRepository.findById(ShippingCost.OUTSIDE_THE_DISTRICT).get();
+        return shippingCost;
     }
 }

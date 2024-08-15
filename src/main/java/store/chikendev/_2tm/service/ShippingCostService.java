@@ -6,17 +6,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.responce.ShippingCostResponse;
-import store.chikendev._2tm.dto.responce.VoucherResponse;
 import store.chikendev._2tm.entity.ShippingCost;
-import store.chikendev._2tm.entity.Voucher;
+import store.chikendev._2tm.entity.Ward;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.ShippingCostRepository;
+import store.chikendev._2tm.repository.WardRepository;
 
 @Service
 public class ShippingCostService {
     @Autowired
     private ShippingCostRepository shippingCostRepository;
+
+    @Autowired
+    private WardRepository wardRepository;
 
     public ShippingCost createShippingCost(Double cost) {
         ShippingCost shippingCost = new ShippingCost();
@@ -30,12 +33,12 @@ public class ShippingCostService {
         shippingCost.setCost(cost);
         return shippingCostRepository.save(shippingCost);
     }
-    
+
     public List<ShippingCostResponse> findAll() {
         List<ShippingCost> shippingCosts = shippingCostRepository.findAll();
         return shippingCosts.stream()
-            .map(this::convertToResponse)
-            .toList();
+                .map(this::convertToResponse)
+                .toList();
     }
 
     private ShippingCostResponse convertToResponse(ShippingCost shippingCost) {
@@ -44,16 +47,29 @@ public class ShippingCostService {
         response.setCost(shippingCost.getCost());
         return response;
     }
-    
+
     public ShippingCostResponse getById(Long id) {
         ShippingCost shippingCost = shippingCostRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_COST_NOT_FOUND));
         return convertToResponse(shippingCost);
     }
 
-    public ShippingCostResponse findShippingCost(String wardIdStore, String wardIdDelivery) {
-        ShippingCost shippingCost = shippingCostRepository.findByWardIds(wardIdStore, wardIdDelivery)
-            .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_COST_NOT_FOUND));
+    public ShippingCostResponse findShippingCost(Long wardIdStore, Long wardIdDelivery) {
+        Ward wardStore = wardRepository.findById(wardIdStore).orElseThrow(() -> {
+            return new AppException(ErrorCode.WARD_NOT_FOUND);
+        });
+        Ward wardDelivery = wardRepository.findById(wardIdDelivery).orElseThrow(() -> {
+            return new AppException(ErrorCode.WARD_NOT_FOUND);
+        });
+        if (wardStore.getId() == wardDelivery.getId()) {
+            ShippingCost shippingCost = shippingCostRepository.findById(ShippingCost.IN_THE_WARD).get();
+            return convertToResponse(shippingCost);
+        }
+        if (wardStore.getDistrict().getId() == wardDelivery.getDistrict().getId()) {
+            ShippingCost shippingCost = shippingCostRepository.findById(ShippingCost.IN_THE_DISTRICT).get();
+            return convertToResponse(shippingCost);
+        }
+        ShippingCost shippingCost = shippingCostRepository.findById(ShippingCost.OUTSIDE_THE_DISTRICT).get();
         return convertToResponse(shippingCost);
     }
 

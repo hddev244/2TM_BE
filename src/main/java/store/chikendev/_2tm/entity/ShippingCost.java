@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 @Entity
 @Builder
 public class ShippingCost {
+    public static final Long IN_THE_WARD = 1L;
+    public static final Long IN_THE_DISTRICT = 2L;
+    public static final Long OUTSIDE_THE_DISTRICT = 3L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Double cost;
-
-    private String wardIdStore;
-    private String wardIdDelivery;
 }
