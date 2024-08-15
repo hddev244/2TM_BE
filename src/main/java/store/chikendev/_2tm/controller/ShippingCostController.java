@@ -49,5 +49,12 @@ public class ShippingCostController {
         ShippingCostResponse response = shippingCostService.getById(id);
         return new ApiResponse<ShippingCostResponse>(200, null, response);
     }
+
+    @GetMapping("/findOne")
+    public ApiResponse<ShippingCostResponse> getShippingCost(
+            @RequestParam("wardIdStore") String wardIdStore,
+            @RequestParam("wardIdDelivery") String wardIdDelivery) {
+        return new ApiResponse<ShippingCostResponse>(200, null,shippingCostService.findShippingCost(wardIdStore, wardIdDelivery));
+    }
     
 }

@@ -51,4 +51,10 @@ public class ShippingCostService {
         return convertToResponse(shippingCost);
     }
 
+    public ShippingCostResponse findShippingCost(String wardIdStore, String wardIdDelivery) {
+        ShippingCost shippingCost = shippingCostRepository.findByWardIds(wardIdStore, wardIdDelivery)
+            .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_COST_NOT_FOUND));
+        return convertToResponse(shippingCost);
+    }
+
 }

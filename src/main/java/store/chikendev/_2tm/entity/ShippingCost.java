@@ -20,4 +20,7 @@ public class ShippingCost {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Double cost;
+
+    private String wardIdStore;
+    private String wardIdDelivery;
 }
