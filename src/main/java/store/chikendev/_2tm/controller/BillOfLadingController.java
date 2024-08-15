@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,15 @@ public class BillOfLadingController {
     public ApiResponse<List<BillOfLadingResponse>> getShipList(@PathVariable("deliveryPerson") String deliveryPerson) {
         return new ApiResponse<List<BillOfLadingResponse>>(200, null,
                 billOfLadingService.getBillOfLadingByDeliveryPersonId(deliveryPerson));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_NVGH')")
+    @PutMapping("/accept/{billOfLadingId}")
+    public ApiResponse<String> aceptBillOfLading(
+            @PathVariable("billOfLadingId") Long billOfLadingId) {
+                System.out.println("billOfLadingId: " + billOfLadingId);
+        billOfLadingService.acceptBillOfLading(billOfLadingId);
+        return new ApiResponse<String>(200, null, "Lấy hàng thành công");
     }
 
     @PreAuthorize("hasAnyRole('ROLE_NVGH')")
