@@ -1,5 +1,7 @@
 package store.chikendev._2tm.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,4 +38,16 @@ public class ShippingCostController {
         response.setCost(shippingCost.getCost());
         return new ApiResponse<ShippingCostResponse>(200, null, response);
     }
+
+    @GetMapping
+    public ApiResponse<List<ShippingCostResponse>> getAllShippingCosts() {
+        return new ApiResponse<List<ShippingCostResponse>>(200, null, shippingCostService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<ShippingCostResponse> getShippingCostById(@PathVariable("id") Long id) {
+        ShippingCostResponse response = shippingCostService.getById(id);
+        return new ApiResponse<ShippingCostResponse>(200, null, response);
+    }
+    
 }
