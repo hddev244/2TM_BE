@@ -52,9 +52,12 @@ import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
+import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
 @Service
 public class BillOfLadingService {
+    @Autowired
+    private AccountServiceUtill accountServiceUtill;
 
     @Autowired
     BillOfLadingRepository billOfLRepository;
@@ -550,5 +553,28 @@ public class BillOfLadingService {
                                 : "")
                 .orderState(orderResponse)
                 .build();
+    }
+
+    public void acceptBillOfLading(Long billOfLadingId) {
+        Account account = accountServiceUtill.getAccount();
+
+        BillOfLading billOfLading = billOfLRepository
+                .findByDeliveryPersonAndId(account, billOfLadingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
+
+        Long stateId = -1L;
+        try {
+            stateId = billOfLading.getOrder().getStateOrder().getId();
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        } 
+        if (stateId != StateOrder.CONFIRMED) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateOrder stateOrder = stateOrderRepository.findById(StateOrder.DELIVERING).get();
+        billOfLading.getOrder().setStateOrder(stateOrder);
+        billOfLRepository.saveAndFlush(billOfLading);
+        
     }
 }
