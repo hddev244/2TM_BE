@@ -58,7 +58,7 @@ public class OrderController {
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 
-        @PreAuthorize("hasRole('ROLE_KH')")
+        @PreAuthorize("hasAnyRole('ROLE_KH','ROLE_CH', 'ROLE_NVCH', 'ROLE_QLCH','ROLE_QTV')")
         @GetMapping("/status")
         public ApiResponse<Page<OrderResponse>> getOrdersByStatusForCustomer(
                         @RequestParam Long statusId,
@@ -90,14 +90,23 @@ public class OrderController {
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 
-        @PreAuthorize("hasRole('ROLE_KH, ROLE_NVCH, ROLE_QLCH, ROLE_QTV')")
+        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+        @GetMapping("/confirm-order")
+        public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
+                return new ApiResponse<String>(
+                                200,
+                                null,
+                                orderService.confirmOder(orderId));
+        }
+
+        @PreAuthorize("hasAnyRole('ROLE_KH','ROLE_CH', 'ROLE_NVCH', 'ROLE_QLCH','ROLE_QTV')")
         @GetMapping("/{orderId}")
         public ApiResponse<OrderResponse> getOrderDetails(@PathVariable("orderId") Long orderId) {
                 OrderResponse orderResponse = orderService.getOrderDetails(orderId);
                 return new ApiResponse<OrderResponse>(200, null, orderResponse);
         }
 
-        @PreAuthorize("hasAnyRole('ROLE_KH')")
+        @PreAuthorize("hasAnyRole('ROLE_KH','ROLE_CH', 'ROLE_NVCH', 'ROLE_QLCH','ROLE_QTV')")
         @GetMapping("/state")
         public ApiResponse<Page<OrderResponse>> getOrderByStateId(
                         @RequestParam(name = "size", defaultValue = "10") int size,
