@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import store.chikendev._2tm.entity.StateOrder;
 
 @Data
 @NoArgsConstructor
@@ -33,4 +34,5 @@ public class OrderResponse {
     private String storeName;
     private String paymentRecordId;
     private List<OrderDetailResponse> detail;
+    private StateOrderResponse orderState;
 }

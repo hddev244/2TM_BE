@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
@@ -19,6 +21,7 @@ import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.RoleResponse;
+import store.chikendev._2tm.dto.responce.StateOrderResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Address;
@@ -239,7 +242,6 @@ public class BillOfLadingService {
             responses = billOfLRepository.findByDeliveryPerson(
                     account,
                     pageable);
-            System.out.println(responses);
         } else {
             System.out.println(stateId + " TC");
             StateOrder stateOrder = stateOrderRep
@@ -463,6 +465,14 @@ public class BillOfLadingService {
                 .build();
     }
 
+    private StateOrderResponse convertToStateOrder(StateOrder order) {
+        StateOrderResponse stateOrder = new StateOrderResponse();
+        stateOrder.setId(order.getId());
+        stateOrder.setStatus(order.getStatus());
+        stateOrder.setDescription(order.getDescription());
+        return stateOrder;
+    }
+
     private ProductResponse convertToProductResponse(Product product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
@@ -500,6 +510,8 @@ public class BillOfLadingService {
                     })
                     .collect(Collectors.toList());
         }
+        StateOrder orderState = order.getStateOrder();
+        StateOrderResponse orderResponse = convertToStateOrder(orderState);
 
         String storeName = (order.getStore() != null)
                 ? order.getStore().getName()
@@ -536,6 +548,7 @@ public class BillOfLadingService {
                         order.getPaymentRecord() != null
                                 ? order.getPaymentRecord().getId()
                                 : "")
+                .orderState(orderResponse)
                 .build();
     }
 }
