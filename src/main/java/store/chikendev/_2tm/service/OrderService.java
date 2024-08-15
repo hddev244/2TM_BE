@@ -480,4 +480,22 @@ public class OrderService {
         ShippingCost shippingCost = shippingCostRepository.findById(ShippingCost.OUTSIDE_THE_DISTRICT).get();
         return shippingCost;
     }
+
+    public String confirmOder(Long orderId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        AccountStore store = accountStoreRepository.findByAccount(account).get();
+        if (order.getStore().getId() != store.getStore().getId()) {
+            throw new AppException(ErrorCode.ROLE_ERROR);
+        }
+        if (order.getStateOrder().getId() != StateOrder.IN_CONFIRM) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        order.setStateOrder(stateOrderRepository.findById(StateOrder.CONFIRMED).get());
+        orderRepository.save(order);
+        return "Xác nhận đơn hàng thành công";
+    }
 }
