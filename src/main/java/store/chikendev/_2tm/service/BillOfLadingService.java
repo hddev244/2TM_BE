@@ -255,6 +255,7 @@ public class BillOfLadingService {
         });
     }
 
+    // NVGH - update các trạng thái đơn hàng
     public String updateStatus(Long idBillOfLading, Long idStateOrder, MultipartFile file) {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
