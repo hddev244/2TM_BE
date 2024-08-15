@@ -90,15 +90,6 @@ public class OrderController {
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 
-        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
-        @GetMapping("/confirm-order")
-        public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
-                return new ApiResponse<String>(
-                                200,
-                                null,
-                                orderService.confirmOder(orderId));
-        }
-
         @PreAuthorize("hasRole('ROLE_KH, ROLE_NVCH, ROLE_QLCH, ROLE_QTV')")
         @GetMapping("/{orderId}")
         public ApiResponse<OrderResponse> getOrderDetails(@PathVariable("orderId") Long orderId) {
@@ -117,22 +108,15 @@ public class OrderController {
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 
-        // @PreAuthorize("hasAnyRole('ROLE_KH')")
-        @PostMapping("/Cancelled/{orderId}")
-        public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId) {
-                String email = SecurityContextHolder.getContext().getAuthentication().getName();
-                orderService.cancelOrder(orderId, email);
-                return new ApiResponse<>(200, null, "Order has been successfully cancelled.");
-        }
-
         @GetMapping("/paid")
         public ApiResponse<Page<OrderResponse>> getPaidOrders(
-                @RequestParam(name = "page", defaultValue = "0") int page,
-                @RequestParam(name = "size", defaultValue = "10") int size,
-                @RequestParam(name = "state",required = false) Boolean state) {
-            
-            String email = SecurityContextHolder.getContext().getAuthentication().getName();
-            Page<OrderResponse> orders = orderService.getPaidOrdersByStore(email, state, PageRequest.of(page, size));
-            return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        @RequestParam(name = "size", defaultValue = "10") int size,
+                        @RequestParam(name = "state", required = false) Boolean state) {
+
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
+                Page<OrderResponse> orders = orderService.getPaidOrdersByStore(email, state,
+                                PageRequest.of(page, size));
+                return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 }

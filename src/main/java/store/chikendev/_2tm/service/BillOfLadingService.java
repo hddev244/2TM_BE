@@ -39,6 +39,7 @@ import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.BillOfLadingRepository;
 import store.chikendev._2tm.repository.DisbursementsRepository;
 import store.chikendev._2tm.repository.ImageRepository;
+import store.chikendev._2tm.repository.OrderDetailsRepository;
 import store.chikendev._2tm.repository.OrderRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.RoleAccountRepository;
@@ -46,6 +47,7 @@ import store.chikendev._2tm.repository.StateOrderRepository;
 import store.chikendev._2tm.repository.ViolationRecordRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
+import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
@@ -84,26 +86,81 @@ public class BillOfLadingService {
     @Autowired
     private ProductRepository productRepository;
 
-    public BillOfLadingResponse addBillOfLading(Long idOrder) {
-        BillOfLading bill = new BillOfLading();
-        if (idOrder != null) {
-            Order order = orderRepository
-                    .findById(idOrder)
-                    .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+    @Autowired
+    private StateOrderRepository stateOrderRepository;
 
-            if (order.getStateOrder().getId() != StateOrder.CONFIRMED) {
-                throw new AppException(ErrorCode.ORDER_NOT_CONFIRMED);
-            }
-            bill.setOrder(order);
-        }
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-        Account createBy = accountRepository
-                .findByEmail(email)
+    @Autowired
+    private OrderDetailsRepository orderDetailsRepository;
+
+    @Autowired
+    private SendEmail sendEmail;
+
+    // NVCH - QLCH xác nhận order
+    public String confirmOder(Long orderId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        AccountStore store = accountStoreRepository.findByAccount(account).get();
+        if (order.getStore().getId() != store.getStore().getId()) {
+            throw new AppException(ErrorCode.ROLE_ERROR);
+        }
+        if (order.getStateOrder().getId() != StateOrder.IN_CONFIRM) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        order.setStateOrder(stateOrderRepository.findById(StateOrder.CONFIRMED).get());
+        BillOfLading billOfLading = createBillOfLading(orderRepository.saveAndFlush(order), account);
+        String emailContent = "<html>"
+                + "<body>"
+                + "<h3>Xin chào,</h3>"
+                + "<p>Đơn hàng của bạn đã được xác nhận. </p>"
+                + "<h2 style='color:blue;'>Mã vận đơn của bạn là:" + billOfLading.getId() + "</h2>"
+                + "<br>"
+                + "<p>Trân trọng,</p>"
+                + "<p>Đội ngũ hỗ trợ của 2TM</p>"
+                + "</body>"
+                + "</html>";
+        sendEmail.sendMail(order.getAccount().getEmail(), "Xác nhận đơn hàng", emailContent);
+        return "Xác nhận đơn hàng thành công";
+    }
+
+    // KH - Hủy order
+    public void cancelOrder(Long orderId, String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.getAccount().getId().equals(account.getId())) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+
+        if (!order.getStateOrder().getId().equals(StateOrder.IN_CONFIRM)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        List<OrderDetails> orderDetailsList = orderDetailsRepository.findByOrder(order);
+
+        for (OrderDetails orderDetail : orderDetailsList) {
+            Product product = orderDetail.getProduct();
+            int updatedQuantity = product.getQuantity() + orderDetail.getQuantity();
+            product.setQuantity(updatedQuantity);
+            productRepository.save(product);
+        }
+        StateOrder cancelledState = stateOrderRepository.findById(StateOrder.CANCELLED_ORDER).get();
+        order.setStateOrder(cancelledState);
+        orderRepository.save(order);
+    }
+
+    private BillOfLading createBillOfLading(Order order, Account account) {
+        BillOfLading bill = new BillOfLading();
+        if (order.getStateOrder().getId() != StateOrder.CONFIRMED) {
+            throw new AppException(ErrorCode.ORDER_NOT_CONFIRMED);
+        }
+        bill.setOrder(order);
         Store store = accountStoreRepository
-                .findByAccount(createBy)
+                .findByAccount(account)
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
                 .getStore();
         List<AccountStore> accounts = accountStoreRepository.findByStore(store);
@@ -121,10 +178,9 @@ public class BillOfLadingService {
             throw new AppException(ErrorCode.DELIVERY_PERSON_EMPTY);
         }
         bill.setCreatedAt(new Date());
-        bill.setCreateBy(createBy);
+        bill.setCreateBy(account);
         BillOfLading save = billOfLRepository.save(bill);
-        BillOfLadingResponse response = getResponse(save);
-        return response;
+        return save;
     }
 
     public List<BillOfLading> getAllBillOfLadings() {
@@ -199,10 +255,7 @@ public class BillOfLadingService {
         });
     }
 
-    public String updateStatus(
-            Long idBillOfLading,
-            Long idStateOrder,
-            MultipartFile file) {
+    public String updateStatus(Long idBillOfLading, Long idStateOrder, MultipartFile file) {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
@@ -215,23 +268,11 @@ public class BillOfLadingService {
         if (!billOfLading.getDeliveryPerson().getId().equals(account.getId())) {
             throw new AppException(ErrorCode.ROLE_ERROR);
         }
-        StateOrder stateOrder = stateOrderRep
-                .findById(idStateOrder)
-                .orElseThrow(() -> {
-                    return new AppException(ErrorCode.STATE_ORDER_NOT_FOUND);
-                });
-        if (stateOrder.getId() == StateOrder.ORDER_RETRIEVING) {
+        StateOrder stateOrder = stateOrderRep.findById(idStateOrder).orElseThrow(() -> {
+            return new AppException(ErrorCode.STATE_ORDER_NOT_FOUND);
+        });
+        if (stateOrder.getId() == StateOrder.DELIVERING) {
             if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.CONFIRMED) {
-                throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
-            }
-            updateStatusOrder(billOfLading, stateOrder, file);
-        } else if (stateOrder.getId() == StateOrder.ORDER_SUCCESSFULLY_RETRIEVED) {
-            if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.ORDER_RETRIEVING) {
-                throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
-            }
-            updateStatusOrder(billOfLading, stateOrder, file);
-        } else if (stateOrder.getId() == StateOrder.DELIVERING) {
-            if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.ORDER_SUCCESSFULLY_RETRIEVED) {
                 throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
             }
             updateStatusOrder(billOfLading, stateOrder, file);
@@ -259,10 +300,7 @@ public class BillOfLadingService {
         return "Cập nhật trạng thái thành công";
     }
 
-    private void updateStatusOrder(
-            BillOfLading billOfLading,
-            StateOrder stateOrder,
-            MultipartFile file) {
+    private void updateStatusOrder(BillOfLading billOfLading, StateOrder stateOrder, MultipartFile file) {
         Order order = billOfLading.getOrder();
         Account account = billOfLading.getOrder().getAccount();
         if (stateOrder.getId() == StateOrder.DELIVERED_SUCCESS ||
@@ -287,26 +325,18 @@ public class BillOfLadingService {
         if (stateOrder.getId() == StateOrder.DELIVERED_SUCCESS) {
             order.setCompleteAt(new Date());
             order.setPaymentStatus(true);
-            order
-                    .getDetails()
-                    .forEach(detail -> {
-                        if (detail.getProduct().getOwnerId() != null) {
-                            Double commissionRate = ((detail.getPrice() *
-                                    detail
-                                            .getProduct()
-                                            .getProductCommission()
-                                            .getCommissionRate())
-                                    /
-                                    100) *
-                                    detail.getQuantity();
-                            Disbursements disbursements = Disbursements.builder()
-                                    .commissionRate(commissionRate)
-                                    .orderDetail(detail)
-                                    .state(false)
-                                    .build();
-                            disbursementsRepository.saveAndFlush(disbursements);
-                        }
-                    });
+            order.getDetails().forEach(detail -> {
+                if (detail.getProduct().getOwnerId() != null) {
+                    Double commissionRate = ((detail.getPrice() * detail.getProduct().getProductCommission()
+                            .getCommissionRate()) / 100) * detail.getQuantity();
+                    Disbursements disbursements = Disbursements.builder()
+                            .commissionRate(commissionRate)
+                            .orderDetail(detail)
+                            .state(false)
+                            .build();
+                    disbursementsRepository.saveAndFlush(disbursements);
+                }
+            });
         }
         if (stateOrder.getId() == StateOrder.RETURNED_SUCCESS) {
             if (order.getType() == true) {

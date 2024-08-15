@@ -420,24 +420,6 @@ public class OrderService {
 
     }
 
-    public String confirmOder(Long orderId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
-        AccountStore store = accountStoreRepository.findByAccount(account).get();
-        if (order.getStore().getId() != store.getStore().getId()) {
-            throw new AppException(ErrorCode.ROLE_ERROR);
-        }
-        if (order.getStateOrder().getId() != StateOrder.IN_CONFIRM) {
-            throw new AppException(ErrorCode.STATE_ERROR);
-        }
-        order.setStateOrder(stateOrderRepository.findById(StateOrder.CONFIRMED).get());
-        orderRepository.save(order);
-        return "Xác nhận đơn hàng thành công";
-    }
-
     public OrderResponse getOrderDetails(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
@@ -468,34 +450,6 @@ public class OrderService {
             Page<Order> ordersPage = orderRepository.findByAccountIdAndStateId(account, state, pageable);
             return ordersPage.map(this::convertToOrderResponse);
         }
-    }
-
-    public void cancelOrder(Long orderId, String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
-
-        if (!order.getAccount().getId().equals(account.getId())) {
-            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
-        }
-
-        if (!order.getStateOrder().getId().equals(StateOrder.IN_CONFIRM)) {
-            throw new AppException(ErrorCode.STATE_ERROR);
-        }
-        List<OrderDetails> orderDetailsList = orderDetailRepository.findByOrder(order);
-
-        for (OrderDetails orderDetail : orderDetailsList) {
-            Product product = orderDetail.getProduct();
-            int updatedQuantity = product.getQuantity() + orderDetail.getQuantity();
-            product.setQuantity(updatedQuantity);
-            productRepository.save(product);
-        }
-        StateOrder cancelledState = stateOrderRepository.findById(StateOrder.CANCELLED_ORDER)
-                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
-        order.setStateOrder(cancelledState);
-        orderRepository.save(order);
     }
 
     public Page<OrderResponse> getPaidOrdersByStore(String email, Boolean state, Pageable pageable) {

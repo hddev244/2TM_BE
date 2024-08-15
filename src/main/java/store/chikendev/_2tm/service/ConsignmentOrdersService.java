@@ -48,6 +48,7 @@ import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
+import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
@@ -94,6 +95,9 @@ public class ConsignmentOrdersService {
 
         @Autowired
         private ProductCommissionRepository commissionRepository;
+
+        @Autowired
+        private SendEmail sendEmail;
 
         public String createConsignmentOrders(ConsignmentOrdersRequest request, MultipartFile[] files) {
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -451,6 +455,19 @@ public class ConsignmentOrdersService {
                                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
                         product.setState(stateProductRepository.findById(StateProduct.DELYVERING).get());
                         productRepository.save(product);
+                        String emailContent = "<html>"
+                                        + "<body>"
+                                        + "<h3>Xin chào,</h3>"
+                                        + "<p>Đơn hàng ký gửi của bạn đã được xác nhận. </p>"
+                                        + "<h2 style='color:blue;'>Mã vận đơn của bạn là:" + consignmentOrders.getId()
+                                        + "</h2>"
+                                        + "<br>"
+                                        + "<p>Trân trọng,</p>"
+                                        + "<p>Đội ngũ hỗ trợ của 2TM</p>"
+                                        + "</body>"
+                                        + "</html>";
+                        sendEmail.sendMail(consignmentOrders.getOrdererId().getEmail(), "Xác nhận đơn hàng ký gửi",
+                                        emailContent);
                         return "Xác nhận đơn ký gửi thành công";
                 }
                 throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);

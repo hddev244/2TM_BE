@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,13 +25,6 @@ public class BillOfLadingController {
     @Autowired
     private BillOfLadingService billOfLadingService;
 
-    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
-    @PostMapping("/add")
-    public ApiResponse<BillOfLadingResponse> addBillOfLading(@RequestParam("idOrder") Long idOrder) {
-        BillOfLadingResponse response = billOfLadingService.addBillOfLading(idOrder);
-        return new ApiResponse<>(200, null, response);
-    }
-
     @PreAuthorize("hasAnyRole('ROLE_NVGH', 'ROLE_NVCH')")
     @GetMapping("/{deliveryPerson}")
     public ApiResponse<List<BillOfLadingResponse>> getShipList(@PathVariable("deliveryPerson") String deliveryPerson) {
@@ -47,6 +41,21 @@ public class BillOfLadingController {
         Page<BillOfLadingResponse> response = billOfLadingService.getByDeliveryPersonIdAndStateId(size.orElse(10),
                 page.orElse(0), stateId);
         return new ApiResponse<Page<BillOfLadingResponse>>(200, null, response);
+    }
+
+    // xác nhận và tạo bill
+    @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+    @GetMapping("/confirm-order")
+    public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
+        return new ApiResponse<String>(200, null, billOfLadingService.confirmOder(orderId));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_KH')")
+    @PostMapping("/Cancelled/{orderId}")
+    public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        billOfLadingService.cancelOrder(orderId, email);
+        return new ApiResponse<>(200, null, "Hủy đơn hàng thành công");
     }
 
     // @PreAuthorize("isAuthenticated()")

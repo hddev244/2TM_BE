@@ -22,8 +22,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class StateOrder {
     public static final Long IN_CONFIRM = 1L;
-    public static final Long ORDER_RETRIEVING = 2L;
-    public static final Long ORDER_SUCCESSFULLY_RETRIEVED = 3L;
+    // cửa hàng xác nhận chờ vận chuyển
     public static final Long CONFIRMED = 12L;
     public static final Long CANCELLED_ORDER = 13L;
     public static final Long DELIVERING = 4L;
