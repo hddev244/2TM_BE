@@ -1,7 +1,5 @@
 package store.chikendev._2tm.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +24,7 @@ public class DisbursementController {
             @RequestParam(required = false, name = "state") Boolean state,
             @RequestParam(defaultValue = "0", name = "page") int page,
             @RequestParam(defaultValue = "10", name = "size") int size) {
-            PageRequest pageable = PageRequest.of(page, size);
+        PageRequest pageable = PageRequest.of(page, size);
         return new ApiResponse<Page<DisbursementsResponse>>(200, null,
                 disbursementService.findbyDisbursementsByAccountAndState(state, pageable));
     }
