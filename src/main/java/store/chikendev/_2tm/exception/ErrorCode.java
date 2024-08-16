@@ -45,7 +45,7 @@ public enum ErrorCode {
         CART_ITEM_NOT_MATCHING_ACCOUNT(456, "Sản phẩm trong giỏ hàng không phù hợp với tài khoản",
                         HttpStatus.BAD_REQUEST),
         VOUCHER_NOT_FOUND(457, "Không tìm thấy voucher", HttpStatus.BAD_REQUEST),
-        PAYMENT_DISBURSEMENT_NOT_FOUND(458, "Không tìm thấy thông tin thanh toán", HttpStatus.BAD_REQUEST),     
+        PAYMENT_DISBURSEMENT_NOT_FOUND(458, "Không tìm thấy thông tin thanh toán", HttpStatus.BAD_REQUEST),
 
         ORDER_NOT_CONFIRMED(455, "Đơn hàng chưa xác nhận", HttpStatus.BAD_REQUEST),
         DELIVERY_PERSON_EMPTY(454, "Không tìm thấy nhân viên giao hàng", HttpStatus.BAD_REQUEST),
@@ -57,6 +57,7 @@ public enum ErrorCode {
         INVALID_COMMISSION_RATE(464, "Tỷ lệ hoa hồng phải dưới 10%", HttpStatus.BAD_REQUEST),
         SHIPPING_COST_NOT_FOUND(465, "Không tìm thấy chi phí vận chuyển", HttpStatus.BAD_REQUEST),
         INVAL_DATETIME_INPUT(466, "Định dạng ngày tháng sai", HttpStatus.BAD_REQUEST),
+        ORDER_REFUND_ERROR(467, "các sản phẩm ký gửi khác cửa hàng phải tạo thành nhiều order", HttpStatus.BAD_REQUEST),
 
         // payment
         PAYMENT_ERROR_05(470, "Tài khoản của bạn không đủ số dư để thực hiện giao dịch", HttpStatus.BAD_REQUEST),

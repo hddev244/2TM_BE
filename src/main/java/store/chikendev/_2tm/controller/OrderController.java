@@ -37,6 +37,16 @@ public class OrderController {
                                 orderService.createOrder(request));
         }
 
+        // đơn hàng hoàn
+        @PostMapping("refund")
+        public ApiResponse<OrderPaymentResponse> createOderRefund(
+                        @RequestBody @Valid OrderInformation request) throws UnsupportedEncodingException {
+                return new ApiResponse<OrderPaymentResponse>(
+                                200,
+                                null,
+                                orderService.createOrderRefund(request));
+        }
+
         @GetMapping("/AllOrder")
         public ApiResponse<Page<OrderResponse>> getAllOrders(
                         @RequestParam(name = "page", defaultValue = "0") int page,
@@ -119,4 +129,5 @@ public class OrderController {
                                 PageRequest.of(page, size));
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
+
 }

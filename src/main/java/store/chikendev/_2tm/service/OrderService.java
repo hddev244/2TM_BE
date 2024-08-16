@@ -245,6 +245,110 @@ public class OrderService {
 
     }
 
+    public OrderPaymentResponse createOrderRefund(OrderInformation request) throws UnsupportedEncodingException {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        PaymentMethods methods = methodsRepository.findById(request.getPaymentMethodId())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
+
+        Ward ward = wardRepository.findById(request.getWardId())
+                .orElseThrow(() -> new AppException(ErrorCode.WARD_NOT_FOUND));
+
+        List<Product> products = new ArrayList<>();
+
+        request.getRefund().forEach(item -> {
+            Product product = productRepository.findById(item.getIdProduct())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+            if (product.getQuantity() < item.getQuantity()) {
+                throw new AppException(ErrorCode.PRODUCT_NOT_ENOUGH);
+            }
+            if (!account.getId().equals(product.getOwnerId().getId())) {
+                throw new AppException(ErrorCode.CART_ITEM_NOT_MATCHING_ACCOUNT);
+            }
+            products.add(product);
+        });
+        if (products.size() <= 0 || products.size() != request.getRefund().size()) {
+            throw new AppException(ErrorCode.CART_EMPTY);
+        }
+        Store store = products.get(0).getStore();
+
+        products.forEach(product -> {
+            if (product.getStore().getId() != store.getId()) {
+                throw new AppException(ErrorCode.ORDER_REFUND_ERROR);
+            }
+        });
+
+        Order order = Order.builder()
+                .deliveryCost(0.0)
+                .note(request.getNote())
+                .paymentStatus(false)
+                .consigneeDetailAddress(request.getConsigneeDetailAddress())
+                .consigneeName(request.getConsigneeName())
+                .consigneePhoneNumber(request.getConsigneePhoneNumber())
+                .account(account)
+                .stateOrder(stateOrderRepository.findById(StateOrder.IN_CONFIRM).get())
+                .paymentMethod(methods)
+                .ward(ward)
+                .type(false)
+                .store(store)
+                .build();
+        Order savedOrder = orderRepository.save(order);
+        List<OrderDetails> details = new ArrayList<>();
+        List<Product> saveProduct = new ArrayList<>();
+        products.forEach(product -> {
+            OrderDetails detail = OrderDetails.builder()
+                    .price((product.getPrice() * product.getProductCommission().getCommissionRate()) / 100)
+                    .quantity(request.getRefund().stream()
+                            .filter(item -> item.getIdProduct() == product.getId())
+                            .findFirst().get().getQuantity())
+                    .product(product)
+                    .order(savedOrder)
+                    .build();
+            details.add(detail);
+            product.setQuantity(product.getQuantity() - detail.getQuantity());
+            saveProduct.add(product);
+        });
+        Long sumTotalPrice = (long) details.stream().mapToDouble(detail -> detail.getPrice() * detail.getQuantity())
+                .sum();
+        OrderPaymentResponse response = OrderPaymentResponse.builder()
+                .sumTotalPrice(sumTotalPrice.longValue())
+                .build();
+        savedOrder.setDetails(details);
+        savedOrder.setTotalPrice((double) sumTotalPrice);
+        String htmlContent = generateOrderRefundSummaryHtml(orderDtoUtil.convertToOrderResponse(savedOrder));
+        sendEmail.sendMail(account.getEmail(), "Đơn hàng hoàn của bạn đã được tạo",
+                htmlContent);
+
+        if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
+            response.setPaymentLink(methods.getName());
+        } else {
+            String idPaymentRecords = generateRandomId();
+
+            while (paymentRecordsRepository.existsById(idPaymentRecords)) {
+                idPaymentRecords = generateRandomId();
+            }
+
+            PaymentRecords record = PaymentRecords.builder()
+                    .id(idPaymentRecords)
+                    .account(account)
+                    .amount(Double.valueOf(sumTotalPrice))
+                    .status(false)
+                    .build();
+            paymentRecordsRepository.save(record);
+            savedOrder.setPaymentRecord(record);
+            orderDetailRepository.saveAll(details);
+            productRepository.saveAll(saveProduct);
+            response.setOrder(orderDtoUtil.convertToOrderResponse(orderRepository.save(savedOrder)));
+            response.setPaymentLink(payment.createVNPT(sumTotalPrice,
+                    idPaymentRecords));
+        }
+        return response;
+
+    }
+
     private OrderPaymentResponse handleOrderSuccess(Account account, PaymentMethods method,
             List<OrderResponse> ordersResponseList,
             List<CartItems> cartItemsOrderedList,
@@ -360,6 +464,56 @@ public class OrderService {
         htmlBuilder.append("<div class='grand-total'>Tổng tiền của tất cả hóa đơn: ")
                 .append(decimalFormat.format(grandTotal))
                 .append(" VND</div>")
+                .append("</body></html>");
+
+        return htmlBuilder.toString();
+    }
+
+    private String generateOrderRefundSummaryHtml(OrderResponse order) {
+        StringBuilder htmlBuilder = new StringBuilder();
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.0");
+
+        htmlBuilder.append("<html>")
+                .append("<head>")
+                .append("<style>")
+                .append("body { font-family: Arial, sans-serif; margin: 20px; }")
+                .append(".order-summary { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; }")
+                .append(".order-header { background-color: #f2f2f2; padding: 10px; font-size: 18px; }")
+                .append(".order-details { margin-top: 10px; }")
+                .append("table { width: 100%; border-collapse: collapse; }")
+                .append("th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }")
+                .append(".total-price, .grand-total { font-weight: bold; margin-top: 10px; }")
+                .append(".grand-total { font-size: 20px; margin-top: 20px; }")
+                .append("</style>")
+                .append("</head>")
+                .append("<body>")
+                .append("<h1>Tạo thành công các hóa đơn</h1>")
+                .append("<p>Cảm ơn bạn đã đặt hàng của chúng tôi!</p>");
+
+        htmlBuilder.append("<div class='order-summary'>")
+                .append("<div class='order-header'>Hóa đơn: ").append(order.getId()).append("</div>")
+                .append("<div class='order-details'>")
+                .append("<p>Ngày tạo hóa đơn: ").append(order.getCreatedAt()).append("</p>")
+                .append("<p>Hình thức thanh toán: ").append(order.getPaymentMethodName()).append("</p>")
+                .append("<p>Địa chỉ nhận hàng: ").append(order.getAddress()).append("</p>")
+                .append("<p>Phí ship: ").append(decimalFormat.format(order.getDeliveryCost())).append("</p>")
+                .append("<p>Sản phẩm đã đặt:</p>")
+                .append("<table>")
+                .append("<tr><th>Tên sản phẩm</th><th>Số lượng</th><th>Đơn giá (VND)</th><th>Tổng tiền (VND)</th></tr>")
+                .append(order.getDetail().stream()
+                        .map(item -> "<tr>"
+                                + "<td>" + item.getProduct().getName() + "</td>"
+                                + "<td>" + item.getQuantity() + "</td>"
+                                + "<td>" + decimalFormat.format(item.getPrice()) + "</td>"
+                                + "<td>" + decimalFormat.format((item.getQuantity() * item.getPrice())) + "</td>"
+                                + "</tr>")
+                        .collect(Collectors.joining()))
+                .append("</table>")
+                .append("<p class='total-price'>Tổng tiền hóa đơn: ")
+                .append(decimalFormat.format(order.getTotalPrice()))
+                .append(" VND</p>")
+                .append("</div>")
+                .append("</div>")
                 .append("</body></html>");
 
         return htmlBuilder.toString();

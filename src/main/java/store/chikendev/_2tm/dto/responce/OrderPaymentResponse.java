@@ -15,4 +15,5 @@ public class OrderPaymentResponse {
     private List<OrderResponse> orders;
     private String paymentLink;
     private Long sumTotalPrice;
+    private OrderResponse order;
 }
