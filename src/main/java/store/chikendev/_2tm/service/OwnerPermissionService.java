@@ -1,5 +1,7 @@
 package store.chikendev._2tm.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -111,48 +113,66 @@ public class OwnerPermissionService {
                 .build();
     }
 
-public void cancelOwnerPermission(Long id) {
-     String email = SecurityContextHolder.getContext().getAuthentication().getName(); 
-     Account account = accountRepository.findByEmail(email) 
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)); 
-    
-        OwnerPermission ownerPermission = ownerRep.findById(id) 
+    public void cancelOwnerPermission(Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        List<RoleAccount> role = roleAccountRepository.findByAccount(account);
+        boolean checkRole = false;
+        for (RoleAccount roleAccount : role) {
+            if (roleAccount.getRole().getId().equals(Role.ROLE_ADMIN)) {
+                checkRole = true;
+            }
+        }
+        if (!checkRole) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+        OwnerPermission ownerPermission = ownerRep.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND));
-        if (!ownerPermission.getAccount().getId().equals(account.getId())) { 
-                throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS); } 
-        Long currentState = ownerPermission.getState().getId(); 
-        
-        if (!currentState.equals(StateOwnerPermission.IN_CONFIRM)) { 
-                throw new AppException(ErrorCode.STATE_ERROR); } 
-                
-        StateOwnerPermission cancelState = stateOwnerPermissionRepository.findById(StateOwnerPermission.REFUSE) 
-                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND)); 
-                
-            ownerPermission.setState(cancelState); 
-            ownerRep.save(ownerPermission); 
-    } 
-    
-    public void confirmOwnerPermission(Long id) {
-         OwnerPermission ownerPermission = ownerRep.findById(id) 
-            .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND)); 
-            
         Long currentState = ownerPermission.getState().getId();
-            if (!currentState.equals(StateOwnerPermission.IN_CONFIRM)) { 
-                throw new AppException(ErrorCode.STATE_ERROR); } 
 
-        StateOwnerPermission confirmState = stateOwnerPermissionRepository.findById(StateOwnerPermission.CONFIRM) 
-                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND)); 
-        ownerPermission.setState(confirmState); 
+        if (!currentState.equals(StateOwnerPermission.IN_CONFIRM)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        StateOwnerPermission cancelState = stateOwnerPermissionRepository.findById(StateOwnerPermission.REFUSE)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
 
-        Account requesterAccount = ownerPermission.getAccount(); 
-        Role productOwnerRole = roleRepository.findById(Role.ROLE_PRODUCT_OWNER) 
-                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND)); 
-        RoleAccount roleAccount = new RoleAccount(); 
-        
-        roleAccount.setAccount(requesterAccount); 
-        roleAccount.setRole(productOwnerRole); 
-        roleAccountRepository.save(roleAccount); 
-        ownerRep.save(ownerPermission); 
-    } 
+        ownerPermission.setState(cancelState);
+        ownerRep.save(ownerPermission);
+    }
+
+    public void confirmOwnerPermission(Long id) {
+        OwnerPermission ownerPermission = ownerRep.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND));
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        List<RoleAccount> role = roleAccountRepository.findByAccount(account);
+        boolean checkRole = false;
+        for (RoleAccount roleAccount : role) {
+            if (roleAccount.getRole().getId().equals(Role.ROLE_ADMIN)) {
+                checkRole = true;
+            }
+        }
+        if (!checkRole) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+        Long currentState = ownerPermission.getState().getId();
+        if (!currentState.equals(StateOwnerPermission.IN_CONFIRM)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateOwnerPermission confirmState = stateOwnerPermissionRepository.findById(StateOwnerPermission.CONFIRM)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+        ownerPermission.setState(confirmState);
+
+        Account requesterAccount = ownerPermission.getAccount();
+        Role productOwnerRole = roleRepository.findById(Role.ROLE_PRODUCT_OWNER)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        RoleAccount roleAccount = new RoleAccount();
+        roleAccount.setAccount(requesterAccount);
+        roleAccount.setRole(productOwnerRole);
+        roleAccountRepository.save(roleAccount);
+        ownerRep.save(ownerPermission);
+    }
 }
-
