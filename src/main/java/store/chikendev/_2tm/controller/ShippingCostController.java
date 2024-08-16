@@ -54,10 +54,10 @@ public class ShippingCostController {
     // tìm phí ship thích hợp
     @GetMapping("/findOne")
     public ApiResponse<ShippingCostResponse> getShippingCost(
-            @RequestParam("wardIdStore") Long wardIdStore,
+            @RequestParam("storeId") Long storeId,
             @RequestParam("wardIdDelivery") Long wardIdDelivery) {
         return new ApiResponse<ShippingCostResponse>(200, null,
-                shippingCostService.findShippingCost(wardIdStore, wardIdDelivery));
+                shippingCostService.findShippingCost(storeId, wardIdDelivery));
     }
 
 }

@@ -7,16 +7,20 @@ import org.springframework.stereotype.Service;
 
 import store.chikendev._2tm.dto.responce.ShippingCostResponse;
 import store.chikendev._2tm.entity.ShippingCost;
+import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.entity.Ward;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.ShippingCostRepository;
+import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.repository.WardRepository;
 
 @Service
 public class ShippingCostService {
     @Autowired
     private ShippingCostRepository shippingCostRepository;
+    @Autowired
+    private StoreRepository storeRepository;
 
     @Autowired
     private WardRepository wardRepository;
@@ -54,10 +58,12 @@ public class ShippingCostService {
         return convertToResponse(shippingCost);
     }
 
-    public ShippingCostResponse findShippingCost(Long wardIdStore, Long wardIdDelivery) {
-        Ward wardStore = wardRepository.findById(wardIdStore).orElseThrow(() -> {
-            return new AppException(ErrorCode.WARD_NOT_FOUND);
+    public ShippingCostResponse findShippingCost(Long storeId, Long wardIdDelivery) {
+        Store store = storeRepository.findById(storeId).orElseThrow(() -> {
+            return new AppException(ErrorCode.STORE_NOT_FOUND);
         });
+
+        Ward wardStore = store.getWard();
         Ward wardDelivery = wardRepository.findById(wardIdDelivery).orElseThrow(() -> {
             return new AppException(ErrorCode.WARD_NOT_FOUND);
         });
