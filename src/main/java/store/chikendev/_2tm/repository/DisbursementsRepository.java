@@ -2,6 +2,8 @@ package store.chikendev._2tm.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,9 +17,9 @@ public interface DisbursementsRepository extends JpaRepository<Disbursements, Lo
     List<Long> findOrderIdsByPaymentClerkAndState(@Param("accountId") String accountId, @Param("state") Boolean state);
 
     @Query("SELECT d FROM Disbursements d WHERE d.orderDetail.product.ownerId.id = :accountId AND d.state = :state")
-    List<Disbursements> findDisbursementsByOwnerIdAndState(@Param("accountId") String accountId,
-            @Param("state") Boolean state);
+    Page<Disbursements> findDisbursementsByOwnerIdAndState(@Param("accountId") String accountId,
+            @Param("state") Boolean state, Pageable pageable);
 
     @Query("SELECT d FROM Disbursements d WHERE d.orderDetail.product.ownerId.id = :accountId")
-    List<Disbursements> findDisbursementsByOwnerId(@Param("accountId") String accountId);
+    Page<Disbursements> findDisbursementsByOwnerId(@Param("accountId") String accountId, Pageable pageable);
 }

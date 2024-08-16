@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
@@ -33,7 +35,7 @@ public class BillOfLadingController {
                 billOfLadingService.getBillOfLadingByDeliveryPersonId(deliveryPerson));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_NVGH')")
+    @PreAuthorize("hasAnyRole('ROLE_NVGH')") 
     @PutMapping("/accept/{billOfLadingId}")
     public ApiResponse<String> aceptBillOfLading(
             @PathVariable("billOfLadingId") Long billOfLadingId) {
@@ -68,11 +70,20 @@ public class BillOfLadingController {
         return new ApiResponse<>(200, null, "Hủy đơn hàng thành công");
     }
 
-    // @PreAuthorize("isAuthenticated()")
-    // @GetMapping("/billOfLadingList")
-    // public ApiResponse<List<BillOfLadingResponse>> getAll() {
-    // return new ApiResponse<List<BillOfLadingResponse>(200, null,
-    // billOfLadingService.getAllBillOfLadings());
-    // }
+   @PreAuthorize("hasRole('ROLE_NVGH')")
+    @PutMapping(value = "delivery-person/complete", consumes = "multipart/form-data")
+    public ApiResponse<String> completeBill(@RequestPart("id") Long id,
+            @RequestPart(required = false, name = "image") MultipartFile image) {
+                String res = billOfLadingService.completeBill(id, image);
+        return new ApiResponse<String>(200, null, res);
+    }
+
+    @PreAuthorize("hasRole('ROLE_NVGH')")
+    @PutMapping(value = "delivery-person/reject/{id}")
+    public ApiResponse<String> onReject(@PathVariable("id") Long id) {
+                String res = billOfLadingService.onReject(id);
+        return new ApiResponse<String>(200, null, res);
+    }
+
 
 }

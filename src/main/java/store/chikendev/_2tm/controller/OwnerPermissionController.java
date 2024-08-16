@@ -9,9 +9,12 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,5 +61,12 @@ public class OwnerPermissionController {
     // String status = ownerPermissionService.updateState(id, request);
     // return new ApiResponse<String>(200, null, status);
     // }
-
+    
+    @PreAuthorize("hasRole('ROLE_QTV')")
+    @PutMapping("/reject/{id}")
+    public ApiResponse<String> rejectOwnerPermission(
+            @PathVariable("id") Long id) {
+        ownerPermissionService.rejectOwnerPermission(id);
+        return new ApiResponse<String>(200, null,"yêu cầu đã bị từ chối");
+    }
 }

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -33,21 +35,21 @@ public class DisbursementsService {
     @Autowired
     private PaymentDisbursementRepository paymentDisbursementRepository;
 
-    public List<DisbursementsResponse> findbyDisbursementsByAccountAndState(Boolean state) {
+    public Page<DisbursementsResponse> findbyDisbursementsByAccountAndState(Boolean state, Pageable pageable) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    
+        Page<Disbursements> disbursements;
         if (state == null) {
-            List<Disbursements> disbursementses = disbursementRepository.findDisbursementsByOwnerId(account.getId());
-            return disbursementses.stream().map(this::getResponse).collect(Collectors.toList());
+            disbursements = disbursementRepository.findDisbursementsByOwnerId(account.getId(), pageable);
         } else {
-            List<Disbursements> disbursements = disbursementRepository.findDisbursementsByOwnerIdAndState(
-                    account.getId(),
-                    state);
-            return disbursements.stream().map(this::getResponse).collect(Collectors.toList());
+            disbursements = disbursementRepository.findDisbursementsByOwnerIdAndState(account.getId(), state, pageable);
         }
+        
+        return disbursements.map(this::getResponse);
     }
-
+    
     public DisbursementsResponse getResponse(Disbursements disbursements) {
         OrderDetails orderDetails = orderDetailsRepository.findById(disbursements.getOrderDetail().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));

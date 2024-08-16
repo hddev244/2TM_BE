@@ -350,6 +350,7 @@ public class ConsignmentOrdersService {
                 StateConsignmentOrder state = stateConsignmentOrderRepository.findById(idStatus).orElseThrow(() -> {
                         throw new AppException(ErrorCode.STATE_NOT_FOUND);
                 });
+                
                 if (state.getId() == StateConsignmentOrder.CANCEL || state.getId() == StateConsignmentOrder.COMPLETED
                                 || state.getId() == StateConsignmentOrder.CREATED
                                 || state.getId() == StateConsignmentOrder.REFUSE) {

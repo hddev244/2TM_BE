@@ -103,4 +103,16 @@ public class OwnerPermissionService {
                 .accountResponse(accountService.getAccountByToken())
                 .build();
     }
+
+    public void rejectOwnerPermission(Long ownerPermissionId) {        
+        OwnerPermission ownerPermission = ownerRep.findById(ownerPermissionId)
+                .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND));
+
+        if (!ownerPermission.getState().getId().equals(StateOwnerPermission.IN_CONFIRM)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        ownerPermission.setState(new StateOwnerPermission(StateOwnerPermission.REFUSE, "Từ chối", null));
+        ownerRep.save(ownerPermission);
+    }
 }
