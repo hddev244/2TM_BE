@@ -90,15 +90,6 @@ public class OrderController {
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
         }
 
-        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
-        @GetMapping("/confirm-order")
-        public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
-                return new ApiResponse<String>(
-                                200,
-                                null,
-                                orderService.confirmOder(orderId));
-        }
-
         @PreAuthorize("hasAnyRole('ROLE_KH','ROLE_CH', 'ROLE_NVCH', 'ROLE_QLCH','ROLE_QTV')")
         @GetMapping("/{orderId}")
         public ApiResponse<OrderResponse> getOrderDetails(@PathVariable("orderId") Long orderId) {
