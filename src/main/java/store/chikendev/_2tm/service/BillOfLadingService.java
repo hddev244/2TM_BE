@@ -427,9 +427,9 @@ public class BillOfLadingService {
     public Double getTotalAmount(BillOfLading billOfLading) {
         if (billOfLading.getOrder().getPaymentMethod().getId() == 1) {
             Double amount = billOfLading.getOrder().getTotalPrice() +
-                    (billOfLading.getOrder().getShippingCost() == null
+                    (billOfLading.getOrder().getDeliveryCost() == null
                             ? 0.0
-                            : billOfLading.getOrder().getShippingCost());
+                            : billOfLading.getOrder().getDeliveryCost());
             return amount;
         } else {
             Double amount = 0.0;
@@ -659,7 +659,6 @@ public class BillOfLadingService {
 
         StateOrder stateOrder = stateOrderRepository.findById(StateOrder.ON_REFECT).get();
         billOfLading.getOrder().setStateOrder(stateOrder);
-
 
         return "Hoan thanh";
     }

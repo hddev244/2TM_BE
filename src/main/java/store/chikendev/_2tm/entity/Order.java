@@ -85,8 +85,6 @@ public class Order {
     @JoinColumn(name = "voucher")
     private Voucher voucher;
 
-    private Double ShippingCost;
-
     @OneToOne(mappedBy = "order")
     private BillOfLading billOfLading;
 

@@ -3,7 +3,6 @@ package store.chikendev._2tm.service;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
@@ -168,7 +167,7 @@ public class OrderService {
                 });
 
                 Order order = Order.builder()
-                        .deliveryCost(Optional.ofNullable(detail.getDeliveryCost()).orElse((double) 0))
+                        .deliveryCost(getShipCost(store.getWard(), ward).getCost())
                         .note(request.getNote())
                         .paymentStatus(false)
                         .consigneeDetailAddress(request.getConsigneeDetailAddress())
@@ -180,7 +179,6 @@ public class OrderService {
                         .ward(ward)
                         .type(true)
                         .store(store)
-                        .ShippingCost(getShipCost(store.getWard(), ward).getCost())
                         .build();
 
                 Order savedOrder = orderRepository.save(order);

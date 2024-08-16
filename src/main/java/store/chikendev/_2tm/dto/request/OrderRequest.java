@@ -15,4 +15,5 @@ public class OrderRequest {
     private Long storeId;
     private Double deliveryCost;
     private List<Long> cartItemId;
+    private List<OrderRefundRequest> refund;
 }
