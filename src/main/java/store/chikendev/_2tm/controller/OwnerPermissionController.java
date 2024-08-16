@@ -54,19 +54,11 @@ public class OwnerPermissionController {
         return new ApiResponse<Page<OwnerPermissionResponse>>(200, null, response);
     }
 
-    // @PreAuthorize("hasRole('ROLE_QTV')")
-    // @PutMapping("/update/status/{id}")
-    // public ApiResponse<String> updateStatus(@PathVariable("id") Long id,
-    // @RequestBody UpdateStateOwwnerPermissionRequest request) {
-    // String status = ownerPermissionService.updateState(id, request);
-    // return new ApiResponse<String>(200, null, status);
-    // }
-    
     @PreAuthorize("hasRole('ROLE_QTV')")
     @PutMapping("/reject/{id}")
     public ApiResponse<String> rejectOwnerPermission(
             @PathVariable("id") Long id) {
         ownerPermissionService.rejectOwnerPermission(id);
-        return new ApiResponse<String>(200, null,"yêu cầu đã bị từ chối");
+        return new ApiResponse<String>(200, null, "yêu cầu đã bị từ chối");
     }
 }

@@ -27,4 +27,5 @@ public class OrderInformation {
     @NotNull(message = "Không bỏ trống quận, huyện nơi giao hàng")
     private Long wardId;
     private List<OrderRequest> details;
+    private List<OrderRefundRequest> refund;
 }
