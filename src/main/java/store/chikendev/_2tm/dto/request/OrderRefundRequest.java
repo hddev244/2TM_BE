@@ -1,7 +1,5 @@
 package store.chikendev._2tm.dto.request;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderRequest {
-    private Long storeId;
-    private Double deliveryCost;
-    private List<Long> cartItemId;
-    private List<OrderRefundRequest> refund;
+public class OrderRefundRequest {
+    private Long idProduct;
+    private int quantity;
 }

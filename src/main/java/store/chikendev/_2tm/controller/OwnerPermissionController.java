@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,12 +52,17 @@ public class OwnerPermissionController {
         return new ApiResponse<Page<OwnerPermissionResponse>>(200, null, response);
     }
 
-    // @PreAuthorize("hasRole('ROLE_QTV')")
-    // @PutMapping("/update/status/{id}")
-    // public ApiResponse<String> updateStatus(@PathVariable("id") Long id,
-    // @RequestBody UpdateStateOwwnerPermissionRequest request) {
-    // String status = ownerPermissionService.updateState(id, request);
-    // return new ApiResponse<String>(200, null, status);
-    // }
+    @PreAuthorize("hasRole('ROLE_QTV')")
+    @PostMapping("/reject/{id}")
+    public ApiResponse<String> cancelOwnerPermission(@PathVariable("id") Long id) {
+        ownerPermissionService.cancelOwnerPermission(id);
+        return new ApiResponse<String>(200, null, "Yêu cầu đã bị từ chối");
+    }
 
+    @PreAuthorize("hasRole('ROLE_QTV')")
+    @PostMapping("/confirm/{id}")
+    public ApiResponse<String> confirmOwnerPermission(@PathVariable("id") Long id) {
+        ownerPermissionService.confirmOwnerPermission(id);
+        return new ApiResponse<String>(200, null, "Xác nhận thành công");
+    }
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import store.chikendev._2tm.dto.request.NotificationPayload;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
@@ -19,6 +22,7 @@ import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.RoleResponse;
+import store.chikendev._2tm.dto.responce.StateOrderResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Address;
@@ -49,9 +53,15 @@ import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
+import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
 @Service
 public class BillOfLadingService {
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private AccountServiceUtill accountServiceUtill;
 
     @Autowired
     BillOfLadingRepository billOfLRepository;
@@ -239,7 +249,6 @@ public class BillOfLadingService {
             responses = billOfLRepository.findByDeliveryPerson(
                     account,
                     pageable);
-            System.out.println(responses);
         } else {
             System.out.println(stateId + " TC");
             StateOrder stateOrder = stateOrderRep
@@ -418,9 +427,9 @@ public class BillOfLadingService {
     public Double getTotalAmount(BillOfLading billOfLading) {
         if (billOfLading.getOrder().getPaymentMethod().getId() == 1) {
             Double amount = billOfLading.getOrder().getTotalPrice() +
-                    (billOfLading.getOrder().getShippingCost() == null
+                    (billOfLading.getOrder().getDeliveryCost() == null
                             ? 0.0
-                            : billOfLading.getOrder().getShippingCost());
+                            : billOfLading.getOrder().getDeliveryCost());
             return amount;
         } else {
             Double amount = 0.0;
@@ -463,6 +472,14 @@ public class BillOfLadingService {
                 .build();
     }
 
+    private StateOrderResponse convertToStateOrder(StateOrder order) {
+        StateOrderResponse stateOrder = new StateOrderResponse();
+        stateOrder.setId(order.getId());
+        stateOrder.setStatus(order.getStatus());
+        stateOrder.setDescription(order.getDescription());
+        return stateOrder;
+    }
+
     private ProductResponse convertToProductResponse(Product product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
@@ -500,6 +517,8 @@ public class BillOfLadingService {
                     })
                     .collect(Collectors.toList());
         }
+        StateOrder orderState = order.getStateOrder();
+        StateOrderResponse orderResponse = convertToStateOrder(orderState);
 
         String storeName = (order.getStore() != null)
                 ? order.getStore().getName()
@@ -536,6 +555,111 @@ public class BillOfLadingService {
                         order.getPaymentRecord() != null
                                 ? order.getPaymentRecord().getId()
                                 : "")
+                .orderState(orderResponse)
                 .build();
+    }
+
+    public void acceptBillOfLading(Long billOfLadingId) {
+        Account account = accountServiceUtill.getAccount();
+
+        BillOfLading billOfLading = billOfLRepository
+                .findByDeliveryPersonAndId(account, billOfLadingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
+
+        Long stateId = -1L;
+        try {
+            stateId = billOfLading.getOrder().getStateOrder().getId();
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        }
+        if (stateId != StateOrder.CONFIRMED) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateOrder stateOrder = stateOrderRepository.findById(StateOrder.DELIVERING).get();
+        billOfLading.getOrder().setStateOrder(stateOrder);
+        billOfLRepository.saveAndFlush(billOfLading);
+
+    }
+
+    public String completeBill(Long id, MultipartFile file) {
+        Account account = accountServiceUtill.getAccount();
+
+        BillOfLading billOfLading = billOfLRepository
+                .findByDeliveryPersonAndId(account, id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
+
+        // Kiểm tra id có phjai là trạng thái DELIVERING
+        Long stateId = -1L;
+        try {
+            stateId = billOfLading.getOrder().getStateOrder().getId();
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        }
+        if (stateId != StateOrder.DELIVERING) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateOrder stateOrder = stateOrderRepository.findById(StateOrder.DELIVERED_SUCCESS).get();
+        billOfLading.getOrder().setStateOrder(stateOrder);
+
+        if (file == null) {
+            throw new AppException(ErrorCode.FILE_NOT_FOUND);
+        }
+
+        ResponseDocumentDto fileSaved = FilesHelp.saveFile(file, billOfLading.getId(),
+                EntityFileType.BILL_OF_LANDING);
+        Image image = Image.builder()
+                .fileId(fileSaved.getFileId())
+                .fileName(fileSaved.getFileName())
+                .fileDownloadUri(fileSaved.getFileDownloadUri())
+                .fileType(fileSaved.getFileType())
+                .size(fileSaved.getSize())
+                .build();
+        Image imageSaved = imageRepository.save(image);
+
+        billOfLading.setImage(imageSaved);
+
+        billOfLading.getOrder().setCompleteAt(new Date());
+
+        billOfLRepository.saveAndFlush(billOfLading);
+
+        // Tạo thông báo realtime cho người dùng
+        String objectId = billOfLading.getId().toString();
+        NotificationPayload payload = NotificationPayload.builder()
+                .objectId(objectId) // là id của order, thanh toán, ...
+                .accountId(billOfLading.getOrder().getAccount().getId().toString()) // id của người dùng
+                .message("Đơn hàng của hạn đã được giao thành công!") // nội dung thông báo
+                .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                                                               // objectId (order, payment,
+                                                               // // ...)
+                .build();
+        notificationService.callCreateNotification(payload);
+
+        return "Giao hàng thành công";
+    }
+
+    public String onReject(Long id) {
+        Account account = accountServiceUtill.getAccount();
+
+        BillOfLading billOfLading = billOfLRepository
+                .findByDeliveryPersonAndId(account, id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
+
+        // Kiểm tra id có phjai là trạng thái DELIVERING
+        Long stateId = -1L;
+        try {
+            stateId = billOfLading.getOrder().getStateOrder().getId();
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        }
+        if (stateId != StateOrder.DELIVERING) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateOrder stateOrder = stateOrderRepository.findById(StateOrder.ON_REFECT).get();
+        billOfLading.getOrder().setStateOrder(stateOrder);
+
+        return "Hoan thanh";
     }
 }

@@ -1,5 +1,7 @@
 package store.chikendev._2tm.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,11 +13,15 @@ import store.chikendev._2tm.dto.request.OwnerPermissionRequest;
 import store.chikendev._2tm.dto.responce.OwnerPermissionResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.OwnerPermission;
+import store.chikendev._2tm.entity.Role;
+import store.chikendev._2tm.entity.RoleAccount;
 import store.chikendev._2tm.entity.StateOwnerPermission;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.OwnerPermissionRepository;
+import store.chikendev._2tm.repository.RoleAccountRepository;
+import store.chikendev._2tm.repository.RoleRepository;
 import store.chikendev._2tm.repository.StateOwnerPermissionRepository;
 
 @Service
@@ -32,11 +38,14 @@ public class OwnerPermissionService {
     @Autowired
     private AccountService accountService;
 
-    // @Autowired
-    // private RoleAccountRepository roleAccountRepository;
+    @Autowired
+    private StateOwnerPermissionRepository stateOwnerPermissionRepository;
 
-    // @Autowired
-    // private RoleRepository roleRepository;
+    @Autowired
+    private RoleAccountRepository roleAccountRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     public OwnerPermissionResponse addOwnerPermission(OwnerPermissionRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -104,28 +113,66 @@ public class OwnerPermissionService {
                 .build();
     }
 
-    // public String updateState(Long id, UpdateStateOwwnerPermissionRequest
-    // request) {
-    // OwnerPermission ownerPermission = ownerRep.findById(id)
-    // .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND));
-    // if (ownerPermission != null) {
-    // StateOwnerPermission state = stateRep.findById(request.getIdState())
-    // .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
-    // ownerPermission.setState(state);
-    // OwnerPermission saveState = ownerRep.save(ownerPermission);
-    // if (saveState.getState().getId() == 2) {
-    // RoleAccount roleAccount = new RoleAccount();
-    // Account account = accountRepository.findById(saveState.getAccount().getId())
-    // .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-    // Role role = roleRepository.findById("CH").orElseThrow(() -> new
-    // AppException(ErrorCode.ROLE_NOT_FOUND));
-    // roleAccount.setAccount(account);
-    // roleAccount.setRole(role);
-    // roleAccountRepository.save(roleAccount);
-    // return "Thêm vài trò thành công";
-    // }
-    // return "Thay đỗi trạng thái yêu cầu thành công";
-    // }
-    // return "Thay đổi trạng thái yêu cầu thất bại";
-    // }
+    public void cancelOwnerPermission(Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        List<RoleAccount> role = roleAccountRepository.findByAccount(account);
+        boolean checkRole = false;
+        for (RoleAccount roleAccount : role) {
+            if (roleAccount.getRole().getId().equals(Role.ROLE_ADMIN)) {
+                checkRole = true;
+            }
+        }
+        if (!checkRole) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+        OwnerPermission ownerPermission = ownerRep.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND));
+        Long currentState = ownerPermission.getState().getId();
+
+        if (!currentState.equals(StateOwnerPermission.IN_CONFIRM)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        StateOwnerPermission cancelState = stateOwnerPermissionRepository.findById(StateOwnerPermission.REFUSE)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+
+        ownerPermission.setState(cancelState);
+        ownerRep.save(ownerPermission);
+    }
+
+    public void confirmOwnerPermission(Long id) {
+        OwnerPermission ownerPermission = ownerRep.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OWNER_PERMISSION_NOT_FOUND));
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        List<RoleAccount> role = roleAccountRepository.findByAccount(account);
+        boolean checkRole = false;
+        for (RoleAccount roleAccount : role) {
+            if (roleAccount.getRole().getId().equals(Role.ROLE_ADMIN)) {
+                checkRole = true;
+            }
+        }
+        if (!checkRole) {
+            throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+        }
+        Long currentState = ownerPermission.getState().getId();
+        if (!currentState.equals(StateOwnerPermission.IN_CONFIRM)) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+
+        StateOwnerPermission confirmState = stateOwnerPermissionRepository.findById(StateOwnerPermission.CONFIRM)
+                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+        ownerPermission.setState(confirmState);
+
+        Account requesterAccount = ownerPermission.getAccount();
+        Role productOwnerRole = roleRepository.findById(Role.ROLE_PRODUCT_OWNER)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        RoleAccount roleAccount = new RoleAccount();
+        roleAccount.setAccount(requesterAccount);
+        roleAccount.setRole(productOwnerRole);
+        roleAccountRepository.save(roleAccount);
+        ownerRep.save(ownerPermission);
+    }
 }
