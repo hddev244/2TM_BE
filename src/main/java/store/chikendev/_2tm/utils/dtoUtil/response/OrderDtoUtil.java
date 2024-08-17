@@ -10,6 +10,7 @@ import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
+import store.chikendev._2tm.dto.responce.StateOrderResponse;
 import store.chikendev._2tm.entity.Image;
 import store.chikendev._2tm.entity.Order;
 import store.chikendev._2tm.entity.OrderDetails;
@@ -46,7 +47,7 @@ public class OrderDtoUtil {
         return response;
     }
 
-     public OrderResponse convertToOrderResponse(Order order) {
+    public OrderResponse convertToOrderResponse(Order order) {
         List<OrderDetails> details = order.getDetails();
         List<OrderDetailResponse> orderDetailResponses = new ArrayList<>();
         if (details != null) {
@@ -74,6 +75,13 @@ public class OrderDtoUtil {
                 .paymentMethodName(order.getPaymentMethod() != null ? order.getPaymentMethod().getName() : "")
                 .detail(orderDetailResponses)
                 .storeName(storeName)
+                .orderState(
+                        order.getStateOrder() != null ? StateOrderResponse.builder()
+                                .id(order.getStateOrder().getId())
+                                .status(order.getStateOrder().getStatus())
+                                .description(order.getStateOrder().getDescription())
+                                .build()
+                                : null)
                 .paymentRecordId(order.getPaymentRecord() != null ? order.getPaymentRecord().getId() : "")
                 .build();
     }
@@ -94,6 +102,5 @@ public class OrderDtoUtil {
         return "";
 
     }
-
 
 }
