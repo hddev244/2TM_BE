@@ -156,16 +156,20 @@ public class StatisticalReportService {
         if (date == null) {
             throw new AppException(ErrorCode.INVAL_DATETIME_INPUT);
         }
+
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
         Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
+        System.out.println(accountStore.get().getStore().getId());
         List<Order> orders = orderRepository.findByDateAndTypeNoPage(startOfDay, endOfDay,
                 accountStore.get().getStore(), Order.TYPE_ORDER_OF_CUSTOMER);
         Double sumTotalPrice = 0.0;
+        // trừ các sản phẩm là ký gửi ra
         for (Order order : orders) {
             Double totalPrice = order.getTotalPrice();
             for (OrderDetails detail : order.getDetails()) {
-                if (detail.getProduct().getOwnerId() != null) {
+                if (detail.getProduct().getOwnerId() != null
+                        || detail.getProduct().getType() == Product.TYPE_PRODUCT_OF_ACCOUNT) {
                     totalPrice = totalPrice - (detail.getPrice() * detail.getQuantity());
                 }
             }
