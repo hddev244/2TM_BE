@@ -26,6 +26,7 @@ public class StateProduct {
     public static final Long REFUSE = 3L;
     public static final Long DELYVERING = 4L;
     public static final Long CANCELED = 6L;
+    public static final Long WAITING_PICK_UP = 7L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -238,9 +238,9 @@ public class OrderService {
             });
 
             return handleOrderSuccess(account, methods, ordersResponseList, cartItemsOrderedList, savedOrdersList);
-        } catch (Exception e) {
+        } catch (AppException e) {
             handleOrderError(cartItemsOrderedList, savedOrdersList, savedOrderDetailsList);
-            throw new AppException(ErrorCode.ORDER_ERROR);
+            throw e;
         }
 
     }
