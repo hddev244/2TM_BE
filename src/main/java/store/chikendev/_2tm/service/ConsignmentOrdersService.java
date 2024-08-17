@@ -246,22 +246,20 @@ public class ConsignmentOrdersService {
         private Page<ConsignmentOrdersResponse> convertToResponse(
                         Page<ConsignmentOrders> response) {
                 return response.map(consignmentOrders -> {
-                        return convertToConsignmentOrdersResponse(consignmentOrders);
+                        return convertToConsignmentOrdersResponse(consignmentOrders, false);
                 });
         }
 
         public ConsignmentOrdersResponse convertToConsignmentOrdersResponse(
-                        ConsignmentOrders consignmentOrders) {
+                        ConsignmentOrders consignmentOrders, boolean multiImage) {
                 ConsignmentOrdersResponse response = new ConsignmentOrdersResponse();
 
                 if (consignmentOrders.getStateId() != null) {
-                        response.setState(
-                                        ConsignmentOrderStateResponse.builder()
-                                                        .id(consignmentOrders.getStateId().getId())
-                                                        .status(consignmentOrders.getStateId().getStatus())
-                                                        .description(
-                                                                        consignmentOrders.getStateId().getDescription())
-                                                        .build());
+                        response.setState(ConsignmentOrderStateResponse.builder()
+                                        .id(consignmentOrders.getStateId().getId())
+                                        .status(consignmentOrders.getStateId().getStatus())
+                                        .description(consignmentOrders.getStateId().getDescription())
+                                        .build());
                 }
 
                 response.setId(consignmentOrders.getId());
@@ -280,24 +278,44 @@ public class ConsignmentOrdersService {
                                                                 consignmentOrders.getDeliveryPerson().getPhoneNumber())
                                                 .build());
                 ResponseDocumentDto thumbnail = null;
-                if (consignmentOrders.getProduct().getImages() != null) {
-                        thumbnail = consignmentOrders
-                                        .getProduct()
-                                        .getImages()
-                                        .stream()
-                                        .map(img -> ImageDtoUtil.convertToImageResponse(img.getImage()))
-                                        .findFirst()
-                                        .orElse(null);
+                List<ResponseDocumentDto> images = new ArrayList<>();
+                if (multiImage == true) {
+                        if (consignmentOrders.getProduct() != null) {
+                                productImagesRepository.findByProduct(consignmentOrders.getProduct()).forEach(image -> {
+                                        images.add(ImageDtoUtil.convertToImageResponse(image.getImage()));
+                                });
+                        }
+                } else {
+                        if (consignmentOrders.getProduct().getImages() != null) {
+                                thumbnail = consignmentOrders
+                                                .getProduct()
+                                                .getImages()
+                                                .stream()
+                                                .map(img -> ImageDtoUtil.convertToImageResponse(img.getImage()))
+                                                .findFirst()
+                                                .orElse(null);
+                        }
                 }
-                response.setProduct(
-                                ProductResponse.builder()
-                                                .id(consignmentOrders.getProduct().getId())
-                                                .name(consignmentOrders.getProduct().getName())
-                                                .price(consignmentOrders.getProduct().getPrice())
-                                                .quantity(consignmentOrders.getProduct().getQuantity())
-                                                .description(consignmentOrders.getProduct().getDescription())
-                                                .thumbnail(thumbnail)
-                                                .build());
+                ProductResponse productResponse = ProductResponse.builder()
+                                .id(consignmentOrders.getProduct().getId())
+                                .name(consignmentOrders.getProduct().getName())
+                                .price(consignmentOrders.getProduct().getPrice())
+                                .quantity(consignmentOrders.getProduct().getQuantity())
+                                .description(consignmentOrders.getProduct().getDescription())
+                                .state(StateProduct.builder()
+                                                .id(consignmentOrders.getProduct().getState().getId())
+                                                .description(consignmentOrders.getProduct().getState()
+                                                                .getDescription())
+                                                .build())
+                                .build();
+                if (multiImage == true) {
+                        productResponse.setImages(images);
+                } else {
+                        productResponse.setThumbnail(thumbnail);
+                }
+
+                response.setProduct(productResponse);
+
                 response.setStore(
                                 StoreResponse.builder()
                                                 .id(consignmentOrders.getStore().getId())
@@ -524,10 +542,7 @@ public class ConsignmentOrdersService {
                                 .findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
 
-                ConsignmentOrdersResponse response = convertToConsignmentOrdersResponse(consignmentOrder);
-                response.setImage(null);
-                List<Image> images = productImagesRepository.findByProduct(consignmentOrder.getProduct());
-
+                ConsignmentOrdersResponse response = convertToConsignmentOrdersResponse(consignmentOrder, true);
                 return response;
         }
 
@@ -602,7 +617,7 @@ public class ConsignmentOrdersService {
                 ConsignmentOrders consignmentOrder = consignmentOrdersRepository.findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
                 if (account.getId() == consignmentOrder.getOrdererId().getId()) {
-                        return convertToConsignmentOrdersResponse(consignmentOrder);
+                        return convertToConsignmentOrdersResponse(consignmentOrder, true);
                 } else {
                         throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
                 }

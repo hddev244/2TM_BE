@@ -412,7 +412,7 @@ public class ProductService {
                 saveProduct.setImages(imagesSave);
                 consignmentOrderSaved.setProduct(saveProduct);
                 ConsignmentOrdersResponse response = consignmentOrdersService.convertToConsignmentOrdersResponse(
-                                consignmentOrderSaved);
+                                consignmentOrderSaved, false);
                 // Tạo thông báo realtime cho người dùng
                 NotificationPayload payload = NotificationPayload.builder()
                                 .objectId(consignmentOrderSaved.getId().toString()) // là id của order, thanh toán, ...
