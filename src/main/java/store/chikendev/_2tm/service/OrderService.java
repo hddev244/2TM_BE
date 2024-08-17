@@ -295,7 +295,9 @@ public class OrderService {
                 .type(false)
                 .store(store)
                 .build();
+        // lưu order đầu
         Order savedOrder = orderRepository.save(order);
+
         List<OrderDetails> details = new ArrayList<>();
         List<Product> saveProduct = new ArrayList<>();
         products.forEach(product -> {
@@ -313,15 +315,12 @@ public class OrderService {
         });
         Long sumTotalPrice = (long) details.stream().mapToDouble(detail -> detail.getPrice() * detail.getQuantity())
                 .sum();
+        // lưu tổng tiền
+        savedOrder.setTotalPrice((double) sumTotalPrice);
+        // dữ liệu trả về
         OrderPaymentResponse response = OrderPaymentResponse.builder()
                 .sumTotalPrice(sumTotalPrice.longValue())
                 .build();
-        savedOrder.setDetails(details);
-        savedOrder.setTotalPrice((double) sumTotalPrice);
-        String htmlContent = generateOrderRefundSummaryHtml(orderDtoUtil.convertToOrderResponse(savedOrder));
-        sendEmail.sendMail(account.getEmail(), "Đơn hàng hoàn của bạn đã được tạo",
-                htmlContent);
-
         if (methods.getId() == PaymentMethods.PAYMENT_ON_DELIVERY) {
             response.setPaymentLink(methods.getName());
         } else {
@@ -339,11 +338,20 @@ public class OrderService {
                     .build();
             paymentRecordsRepository.save(record);
             savedOrder.setPaymentRecord(record);
-            orderDetailRepository.saveAll(details);
+
+            // lưu order detail và product
+            List<OrderDetails> saveOrderDetailsResponse = orderDetailRepository.saveAllAndFlush(details);
             productRepository.saveAll(saveProduct);
-            response.setOrder(orderDtoUtil.convertToOrderResponse(orderRepository.save(savedOrder)));
+
+            Order saveResponse = orderRepository.save(savedOrder);
+            saveResponse.setDetails(saveOrderDetailsResponse);
+            response.setOrder(orderDtoUtil.convertToOrderResponse(saveResponse));
             response.setPaymentLink(payment.createVNPT(sumTotalPrice,
                     idPaymentRecords));
+
+            String htmlContent = generateOrderRefundSummaryHtml(orderDtoUtil.convertToOrderResponse(saveResponse));
+            sendEmail.sendMail(account.getEmail(), "Đơn hàng hoàn của bạn đã được tạo",
+                    htmlContent);
         }
         return response;
 
