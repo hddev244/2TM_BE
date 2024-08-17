@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.dto.responce.StatisticalReportResponse;
+import store.chikendev._2tm.dto.responce.StatisticalReportRevenueResponse;
 import store.chikendev._2tm.service.StatisticalReportService;
 
 @RestController
@@ -66,5 +67,13 @@ public class StatisticalReportController {
                 Page<OrderResponse> orders = statisticalReportService.getStatisticalReportByMonthAndType(month, type,
                                 page, size);
                 return new ApiResponse<Page<OrderResponse>>(200, null, orders);
+        }
+
+        // QLCH - xem doanh thu theo ngày truyền vào
+        @GetMapping("revenue-by-date")
+        public ApiResponse<StatisticalReportRevenueResponse> getRevenueByDate(
+                        @RequestParam(name = "date") String date) {
+                StatisticalReportRevenueResponse statisticalReport = statisticalReportService.getRevenueByDate(date);
+                return new ApiResponse<StatisticalReportRevenueResponse>(200, null, statisticalReport);
         }
 }

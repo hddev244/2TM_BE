@@ -20,8 +20,8 @@ import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
-import store.chikendev._2tm.dto.responce.StatisticalReportOrderResponse;
 import store.chikendev._2tm.dto.responce.StatisticalReportResponse;
+import store.chikendev._2tm.dto.responce.StatisticalReportRevenueResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Image;
@@ -145,6 +145,36 @@ public class StatisticalReportService {
             });
         }
 
+    }
+
+    // demo Tổng Doanh từ bán sản phẩm của cửa hàng theo ngày.
+    public StatisticalReportRevenueResponse getRevenueByDate(String dateString) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        LocalDate date = convertToDate(dateString);
+        if (date == null) {
+            throw new AppException(ErrorCode.INVAL_DATETIME_INPUT);
+        }
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+        Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
+        List<Order> orders = orderRepository.findByDateAndTypeNoPage(startOfDay, endOfDay,
+                accountStore.get().getStore(), Order.TYPE_ORDER_OF_CUSTOMER);
+        Double sumTotalPrice = 0.0;
+        for (Order order : orders) {
+            Double totalPrice = order.getTotalPrice();
+            for (OrderDetails detail : order.getDetails()) {
+                if (detail.getProduct().getOwnerId() != null) {
+                    totalPrice = totalPrice - (detail.getPrice() * detail.getQuantity());
+                }
+            }
+            sumTotalPrice += totalPrice;
+        }
+        return StatisticalReportRevenueResponse.builder()
+                .Date(dateString)
+                .totalSale(sumTotalPrice)
+                .build();
     }
 
     private Page<StatisticalReportResponse> convertToStatisticalReportResponse(Page<OrderDetails> orderDetails) {
