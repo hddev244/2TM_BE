@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import store.chikendev._2tm.dto.request.ConsignmentOrdersRequest;
 import store.chikendev._2tm.dto.request.NotificationPayload;
 import store.chikendev._2tm.dto.responce.AccountResponse;
@@ -41,6 +43,7 @@ import store.chikendev._2tm.repository.ConsignmentOrdersRepository;
 import store.chikendev._2tm.repository.ImageRepository;
 import store.chikendev._2tm.repository.ProductAttributeDetailRepository;
 import store.chikendev._2tm.repository.ProductCommissionRepository;
+import store.chikendev._2tm.repository.ProductImagesRepository;
 import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.StateConsignmentOrderRepository;
 import store.chikendev._2tm.repository.StateProductRepository;
@@ -98,6 +101,9 @@ public class ConsignmentOrdersService {
 
         @Autowired
         private SendEmail sendEmail;
+
+        @Autowired
+        private ProductImagesRepository productImagesRepository;
 
         public String createConsignmentOrders(ConsignmentOrdersRequest request, MultipartFile[] files) {
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -350,7 +356,7 @@ public class ConsignmentOrdersService {
                 StateConsignmentOrder state = stateConsignmentOrderRepository.findById(idStatus).orElseThrow(() -> {
                         throw new AppException(ErrorCode.STATE_NOT_FOUND);
                 });
-                
+
                 if (state.getId() == StateConsignmentOrder.CANCEL || state.getId() == StateConsignmentOrder.COMPLETED
                                 || state.getId() == StateConsignmentOrder.CREATED
                                 || state.getId() == StateConsignmentOrder.REFUSE) {
@@ -507,7 +513,11 @@ public class ConsignmentOrdersService {
                                 .findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND));
 
-                return convertToConsignmentOrdersResponse(consignmentOrder);
+                ConsignmentOrdersResponse response = convertToConsignmentOrdersResponse(consignmentOrder);
+                response.setImage(null);
+                List<Image> images = productImagesRepository.findByProduct(consignmentOrder.getProduct());
+
+                return response;
         }
 
         public Page<ConsignmentOrdersResponse> getByStateOrAllWithOwner(
