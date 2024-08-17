@@ -495,7 +495,7 @@ public class ConsignmentOrdersService {
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
                                 });
-                if (consignmentOrders.getStateId().getId() != StateConsignmentOrder.CREATED) {
+                if (consignmentOrders.getStateId().getId() != StateConsignmentOrder.COMPLETED) {
                         throw new AppException(ErrorCode.STATE_ERROR);
                 }
                 Product product = consignmentOrders.getProduct();
