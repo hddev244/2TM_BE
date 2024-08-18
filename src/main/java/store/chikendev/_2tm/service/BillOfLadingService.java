@@ -693,6 +693,16 @@ public class BillOfLadingService {
                 .build();
         notificationService.callCreateNotification(payload);
 
+        NotificationPayload payload2 = NotificationPayload.builder()
+                .objectId(objectId) // là id của order, thanh toán, ...
+                .accountId(billOfLading.getOrder().getStore().getId().toString()) // id của người dùng
+                .message("Đơn hàng #"+objectId+" đã được giao thành công!") // nội dung thông báo
+                .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                                                               // objectId (order, payment,
+                                                               // // ...)
+                .build();
+        notificationService.callCreateNotification(payload2);
+
         return "Giao hàng thành công";
     }
 
