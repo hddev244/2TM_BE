@@ -572,6 +572,24 @@ public class ConsignmentOrdersService {
                                         + "</html>";
                         sendEmail.sendMail(consignmentOrders.getOrdererId().getEmail(), "Xác nhận đơn hàng ký gửi",
                                         emailContent);
+
+                        // Tạo thông báo realtime cho người dùng
+                        List<NotificationPayload> payloads = new ArrayList<>();
+                        String objectId = consignmentOrders.getId().toString();
+                        NotificationPayload payload = NotificationPayload.builder()
+                                        .objectId(objectId) // là id của order, thanh toán, ...
+                                        .accountId(consignmentOrders.getProduct().getOwnerId().getId())
+                                        .message("Sản phẩm ký gửi của bạn đã được chấp nhận!") // nội dung thông báo
+                                        .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông
+                                                                                          // báo theo
+                                                                                          // objectId
+                                                                                          // (order,
+                                                                                          // payment,
+                                                                                          // // ...)
+                                        .build();
+                        payloads.add(payload);
+                        notificationService.callCreateManual(payloads);
+
                         return "Xác nhận đơn ký gửi thành công";
                 }
                 throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
