@@ -184,12 +184,14 @@ public class ConsignmentOrdersService {
                         throw new AppException(ErrorCode.USER_NOT_FOUND);
                 });
                 Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
+             
                 if (account.getRoles().stream().anyMatch(role -> role.getRole().getId().equals("NVGH"))) {
                         if (stateId == null) {
                                 Page<ConsignmentOrders> response = consignmentOrdersRepository
                                                 .findByDeliveryPerson2(account, pageable);
                                 return convertToResponse(response);
                         }
+
                         StateConsignmentOrder state = stateConsignmentOrderRepository.findById(stateId)
                                         .orElseThrow(() -> {
                                                 throw new AppException(ErrorCode.STATE_NOT_FOUND);
@@ -407,6 +409,15 @@ public class ConsignmentOrdersService {
                                 consignmentOrders.setImage(imageSaved);
                         }
 
+                        if (state.getId() == StateConsignmentOrder.WAITING_STAFF_RECEIVE) {
+                                if (file == null) {
+                                        throw new AppException(ErrorCode.FILE_NOT_FOUND);
+                                }
+                                Product product = consignmentOrders.getProduct();
+                                product.setState(stateProductRepository.findById(StateProduct.WAITING_STAFF_RECEIVE).get());
+                                productRepository.save(product);
+                        }
+
                         consignmentOrders.setStatusChangeDate(new Date());
                         consignmentOrders.setStateId(state);
                         consignmentOrdersRepository.save(consignmentOrders);
@@ -439,13 +450,15 @@ public class ConsignmentOrdersService {
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
                                 });
-                if (consignmentOrders.getProduct().getState().getId() != StateProduct.DELYVERING) {
+                if (consignmentOrders.getProduct().getState().getId() != StateProduct.WAITING_STAFF_RECEIVE) {
                         throw new AppException(ErrorCode.STATE_ERROR);
                 }
 
                 if (consignmentOrders.getStore().getAccountStores().stream()
                                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
-                        if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.PICKED_UP) {
+
+                                        // xác nhận đơn ký gửi
+                        if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.WAITING_STAFF_RECEIVE) {
                                 if (consignmentOrders.getImage() != null) {
                                         StateConsignmentOrder state = stateConsignmentOrderRepository
                                                         .findById(StateConsignmentOrder.COMPLETED).get();
@@ -459,8 +472,9 @@ public class ConsignmentOrdersService {
                                         // lưu
                                         productRepository.save(product);
                                         consignmentOrdersRepository.save(consignmentOrders);
-                                        return "Đơn hàng ký gửi về tới cửa hàng thành công";
+                                        return "Đơn hàng đã được nhận bởi cửa hàng";
                                 }
+
                                 throw new AppException(ErrorCode.FILE_NOT_FOUND);
                         }
                         throw new AppException(ErrorCode.STATE_ERROR);
@@ -478,13 +492,16 @@ public class ConsignmentOrdersService {
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
                                 });
+
                 if (consignmentOrders.getStateId().getId() != StateConsignmentOrder.COMPLETED) {
                         throw new AppException(ErrorCode.STATE_ERROR);
                 }
+
                 Product product = consignmentOrders.getProduct();
                 if (product.getState().getId() != StateProduct.IN_CONFIRM) {
                         throw new AppException(ErrorCode.STATE_ERROR);
                 }
+                
                 if (consignmentOrders.getStore().getAccountStores().stream()
                                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
                         // xác nhận đơn ký gửi
