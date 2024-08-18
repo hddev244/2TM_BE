@@ -184,7 +184,7 @@ public class ConsignmentOrdersService {
                         throw new AppException(ErrorCode.USER_NOT_FOUND);
                 });
                 Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
-             
+
                 if (account.getRoles().stream().anyMatch(role -> role.getRole().getId().equals("NVGH"))) {
                         if (stateId == null) {
                                 Page<ConsignmentOrders> response = consignmentOrdersRepository
@@ -414,7 +414,8 @@ public class ConsignmentOrdersService {
                                         throw new AppException(ErrorCode.FILE_NOT_FOUND);
                                 }
                                 Product product = consignmentOrders.getProduct();
-                                product.setState(stateProductRepository.findById(StateProduct.WAITING_STAFF_RECEIVE).get());
+                                product.setState(stateProductRepository.findById(StateProduct.WAITING_STAFF_RECEIVE)
+                                                .get());
                                 productRepository.save(product);
                         }
 
@@ -423,6 +424,7 @@ public class ConsignmentOrdersService {
                         consignmentOrdersRepository.save(consignmentOrders);
 
                         // Tạo thông báo realtime cho người dùng
+                        List<NotificationPayload> payloads = new ArrayList<>();
                         String objectId = consignmentOrders.getId().toString();
                         NotificationPayload payload = NotificationPayload.builder()
                                         .objectId(objectId) // là id của order, thanh toán, ...
@@ -432,8 +434,23 @@ public class ConsignmentOrdersService {
                                                                                           // objectId (order, payment,
                                                                                           // // ...)
                                         .build();
+                        payloads.add(payload);
 
-                        notificationService.callCreateNotification(payload);
+                        // Tạo thông báo realtime cho cửa hàng
+                        String objectIdStore = consignmentOrders.getId().toString();
+                        NotificationPayload payloadStore = NotificationPayload.builder()
+                                        .objectId(objectIdStore) // là id của order, thanh toán, ...
+                                        .accountId(consignmentOrders.getStore().getAccountStores().get(0).getAccount()
+                                                        .getId())
+                                        .message(state.getDescription()) // nội dung thông báo
+                                        .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông báo theo
+                                                                                          // objectId (order, payment,
+                                                                                          // // ...)
+                                        .build();
+                        payloads.add(payloadStore);
+
+                        notificationService.callCreateManual(payloads);
+
                         return "Cập nhật trạng thái thành công";
                 }
                 throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
@@ -457,7 +474,7 @@ public class ConsignmentOrdersService {
                 if (consignmentOrders.getStore().getAccountStores().stream()
                                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
 
-                                        // xác nhận đơn ký gửi
+                        // xác nhận đơn ký gửi
                         if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.WAITING_STAFF_RECEIVE) {
                                 if (consignmentOrders.getImage() != null) {
                                         StateConsignmentOrder state = stateConsignmentOrderRepository
@@ -472,6 +489,40 @@ public class ConsignmentOrdersService {
                                         // lưu
                                         productRepository.save(product);
                                         consignmentOrdersRepository.save(consignmentOrders);
+
+                                        // Tạo thông báo realtime cho người dùng
+                                        List<NotificationPayload> payloads = new ArrayList<>();
+                                        String objectId = consignmentOrders.getId().toString();
+                                        NotificationPayload payload = NotificationPayload.builder()
+                                                        .objectId(objectId) // là id của order, thanh toán, ...
+                                                        .accountId(consignmentOrders.getProduct().getOwnerId().getId())
+                                                        .message(state.getDescription()) // nội dung thông báo
+                                                        .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông
+                                                                                                          // báo theo
+                                                                                                          // objectId
+                                                                                                          // (order,
+                                                                                                          // payment,
+                                                                                                          // // ...)
+                                                        .build();
+                                        payloads.add(payload);
+
+                                        // Tạo thông báo nhân viên giao hàng
+                                        String objectIdStore = consignmentOrders.getId().toString();
+                                        NotificationPayload payloadStore = NotificationPayload.builder()
+                                                        .objectId(objectIdStore) // là id của order, thanh toán, ...
+                                                        .accountId(consignmentOrders.getDeliveryPerson().getId())
+                                                        .message(state.getDescription()) // nội dung thông báo
+                                                        .type(NotificationPayload.TYPE_CONSIGNMENT_ORDER) // loại thông
+                                                                                                          // báo theo
+                                                                                                          // objectId
+                                                                                                          // (order,
+                                                                                                          // payment,
+                                                                                                          // // ...)
+                                                        .build();
+                                        payloads.add(payloadStore);
+
+                                        notificationService.callCreateManual(payloads);
+
                                         return "Đơn hàng đã được nhận bởi cửa hàng";
                                 }
 
@@ -501,7 +552,7 @@ public class ConsignmentOrdersService {
                 if (product.getState().getId() != StateProduct.IN_CONFIRM) {
                         throw new AppException(ErrorCode.STATE_ERROR);
                 }
-                
+
                 if (consignmentOrders.getStore().getAccountStores().stream()
                                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
                         // xác nhận đơn ký gửi
