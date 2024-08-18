@@ -163,6 +163,33 @@ public class BillOfLadingService {
         orderRepository.save(order);
     }
 
+    // từ chối đơn hàng - NVCH - QLCH
+    public String refuseOrder(Long idOrders) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        });
+        Order order = orderRepository.findById(idOrders).orElseThrow(() -> {
+            throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
+        });
+        if (order.getStateOrder().getId() != StateOrder.IN_CONFIRM) {
+            throw new AppException(ErrorCode.STATE_ERROR);
+        }
+        if (order.getStore().getAccountStores().stream()
+                .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
+            order.setStateOrder(stateOrderRepository.findById(StateOrder.REFUSE).get());
+            for (OrderDetails orderDetail : order.getDetails()) {
+                Product product = orderDetail.getProduct();
+                int updatedQuantity = product.getQuantity() + orderDetail.getQuantity();
+                product.setQuantity(updatedQuantity);
+                productRepository.save(product);
+            }
+            orderRepository.save(order);
+            return "Từ chối đơn hàng thành công";
+        }
+        throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+    }
+
     private BillOfLading createBillOfLading(Order order, Account account) {
         BillOfLading bill = new BillOfLading();
         if (order.getStateOrder().getId() != StateOrder.CONFIRMED) {

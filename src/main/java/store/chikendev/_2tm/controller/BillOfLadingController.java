@@ -35,11 +35,11 @@ public class BillOfLadingController {
                 billOfLadingService.getBillOfLadingByDeliveryPersonId(deliveryPerson));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_NVGH')") 
+    @PreAuthorize("hasAnyRole('ROLE_NVGH')")
     @PutMapping("/accept/{billOfLadingId}")
     public ApiResponse<String> aceptBillOfLading(
             @PathVariable("billOfLadingId") Long billOfLadingId) {
-                System.out.println("billOfLadingId: " + billOfLadingId);
+        System.out.println("billOfLadingId: " + billOfLadingId);
         billOfLadingService.acceptBillOfLading(billOfLadingId);
         return new ApiResponse<String>(200, null, "Lấy hàng thành công");
     }
@@ -62,6 +62,12 @@ public class BillOfLadingController {
         return new ApiResponse<String>(200, null, billOfLadingService.confirmOder(orderId));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_QLCH','ROLE_NVCH')")
+    @GetMapping("refuse/{orderId}")
+    public ApiResponse<String> refuse(@PathVariable("orderId") Long id) {
+        return new ApiResponse<String>(200, null, billOfLadingService.refuseOrder(id));
+    }
+
     @PreAuthorize("hasAnyRole('ROLE_KH')")
     @PostMapping("/Cancelled/{orderId}")
     public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId) {
@@ -70,20 +76,19 @@ public class BillOfLadingController {
         return new ApiResponse<>(200, null, "Hủy đơn hàng thành công");
     }
 
-   @PreAuthorize("hasRole('ROLE_NVGH')")
+    @PreAuthorize("hasRole('ROLE_NVGH')")
     @PutMapping(value = "delivery-person/complete", consumes = "multipart/form-data")
     public ApiResponse<String> completeBill(@RequestPart("id") Long id,
             @RequestPart(required = false, name = "image") MultipartFile image) {
-                String res = billOfLadingService.completeBill(id, image);
+        String res = billOfLadingService.completeBill(id, image);
         return new ApiResponse<String>(200, null, res);
     }
 
     @PreAuthorize("hasRole('ROLE_NVGH')")
     @PutMapping(value = "delivery-person/reject/{id}")
     public ApiResponse<String> onReject(@PathVariable("id") Long id) {
-                String res = billOfLadingService.onReject(id);
+        String res = billOfLadingService.onReject(id);
         return new ApiResponse<String>(200, null, res);
     }
-
 
 }
