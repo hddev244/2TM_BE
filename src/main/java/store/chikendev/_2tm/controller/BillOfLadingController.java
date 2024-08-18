@@ -2,7 +2,6 @@ package store.chikendev._2tm.controller;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import store.chikendev._2tm.dto.responce.ApiResponse;
 import store.chikendev._2tm.dto.responce.BillOfLadingResponse;
 import store.chikendev._2tm.service.BillOfLadingService;
@@ -30,15 +28,23 @@ public class BillOfLadingController {
 
     @PreAuthorize("hasAnyRole('ROLE_NVGH', 'ROLE_NVCH')")
     @GetMapping("/{deliveryPerson}")
-    public ApiResponse<List<BillOfLadingResponse>> getShipList(@PathVariable("deliveryPerson") String deliveryPerson) {
-        return new ApiResponse<List<BillOfLadingResponse>>(200, null,
-                billOfLadingService.getBillOfLadingByDeliveryPersonId(deliveryPerson));
+    public ApiResponse<List<BillOfLadingResponse>> getShipList(
+        @PathVariable("deliveryPerson") String deliveryPerson
+    ) {
+        return new ApiResponse<List<BillOfLadingResponse>>(
+            200,
+            null,
+            billOfLadingService.getBillOfLadingByDeliveryPersonId(
+                deliveryPerson
+            )
+        );
     }
 
     @PreAuthorize("hasAnyRole('ROLE_NVGH')")
     @PutMapping("/accept/{billOfLadingId}")
     public ApiResponse<String> aceptBillOfLading(
-            @PathVariable("billOfLadingId") Long billOfLadingId) {
+        @PathVariable("billOfLadingId") Long billOfLadingId
+    ) {
         System.out.println("billOfLadingId: " + billOfLadingId);
         billOfLadingService.acceptBillOfLading(billOfLadingId);
         return new ApiResponse<String>(200, null, "Lấy hàng thành công");
@@ -46,41 +52,67 @@ public class BillOfLadingController {
 
     @PreAuthorize("hasAnyRole('ROLE_NVGH')")
     @GetMapping("/shipList")
-    public ApiResponse<Page<BillOfLadingResponse>> getByDeliveryPersonIdAndStateId(
-            @RequestParam(required = false, name = "size") Optional<Integer> size,
-            @RequestParam(required = false, name = "page") Optional<Integer> page,
-            @RequestParam(required = false, name = "stateId") Long stateId) {
-        Page<BillOfLadingResponse> response = billOfLadingService.getByDeliveryPersonIdAndStateId(size.orElse(10),
-                page.orElse(0), stateId);
+    public ApiResponse<
+        Page<BillOfLadingResponse>
+    > getByDeliveryPersonIdAndStateId(
+        @RequestParam(required = false, name = "size") Optional<Integer> size,
+        @RequestParam(required = false, name = "page") Optional<Integer> page,
+        @RequestParam(required = false, name = "stateId") Long stateId
+    ) {
+        Page<BillOfLadingResponse> response =
+            billOfLadingService.getByDeliveryPersonIdAndStateId(
+                size.orElse(10),
+                page.orElse(0),
+                stateId
+            );
         return new ApiResponse<Page<BillOfLadingResponse>>(200, null, response);
     }
 
     // xác nhận và tạo bill
     @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
     @GetMapping("/confirm-order")
-    public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
+    public ApiResponse<String> confirmOrder(
+        @RequestParam(name = "orderId") Long orderId
+    ) {
         System.out.println("orderId: " + orderId);
-        return new ApiResponse<String>(200, null, billOfLadingService.confirmOder(orderId));
+        return new ApiResponse<String>(
+            200,
+            null,
+            billOfLadingService.confirmOder(orderId)
+        );
     }
 
     @PreAuthorize("hasAnyRole('ROLE_QLCH','ROLE_NVCH')")
     @GetMapping("refuse/{orderId}")
     public ApiResponse<String> refuse(@PathVariable("orderId") Long id) {
-        return new ApiResponse<String>(200, null, billOfLadingService.refuseOrder(id));
+        return new ApiResponse<String>(
+            200,
+            null,
+            billOfLadingService.refuseOrder(id)
+        );
     }
 
     @PreAuthorize("hasAnyRole('ROLE_KH')")
     @PostMapping("/Cancelled/{orderId}")
-    public ApiResponse<String> cancelOrder(@PathVariable("orderId") Long orderId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ApiResponse<String> cancelOrder(
+        @PathVariable("orderId") Long orderId
+    ) {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
         billOfLadingService.cancelOrder(orderId, email);
         return new ApiResponse<>(200, null, "Hủy đơn hàng thành công");
     }
 
     @PreAuthorize("hasRole('ROLE_NVGH')")
-    @PutMapping(value = "delivery-person/complete", consumes = "multipart/form-data")
-    public ApiResponse<String> completeBill(@RequestPart("id") Long id,
-            @RequestPart(required = false, name = "image") MultipartFile image) {
+    @PutMapping(
+        value = "delivery-person/complete",
+        consumes = "multipart/form-data"
+    )
+    public ApiResponse<String> completeBill(
+        @RequestPart("id") Long id,
+        @RequestPart(required = false, name = "image") MultipartFile image
+    ) {
         String res = billOfLadingService.completeBill(id, image);
         return new ApiResponse<String>(200, null, res);
     }
@@ -92,4 +124,10 @@ public class BillOfLadingController {
         return new ApiResponse<String>(200, null, res);
     }
 
+    @PreAuthorize("hasRole('ROLE_NVGH')")
+    @PutMapping(value = "delivery-person/pick-up/{id}")
+    public ApiResponse<String> onPickUp(@PathVariable("id") Long id) {
+        String res = billOfLadingService.pickUp(id);
+        return new ApiResponse<String>(200, null, res);
+    }
 }
