@@ -41,4 +41,8 @@ public interface ConsignmentOrdersRepository extends JpaRepository<ConsignmentOr
 
         Page<ConsignmentOrders> findByOrdererId(Account ordererId, Pageable pageable);
 
+        @Query("SELECT co FROM ConsignmentOrders co WHERE co.store = :store AND co.stateId = :state AND co.product.state.id = 8")
+        Page<ConsignmentOrders> findByStoreAndStateIsWatingStaffReceive(Store store, StateConsignmentOrder state,
+                Pageable pageable);
+
 }

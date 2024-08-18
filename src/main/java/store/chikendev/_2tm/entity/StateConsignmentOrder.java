@@ -31,6 +31,7 @@ public class StateConsignmentOrder {
     public static final Long RETURN = 7L; // Đơn hàng được trả lại
     public static final Long RETURN_SUCCESS = 8L; // Đơn hàng đã được trả lại thành công
     public static final Long CANCEL = 9L; // Hủy đơn bởi chủ hàng
+    public static final Long WAITING_STAFF_RECEIVE = 10L; // Chờ cửa hàng nhận hàng
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
