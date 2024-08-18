@@ -235,7 +235,7 @@ public class ConsignmentOrdersService {
                                                 });
                                 Page<ConsignmentOrders> response = null;
                                 
-                                if(stateId == StateConsignmentOrder.WAITING_STAFF_RECEIVE){
+                                if(stateId == StateConsignmentOrder.COMPLETED){
                                         response = consignmentOrdersRepository.findByStoreAndStateIsWatingStaffReceive(
                                                 accountStore.get().getStore(),
                                                 state,
