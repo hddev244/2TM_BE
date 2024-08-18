@@ -221,24 +221,32 @@ public class ConsignmentOrdersService {
                         return convertToResponse(response);
                 } else {
                         // NVCH - QLCH
-                        if (stateId == null) {
-                                if (accountStore.isPresent()) {
+                        if (accountStore.isPresent()) {
+                                if (stateId == null) {
                                         Page<ConsignmentOrders> response = consignmentOrdersRepository.findByStore(
                                                         accountStore.get().getStore(),
                                                         pageable);
                                         return convertToResponse(response);
                                 }
-                        }
-                        StateConsignmentOrder state = stateConsignmentOrderRepository
-                                        .findById(stateId)
-                                        .orElseThrow(() -> {
-                                                throw new AppException(ErrorCode.STATE_NOT_FOUND);
-                                        });
-                        if (accountStore.isPresent()) {
-                                Page<ConsignmentOrders> response = consignmentOrdersRepository.findByStoreAndStateId(
+                                StateConsignmentOrder state = stateConsignmentOrderRepository
+                                                .findById(stateId)
+                                                .orElseThrow(() -> {
+                                                        throw new AppException(ErrorCode.STATE_NOT_FOUND);
+                                                });
+                                Page<ConsignmentOrders> response = null;
+                                
+                                if(stateId == StateConsignmentOrder.WAITING_STAFF_RECEIVE){
+                                        response = consignmentOrdersRepository.findByStoreAndStateIsWatingStaffReceive(
                                                 accountStore.get().getStore(),
                                                 state,
                                                 pageable);
+                                } else {
+                                        response = consignmentOrdersRepository.findByStoreAndStateId(
+                                                accountStore.get().getStore(),
+                                                state,
+                                                pageable);
+                                }
+
                                 return convertToResponse(response);
                         }
                         throw new AppException(ErrorCode.STORE_NOT_FOUND);
