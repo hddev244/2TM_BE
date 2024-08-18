@@ -33,6 +33,7 @@ public class OrderResponse {
     private String paymentMethodName;
     private String storeName;
     private String paymentRecordId;
+    private Boolean orderType;
     private List<OrderDetailResponse> detail;
     private StateOrderResponse orderState;
 }

@@ -59,6 +59,7 @@ public class BillOfLadingController {
     @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
     @GetMapping("/confirm-order")
     public ApiResponse<String> confirmOrder(@RequestParam(name = "orderId") Long orderId) {
+        System.out.println("orderId: " + orderId);
         return new ApiResponse<String>(200, null, billOfLadingService.confirmOder(orderId));
     }
 

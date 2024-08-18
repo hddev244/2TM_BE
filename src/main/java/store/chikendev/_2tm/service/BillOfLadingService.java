@@ -132,6 +132,35 @@ public class BillOfLadingService {
                 + "</body>"
                 + "</html>";
         sendEmail.sendMail(order.getAccount().getEmail(), "Xác nhận đơn hàng", emailContent);
+
+        // Tạo thông báo realtime cho người dùng
+        List<NotificationPayload> payloads = new ArrayList<>();
+        String objectId = order.getId().toString();
+
+        NotificationPayload payload = NotificationPayload.builder()
+                .objectId(objectId) // là id của order, thanh toán, ...
+                .accountId(order.getAccount().getId().toString()) // id của người dùng
+                .message("Đơn hàng của bạn đã được xác nhận bởi cửa hàng!") // nội dung thông báo
+                .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                // objectId (order, payment,
+                // // ...)
+                .build();
+        payloads.add(payload);
+
+        // Tạo thông báo realtime cho giao hàng
+        NotificationPayload payloadStore = NotificationPayload.builder()
+                .objectId(objectId) // là id của order, thanh toán, ...
+                .accountId(billOfLading.getDeliveryPerson().getId().toString()) // id của người dùng
+                .message("Bạn có đơn vận chuyển mới cần xác nhận!") // nội dung thông báo
+                .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                // objectId (order, payment,
+                // // ...)
+                .build();
+        payloads.add(payloadStore);
+
+        notificationService.callCreateManual(payloads);
+
+
         return "Xác nhận đơn hàng thành công";
     }
 
@@ -583,6 +612,7 @@ public class BillOfLadingService {
                                 ? order.getPaymentRecord().getId()
                                 : "")
                 .orderState(orderResponse)
+                .orderType(order.getType())
                 .build();
     }
 
