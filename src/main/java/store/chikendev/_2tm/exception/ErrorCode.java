@@ -56,7 +56,7 @@ public enum ErrorCode {
 
         INVALID_COMMISSION_RATE(464, "Tỷ lệ hoa hồng phải dưới 10%", HttpStatus.BAD_REQUEST),
         SHIPPING_COST_NOT_FOUND(465, "Không tìm thấy chi phí vận chuyển", HttpStatus.BAD_REQUEST),
-        INVAL_DATETIME_INPUT(466, "Định dạng ngày tháng sai", HttpStatus.BAD_REQUEST),
+        INVAL_DATETIME_INPUT(466, "Định dạng ngày tháng sai - DD/MM/YYYY", HttpStatus.BAD_REQUEST),
         ORDER_REFUND_ERROR(467, "các sản phẩm ký gửi khác cửa hàng phải tạo thành nhiều order", HttpStatus.BAD_REQUEST),
 
         // payment

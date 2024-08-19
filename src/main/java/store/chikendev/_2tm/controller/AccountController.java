@@ -30,170 +30,209 @@ import store.chikendev._2tm.service.OtpService;
 @RequestMapping("/api/account")
 public class AccountController {
 
-        @Autowired
-        private AccountService accountService;
+    @Autowired
+    private AccountService accountService;
 
-        @Autowired
-        private OtpService otpService;
+    @Autowired
+    private OtpService otpService;
 
-        @Autowired
-        private AuthenticationService authenticationService;
+    @Autowired
+    private AuthenticationService authenticationService;
 
-        @GetMapping
-        public ApiResponse<AccountResponse> getAccount() {
-                return new ApiResponse<AccountResponse>(
-                                200,
-                                null,
-                                accountService.getAccountByToken());
+    @GetMapping
+    public ApiResponse<AccountResponse> getAccount() {
+        return new ApiResponse<AccountResponse>(
+            200,
+            null,
+            accountService.getAccountByToken()
+        );
+    }
+
+    @PostMapping("register")
+    public ApiResponse<AccountResponse> register(
+        @RequestBody @Valid AccountRequest request
+    ) {
+        AccountResponse response = accountService.register(request);
+        otpService.sendOtp(response.getEmail());
+        return new ApiResponse<AccountResponse>(200, null, response);
+    }
+
+    @PostMapping("login")
+    public ApiResponse<AuthenticationResponse> login(
+        @RequestBody LoginRequest request
+    ) {
+        AuthenticationResponse responce = authenticationService.auth(
+            request,
+            AuthenticationService.LOGIN_ROLE_USER
+        );
+        return new ApiResponse<AuthenticationResponse>(
+            responce.isAuthenticated() ? 200 : 414,
+            null,
+            responce
+        );
+    }
+
+    @PostMapping("admin/login")
+    public ApiResponse<AuthenticationResponse> adminLogin(
+        @RequestBody LoginRequest request
+    ) {
+        System.out.println("admin login" + request);
+        AuthenticationResponse responce = authenticationService.auth(
+            request,
+            AuthenticationService.LOGIN_ROLE_ADMIN
+        );
+
+        return new ApiResponse<AuthenticationResponse>(
+            responce.isAuthenticated() ? 200 : 414,
+            null,
+            responce
+        );
+    }
+
+    @PostMapping("staff/login")
+    public ApiResponse<AuthenticationResponse> staffLogin(
+        @RequestBody LoginRequest request
+    ) {
+        AuthenticationResponse responce = authenticationService.auth(
+            request,
+            AuthenticationService.LOGIN_ROLE_STAFF
+        );
+
+        return new ApiResponse<AuthenticationResponse>(
+            responce.isAuthenticated() ? 200 : 414,
+            null,
+            responce
+        );
+    }
+
+    @PostMapping("delevery/login")
+    public ApiResponse<AuthenticationResponse> deleveryLogin(
+        @RequestBody LoginRequest request
+    ) {
+        AuthenticationResponse responce = authenticationService.auth(
+            request,
+            AuthenticationService.LOGIN_ROLE_DELIVERY
+        );
+
+        return new ApiResponse<AuthenticationResponse>(
+            responce.isAuthenticated() ? 200 : 414,
+            null,
+            responce
+        );
+    }
+
+    @GetMapping("logout")
+    public ApiResponse<String> logout() {
+        try {
+            authenticationService.logout();
+        } catch (Exception e) {
+            return new ApiResponse<String>(414, null, "Logout fail");
         }
+        return new ApiResponse<String>(200, null, "Logout success");
+    }
 
-        @PostMapping("register")
-        public ApiResponse<AccountResponse> register(
-                        @RequestBody @Valid AccountRequest request) {
-                AccountResponse response = accountService.register(request);
-                otpService.sendOtp(response.getEmail());
-                return new ApiResponse<AccountResponse>(200, null, response);
-        }
+    @PostMapping("change-password")
+    public ApiResponse<String> changePassword(
+        @RequestBody @Valid ChangePasswordRequest request
+    ) {
+        return new ApiResponse<String>(
+            200,
+            null,
+            accountService.changePassword(request)
+                ? "Đổi mật khẩu thành công"
+                : "Đổi mật khẩu thất bại"
+        );
+    }
 
-        @PostMapping("login")
-        public ApiResponse<AuthenticationResponse> login(
-                        @RequestBody LoginRequest request) {
-                AuthenticationResponse responce = authenticationService.auth(
-                                request,
-                                AuthenticationService.LOGIN_ROLE_USER);
-                return new ApiResponse<AuthenticationResponse>(
-                                responce.isAuthenticated() ? 200 : 414,
-                                null,
-                                responce);
-        }
+    @PostMapping(value = "updateImage", consumes = "multipart/form-data")
+    public ApiResponse<ResponseDocumentDto> updateImage(
+        @RequestPart("id") String id,
+        @RequestPart("image") MultipartFile image
+    ) {
+        return new ApiResponse<ResponseDocumentDto>(
+            200,
+            null,
+            accountService.updateImage(id, image)
+        );
+    }
 
-        @PostMapping("admin/login")
-        public ApiResponse<AuthenticationResponse> adminLogin(
-                        @RequestBody LoginRequest request) {
-                AuthenticationResponse responce = authenticationService.auth(
-                                request,
-                                AuthenticationService.LOGIN_ROLE_ADMIN);
+    @PostMapping(value = "changeAvatar", consumes = "multipart/form-data")
+    public ApiResponse<ResponseDocumentDto> updateImagePersonal(
+        @RequestPart("image") MultipartFile image
+    ) {
+        return new ApiResponse<ResponseDocumentDto>(
+            200,
+            null,
+            accountService.changeAvatar(image)
+        );
+    }
 
-                return new ApiResponse<AuthenticationResponse>(
-                                responce.isAuthenticated() ? 200 : 414,
-                                null,
-                                responce);
-        }
+    @PutMapping("/{id}")
+    public ApiResponse<Account> updateAccount(
+        @PathVariable("id") String id,
+        @RequestBody AccountRequest updateAccountRequest
+    ) {
+        System.out.println(
+            "updateAccountRequest: " + updateAccountRequest.toString()
+        );
+        Account updatedAccount = accountService.updateAccountById(
+            id,
+            updateAccountRequest
+        );
+        return new ApiResponse<Account>(200, null, updatedAccount);
+    }
 
-        @PostMapping("staff/login")
-        public ApiResponse<AuthenticationResponse> staffLogin(
-                        @RequestBody LoginRequest request) {
-                AuthenticationResponse responce = authenticationService.auth(
-                                request,
-                                AuthenticationService.LOGIN_ROLE_STAFF);
+    @PreAuthorize("hasRole('ROLE_QTV')")
+    @GetMapping("/{id}")
+    public ApiResponse<AccountResponse> getAccountById(
+        @PathVariable(name = "id") String id
+    ) {
+        AccountResponse accountResponse = accountService.getStaffById(id);
+        return new ApiResponse<AccountResponse>(200, null, accountResponse);
+    }
 
-                return new ApiResponse<AuthenticationResponse>(
-                                responce.isAuthenticated() ? 200 : 414,
-                                null,
-                                responce);
-        }
+    @PostMapping("refreshtoken")
+    public ApiResponse<String> refreshToken() {
+        authenticationService.refreshToKenFromHttpServletRequest();
+        return new ApiResponse<>(200, null, "Refresh token successfully");
+    }
 
-        @PostMapping("delevery/login")
-        public ApiResponse<AuthenticationResponse> deleveryLogin(
-                        @RequestBody LoginRequest request) {
-                AuthenticationResponse responce = authenticationService.auth(
-                                request,
-                                AuthenticationService.LOGIN_ROLE_DELIVERY);
+    @PostMapping("forgot-password")
+    public ApiResponse<String> createOtp(@RequestParam("email") String email) {
+        return new ApiResponse<String>(200, null, otpService.checkEmail(email));
+    }
 
-                return new ApiResponse<AuthenticationResponse>(
-                                responce.isAuthenticated() ? 200 : 414,
-                                null,
-                                responce);
-        }
+    @PostMapping("check-forgot-password")
+    public ApiResponse<String> checkOtp(
+        @RequestParam("email") String email,
+        @RequestParam("otp") String otp
+    ) {
+        return new ApiResponse<String>(
+            200,
+            null,
+            otpService.checkOtp(email, otp)
+        );
+    }
 
-        @GetMapping("logout")
-        public ApiResponse<String> logout() {
-                try {
-                        authenticationService.logout();
-                } catch (Exception e) {
-                        return new ApiResponse<String>(414, null, "Logout fail");
-                }
-                return new ApiResponse<String>(200, null, "Logout success");
-        }
+    @PostMapping("change-forgot-password")
+    public ApiResponse<String> changeForgotPassword(
+        @RequestBody @Valid ForgotPasswordRequest request
+    ) {
+        return new ApiResponse<String>(
+            200,
+            null,
+            otpService.changePassword(request)
+        );
+    }
 
-        @PostMapping("change-password")
-        public ApiResponse<String> changePassword(
-                        @RequestBody @Valid ChangePasswordRequest request) {
-                return new ApiResponse<String>(
-                                200,
-                                null,
-                                accountService.changePassword(request)
-                                                ? "Đổi mật khẩu thành công"
-                                                : "Đổi mật khẩu thất bại");
-        }
-
-        @PostMapping(value = "updateImage", consumes = "multipart/form-data")
-        public ApiResponse<ResponseDocumentDto> updateImage(
-                        @RequestPart("id") String id,
-                        @RequestPart("image") MultipartFile image) {
-                return new ApiResponse<ResponseDocumentDto>(
-                                200,
-                                null,
-                                accountService.updateImage(id, image));
-        }
-
-        @PostMapping(value = "changeAvatar", consumes = "multipart/form-data")
-        public ApiResponse<ResponseDocumentDto> updateImagePersonal(
-                        @RequestPart("image") MultipartFile image) {
-                return new ApiResponse<ResponseDocumentDto>(
-                                200,
-                                null,
-                                accountService.changeAvatar(image));
-        }
-
-        @PutMapping("/{id}")
-        public ApiResponse<Account> updateAccount(
-                        @PathVariable("id") String id,
-                        @RequestBody AccountRequest updateAccountRequest) {
-                System.out.println(
-                                "updateAccountRequest: " + updateAccountRequest.toString());
-                Account updatedAccount = accountService.updateAccountById(
-                                id,
-                                updateAccountRequest);
-                return new ApiResponse<Account>(200, null, updatedAccount);
-        }
-
-        @PreAuthorize("hasRole('ROLE_QTV')")
-        @GetMapping("/{id}")
-        public ApiResponse<AccountResponse> getAccountById(
-                        @PathVariable(name = "id") String id) {
-                AccountResponse accountResponse = accountService.getStaffById(id);
-                return new ApiResponse<AccountResponse>(200, null, accountResponse);
-        }
-
-        @PostMapping("refreshtoken")
-        public ApiResponse<String> refreshToken() {
-                authenticationService.refreshToKenFromHttpServletRequest();
-                return new ApiResponse<>(200, null, "Refresh token successfully");
-        }
-
-        @PostMapping("forgot-password")
-        public ApiResponse<String> createOtp(@RequestParam("email") String email) {
-                return new ApiResponse<String>(
-                                200,
-                                null,
-                                otpService.checkEmail(email));
-        }
-
-        @PostMapping("check-forgot-password")
-        public ApiResponse<String> checkOtp(@RequestParam("email") String email, @RequestParam("otp") String otp) {
-                return new ApiResponse<String>(200, null, otpService.checkOtp(email, otp));
-        }
-
-        @PostMapping("change-forgot-password")
-        public ApiResponse<String> changeForgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
-                return new ApiResponse<String>(200, null, otpService.changePassword(request));
-        }
-
-        @PreAuthorize("hasAnyRole('ROLE_QTV')")
-        @GetMapping("/username")
-        public ApiResponse<AccountResponse> getByUsername(@RequestParam(name = "username") String username) {
-                AccountResponse accountResponses = accountService.findByUsername(username);
-                return new ApiResponse<AccountResponse>(200, null, accountResponses);
-        }
+    @PreAuthorize("hasAnyRole('ROLE_QTV')")
+    @GetMapping("/username")
+    public ApiResponse<AccountResponse> getByUsername(
+        @RequestParam(name = "username") String username
+    ) {
+        AccountResponse accountResponses = accountService.findByUsername(
+            username
+        );
+        return new ApiResponse<AccountResponse>(200, null, accountResponses);
+    }
 }

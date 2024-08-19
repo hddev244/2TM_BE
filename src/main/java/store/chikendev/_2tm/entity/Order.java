@@ -30,6 +30,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "orders")
 public class Order {
+    //Phân biệt hàng mua và hàng hoàn cho chủ hàng
     public static final Boolean TYPE_ORDER_OF_CUSTOMER = true;
     public static final Boolean TYPE_ORDER_OF_OWNER = false;
 

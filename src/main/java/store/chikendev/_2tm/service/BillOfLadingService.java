@@ -792,7 +792,11 @@ public class BillOfLadingService {
 
         billOfLading.getOrder().setCompleteAt(new Date());
 
-        billOfLRepository.saveAndFlush(billOfLading);
+        try {
+            billOfLRepository.saveAndFlush(billOfLading);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        }
 
         // Tạo thông báo realtime cho người dùng
         String objectId = billOfLading.getId().toString();
@@ -843,7 +847,11 @@ public class BillOfLadingService {
             .findById(StateOrder.ON_REFECT)
             .get();
         billOfLading.getOrder().setStateOrder(stateOrder);
-
+        try {
+            billOfLRepository.saveAndFlush(billOfLading);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        }
         return "Hoan thanh";
     }
 
@@ -871,6 +879,11 @@ public class BillOfLadingService {
             .findById(StateOrder.DELIVERING)
             .get();
         billOfLading.getOrder().setStateOrder(stateOrder);
+        try {
+            billOfLRepository.saveAndFlush(billOfLading);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.DATA_ERROR);
+        }
 
         return "Hoan thanh";
     }

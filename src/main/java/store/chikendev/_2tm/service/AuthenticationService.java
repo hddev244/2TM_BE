@@ -1,20 +1,5 @@
 package store.chikendev._2tm.service;
 
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.StringJoiner;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -25,25 +10,41 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.UUID;
 import lombok.experimental.NonFinal;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import store.chikendev._2tm.dto.request.LoginRequest;
 import store.chikendev._2tm.dto.request.RefreshTokenRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
 import store.chikendev._2tm.dto.responce.AuthenticationResponse;
 import store.chikendev._2tm.dto.responce.CartResponse;
 import store.chikendev._2tm.dto.responce.RoleResponse;
+import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.CartItems;
 import store.chikendev._2tm.entity.InvaLidatedToken;
 import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.RoleAccount;
 import store.chikendev._2tm.entity.StateAccount;
+import store.chikendev._2tm.entity.Store;
 import store.chikendev._2tm.exception.AppException;
 import store.chikendev._2tm.exception.ErrorCode;
 import store.chikendev._2tm.repository.AccountRepository;
+import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.InvaLidatedTokenRepository;
 import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
@@ -58,6 +59,10 @@ public class AuthenticationService {
     public static final String LOGIN_ROLE_STAFF = "ROLE_STAFF";
     public static final String LOGIN_ROLE_USER = "ROLE_USER";
     public static final String LOGIN_ROLE_DELIVERY = "ROLE_DELIVERY";
+
+    @Autowired
+    private AccountStoreRepository accountStoreRepository;
+
     @Autowired
     private AddressService addressService;
 
@@ -99,14 +104,23 @@ public class AuthenticationService {
 
     // đăng nhập
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public AuthenticationResponse auth(LoginRequest request, String role_login) {
-        Account user = accountRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    public AuthenticationResponse auth(
+        LoginRequest request,
+        String role_login
+    ) {
+        Account user = accountRepository
+            .findByUsername(request.getUsername())
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         if (user.getState().getId() == StateAccount.LOCKED) {
             throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
         }
 
-        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        AccountStore accountStore = null;
+
+        boolean authenticated = passwordEncoder.matches(
+            request.getPassword(),
+            user.getPassword()
+        );
 
         if (!authenticated) {
             throw new AppException(ErrorCode.LOGIN_FAIL);
@@ -115,31 +129,56 @@ public class AuthenticationService {
         List<RoleAccount> aRoles = user.getRoles();
 
         if (LOGIN_ROLE_ADMIN.equals(role_login)) {
-            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_ADMIN));
+            boolean hasRole = aRoles
+                .stream()
+                .anyMatch(role -> role.getRole().getId().equals(Role.ROLE_ADMIN)
+                );
             if (!hasRole) {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
         }
 
         if (LOGIN_ROLE_DELIVERY.equals(role_login)) {
-            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_SHIPPER));
+            boolean hasRole = aRoles
+                .stream()
+                .anyMatch(role ->
+                    role.getRole().getId().equals(Role.ROLE_SHIPPER)
+                );
             if (!hasRole) {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
+
+            accountStore = accountStoreRepository
+                .findByAccount(user)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
         }
 
         if (LOGIN_ROLE_STAFF.equals(role_login)) {
-            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_STAFF)
-                    || role.getRole().getId().equals(Role.ROLE_STAFF));
+            boolean hasRole = aRoles
+                .stream()
+                .anyMatch(
+                    role ->
+                        role.getRole().getId().equals(Role.ROLE_STAFF) ||
+                        role.getRole().getId().equals(Role.ROLE_STAFF)
+                );
             if (!hasRole) {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
+
+            accountStore = accountStoreRepository
+                .findByAccount(user)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
         }
 
         if (LOGIN_ROLE_USER.equals(role_login)) {
-            boolean hasRole = aRoles.stream().anyMatch(role -> role.getRole().getId().equals(Role.ROLE_USER)
-                    || role.getRole().getId().equals(Role.ROLE_CUSTOMER)
-                    || role.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER));
+            boolean hasRole = aRoles
+                .stream()
+                .anyMatch(
+                    role ->
+                        role.getRole().getId().equals(Role.ROLE_USER) ||
+                        role.getRole().getId().equals(Role.ROLE_CUSTOMER) ||
+                        role.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)
+                );
             if (!hasRole) {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
             }
@@ -147,26 +186,33 @@ public class AuthenticationService {
 
         if (user.getState().getId() == StateAccount.VERIFICATION_REQUIRED) {
             return AuthenticationResponse.builder()
-                    .account(
-                            AccountResponse.builder()
-                                    .email(user.getEmail())
-                                    .build())
-                    .authenticated(false)
-                    .build();
+                .account(
+                    AccountResponse.builder().email(user.getEmail()).build()
+                )
+                .authenticated(false)
+                .build();
         }
 
         var token = this.generateToken(user, VALID_DURATION, SIGNER_KEY);
-        var refreshToken = this.generateToken(user, REFRESHABLE_DURATION, SIGNER_KEY_REFRESH);
+        var refreshToken =
+            this.generateToken(user, REFRESHABLE_DURATION, SIGNER_KEY_REFRESH);
 
-        var image = FilesHelp.getOneDocument(user.getId(), EntityFileType.USER_AVATAR);
+        var image = FilesHelp.getOneDocument(
+            user.getId(),
+            EntityFileType.USER_AVATAR
+        );
 
         List<RoleResponse> roles = new ArrayList();
-        user.getRoles().forEach(role -> {
-            roles.add(RoleResponse.builder()
-                    .id(role.getRole().getId())
-                    .name(role.getRole().getName())
-                    .build());
-        });
+        user
+            .getRoles()
+            .forEach(role -> {
+                roles.add(
+                    RoleResponse.builder()
+                        .id(role.getRole().getId())
+                        .name(role.getRole().getName())
+                        .build()
+                );
+            });
 
         response.setHeader("accessToken", token);
         response.setHeader("refreshToken", refreshToken);
@@ -176,52 +222,82 @@ public class AuthenticationService {
 
         List<CartResponse> cartResponses = null;
         if (!CollectionUtils.isEmpty(cartItems)) {
-            cartResponses = cartItems.stream().map(cartItem -> {
-                return CartResponse.builder()
+            cartResponses = cartItems
+                .stream()
+                .map(cartItem -> {
+                    return CartResponse.builder()
                         .id(cartItem.getId())
                         .quantity(cartItem.getQuantity())
-                        .product(productService.convertToResponse(cartItem.getProduct(), false))
+                        .product(
+                            productService.convertToResponse(
+                                cartItem.getProduct(),
+                                false
+                            )
+                        )
                         .build();
-            }).toList();
+                })
+                .toList();
         }
 
         return AuthenticationResponse.builder()
-                .authenticated(authenticated)
-                .account(
-                        AccountResponse.builder()
-                                .id(user.getId())
-                                .username(user.getUsername())
-                                .fullName(user.getFullName())
-                                .roles(roles)
-                                .violationPoints(user.getViolationPoints())
-                                .phoneNumber(user.getPhoneNumber())
-                                .email(user.getEmail())
-                                .image(image)
-                                .cartItems(cartResponses)
-                                .primaryAddress(addressService.convertAddressToAddressResponse(user.getAddress()))
-                                .build())
-                .token(token)
-                .refreshToken(refreshToken)
-                .build();
+            .authenticated(authenticated)
+            .account(
+                AccountResponse.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .fullName(user.getFullName())
+                    .roles(roles)
+                    .violationPoints(user.getViolationPoints())
+                    .phoneNumber(user.getPhoneNumber())
+                    .email(user.getEmail())
+                    .image(image)
+                    .store(
+                        accountStore != null
+                            ? StoreResponse.builder()
+                                .id(accountStore.getStore().getId())
+                                .name(accountStore.getStore().getName())
+                                .build()
+                            : null
+                    )
+                    .cartItems(cartResponses)
+                    .primaryAddress(
+                        addressService.convertAddressToAddressResponse(
+                            user.getAddress()
+                        )
+                    )
+                    .build()
+            )
+            .token(token)
+            .refreshToken(refreshToken)
+            .build();
     }
 
     // tao token đăng nhập
-    public String generateToken(Account account, Long duration, String signerKey) {
+    public String generateToken(
+        Account account,
+        Long duration,
+        String signerKey
+    ) {
         // Tạo HMAC signer
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         // Chuẩn bị JWT với tập hợp các khai báo
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(account.getEmail())
-                .issuer("2tm.demo")
-                .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
-                .jwtID(UUID.randomUUID().toString())
-                .claim("scope", this.buildScope(account))
-                .claim("fullname", account.getFullName())
-                .claim("uid", account.getId())
-                .build();
+            .subject(account.getEmail())
+            .issuer("2tm.demo")
+            .issueTime(new Date())
+            .expirationTime(
+                new Date(
+                    Instant.now()
+                        .plus(duration, ChronoUnit.SECONDS)
+                        .toEpochMilli()
+                )
+            )
+            .jwtID(UUID.randomUUID().toString())
+            .claim("scope", this.buildScope(account))
+            .claim("fullname", account.getFullName())
+            .claim("uid", account.getId())
+            .build();
 
         Payload payload = new Payload(claimsSet.toJSONObject());
 
@@ -234,14 +310,15 @@ public class AuthenticationService {
         } catch (JOSEException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     // set cac roles
     private String buildScope(Account account) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if (!CollectionUtils.isEmpty(account.getRoles())) {
-            account.getRoles().forEach(s -> stringJoiner.add(s.getRole().getId()));
+            account
+                .getRoles()
+                .forEach(s -> stringJoiner.add(s.getRole().getId()));
         }
         return stringJoiner.toString();
     }
@@ -255,7 +332,12 @@ public class AuthenticationService {
         String accessToken = getTokenFromRequest(request);
         String refreshToken = getRefreshTokenFromRequest(request);
 
-        if (accessToken == null || refreshToken == null || "".equals(refreshToken) || "".equals(accessToken)) {
+        if (
+            accessToken == null ||
+            refreshToken == null ||
+            "".equals(refreshToken) ||
+            "".equals(accessToken)
+        ) {
             return;
         }
 
@@ -267,20 +349,20 @@ public class AuthenticationService {
 
         Date expiryTime = signAccessToken.getJWTClaimsSet().getExpirationTime();
         InvaLidatedToken invaLidatedAccessToken = InvaLidatedToken.builder()
-                .id(jwtIdAccess)
-                .expiryTime(expiryTime)
-                .build();
+            .id(jwtIdAccess)
+            .expiryTime(expiryTime)
+            .build();
         InvaLidatedToken invaLidatedRefreshToken = InvaLidatedToken.builder()
-                .id(jwtIdRefresh)
-                .expiryTime(expiryTime)
-                .build();
+            .id(jwtIdRefresh)
+            .expiryTime(expiryTime)
+            .build();
         invaLidatedTokenRepository.save(invaLidatedAccessToken);
         invaLidatedTokenRepository.save(invaLidatedRefreshToken);
-
     }
 
     // kiem tra token
-    public SignedJWT verifyToken(String token, boolean isRefresh) throws AppException {
+    public SignedJWT verifyToken(String token, boolean isRefresh)
+        throws AppException {
         JWSVerifier verifier;
         SignedJWT signedJWT;
         var verified = false;
@@ -297,14 +379,23 @@ public class AuthenticationService {
             }
             verified = signedJWT.verify(verifier);
             if (isRefresh) {
-                expiryTime = new Date(signedJWT.getJWTClaimsSet().getIssueTime().toInstant()
-                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli());
+                expiryTime = new Date(
+                    signedJWT
+                        .getJWTClaimsSet()
+                        .getIssueTime()
+                        .toInstant()
+                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                        .toEpochMilli()
+                );
             } else {
                 expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
             }
 
-            if (invaLidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
-                throw new AppException(ErrorCode.UNAUTHORIZED);
+            if (
+                invaLidatedTokenRepository.existsById(
+                    signedJWT.getJWTClaimsSet().getJWTID()
+                )
+            ) throw new AppException(ErrorCode.UNAUTHORIZED);
         } catch (JOSEException | ParseException e) {
             throw new RuntimeException(e);
         }
@@ -312,13 +403,11 @@ public class AuthenticationService {
         if (signedJWT == null || verifier == null) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         } else {
+            if (!verified) throw new AppException(ErrorCode.UNAUTHORIZED);
 
-            if (!verified)
-                throw new AppException(ErrorCode.UNAUTHORIZED);
-
-            if (expiryTime.before(new Date()))
-                throw new AppException(ErrorCode.TOKEN_EXPIRED);
-
+            if (expiryTime.before(new Date())) throw new AppException(
+                ErrorCode.TOKEN_EXPIRED
+            );
         }
 
         return signedJWT;
@@ -326,29 +415,35 @@ public class AuthenticationService {
 
     // lam moi token
     public AuthenticationResponse refreshToken(RefreshTokenRequest request)
-            throws ParseException, JOSEException, AppException {
+        throws ParseException, JOSEException, AppException {
         SignedJWT verify = this.verifyToken(request.getToken(), true);
         String id = verify.getJWTClaimsSet().getJWTID();
         Date expiryTime = verify.getJWTClaimsSet().getExpirationTime();
 
         InvaLidatedToken invaLidatedToken = InvaLidatedToken.builder()
-                .id(id)
-                .expiryTime(expiryTime)
-                .build();
+            .id(id)
+            .expiryTime(expiryTime)
+            .build();
         invaLidatedTokenRepository.save(invaLidatedToken);
 
         String email = verify.getJWTClaimsSet().getSubject();
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Account account = accountRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         var token = this.generateToken(account, VALID_DURATION, SIGNER_KEY);
-        var refreshToken = this.generateToken(account, REFRESHABLE_DURATION, SIGNER_KEY_REFRESH);
+        var refreshToken =
+            this.generateToken(
+                    account,
+                    REFRESHABLE_DURATION,
+                    SIGNER_KEY_REFRESH
+                );
 
         return AuthenticationResponse.builder()
-                .authenticated(true)
-                .token(token)
-                .refreshToken(refreshToken)
-                .build();
+            .authenticated(true)
+            .token(token)
+            .refreshToken(refreshToken)
+            .build();
     }
 
     public boolean refreshToKenFromHttpServletRequest() {
@@ -357,32 +452,47 @@ public class AuthenticationService {
         if (refreshToken == null) {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
-        SignedJWT signedJWT = verifyToken(refreshToken, AuthenticationService.REFRESH_TOKEN);
+        SignedJWT signedJWT = verifyToken(
+            refreshToken,
+            AuthenticationService.REFRESH_TOKEN
+        );
 
         if (signedJWT == null) {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         } else {
             try {
-                String userId = signedJWT.getJWTClaimsSet().getStringClaim("uid");
+                String userId = signedJWT
+                    .getJWTClaimsSet()
+                    .getStringClaim("uid");
                 Account account = accountRepository.findById(userId).get();
 
                 if (account == null) {
                     throw new AppException(ErrorCode.TOKEN_INVALID);
                 }
 
-                String accessToken = generateToken(account, VALID_DURATION, SIGNER_KEY);
-                String newRefreshToken = generateToken(account, REFRESHABLE_DURATION, SIGNER_KEY_REFRESH);
+                String accessToken = generateToken(
+                    account,
+                    VALID_DURATION,
+                    SIGNER_KEY
+                );
+                String newRefreshToken = generateToken(
+                    account,
+                    REFRESHABLE_DURATION,
+                    SIGNER_KEY_REFRESH
+                );
 
                 response.setHeader("accessToken", accessToken);
                 response.setHeader("refreshToken", newRefreshToken);
                 response.setHeader("Authorization", accessToken);
 
                 String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
-                Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+                Date expiryTime = signedJWT
+                    .getJWTClaimsSet()
+                    .getExpirationTime();
                 InvaLidatedToken invaLidatedToken = InvaLidatedToken.builder()
-                        .id(jwtId)
-                        .expiryTime(expiryTime)
-                        .build();
+                    .id(jwtId)
+                    .expiryTime(expiryTime)
+                    .build();
 
                 invaLidatedTokenRepository.save(invaLidatedToken);
 
@@ -416,5 +526,4 @@ public class AuthenticationService {
         }
         return token.substring(7);
     }
-
 }
