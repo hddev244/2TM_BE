@@ -1,6 +1,5 @@
 package store.chikendev._2tm.controller;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -168,10 +168,10 @@ public class ProductController {
                                 productService.ownerCreateProduct(request, images));
         }
 
-        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH')")
+        @PreAuthorize("hasAnyRole('ROLE_QLCH', 'ROLE_NVCH', 'ROLE_CH')")
         @PutMapping("/update/{id}")
         public ApiResponse<ProductResponse> updateProduct(
-                        @PathVariable Long id,
+                        @PathVariable("id") Long id,
                         @RequestBody ProductRequest productRequest) {
                 ProductResponse updatedProduct = productService.updateProduct(
                                 id,

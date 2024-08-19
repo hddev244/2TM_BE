@@ -461,22 +461,37 @@ public class ProductService {
                 Account account = accountServiceUtill.getAccount();
                 List<RoleAccount> allRole = roleAccountRepository.findByAccount(
                                 account);
-                allRole.forEach(roleAccount -> {
-                        if (!roleAccount
-                                        .getRole()
-                                        .getId()
-                                        .equals(Role.ROLE_STORE_MANAGER) &&
-                                        !roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)) {
-                                throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+                boolean checkRole = false;
+                for (RoleAccount roleAccount : allRole) {
+                        if (roleAccount.getRole().getId().equals(Role.ROLE_STAFF)
+                                        || roleAccount.getRole().getId().equals(Role.ROLE_STORE_MANAGER) ||
+                                        roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)) {
+                                checkRole = true;
                         }
-                });
+                }
+                if (!checkRole) {
+                        throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
+                }
                 Product product = productRepository
                                 .findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
                 Store store = product.getStore();
-                if (store == null || !isManagerOfStore(account, store)) {
-                        throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+                for (RoleAccount roleAccount : allRole) {
+                        if (roleAccount.getRole().getId().equals(Role.ROLE_STAFF)
+                                        || roleAccount.getRole().getId().equals(Role.ROLE_STORE_MANAGER)) {
+                                if (store == null || !isManagerOfStore(account, store)) {
+                                        throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+                                }
+                        }
+                        if (roleAccount.getRole().getId().equals(Role.ROLE_PRODUCT_OWNER)) {
+                                if (product.getOwnerId() == null) {
+                                        throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+                                }
+                                if (product.getOwnerId().getId() != account.getId()) {
+                                        throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
+                                }
+                        }
                 }
 
                 product.setName(productRequest.getName());
@@ -490,9 +505,7 @@ public class ProductService {
                                         .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
                         product.setCategory(category);
                 }
-
-                product = productRepository.save(product);
-                return convertToResponse(product, true);
+                return convertToResponse(productRepository.save(product), true);
         }
 
         private boolean isManagerOfStore(Account account, Store store) {
