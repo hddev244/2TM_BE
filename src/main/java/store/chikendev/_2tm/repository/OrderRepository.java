@@ -110,7 +110,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // @Param("startOfDay") LocalDateTime startOfDay,
     // @Param("endOfDay") LocalDateTime endOfDay
     // );
-
     @Query(value = "SELECT DATE(o.complete_at), SUM(o.total_price),COUNT(o.id) " +
             "FROM orders o " +
             "WHERE o.complete_at >= :startOfDay AND o.complete_at < :endOfDay " +

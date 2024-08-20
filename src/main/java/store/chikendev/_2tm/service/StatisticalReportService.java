@@ -1,5 +1,7 @@
 package store.chikendev._2tm.service;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -15,12 +17,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import store.chikendev._2tm.dto.responce.AttributeProductResponse;
+import store.chikendev._2tm.dto.responce.CategoryResponse;
 import store.chikendev._2tm.dto.responce.OrderDetailResponse;
 import store.chikendev._2tm.dto.responce.OrderResponse;
+import store.chikendev._2tm.dto.responce.ProductReportResponse;
 import store.chikendev._2tm.dto.responce.ProductResponse;
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.dto.responce.StatisticalReportResponse;
 import store.chikendev._2tm.dto.responce.StatisticalReportRevenueResponse;
+import store.chikendev._2tm.dto.responce.StoreResponse;
 import store.chikendev._2tm.entity.Account;
 import store.chikendev._2tm.entity.AccountStore;
 import store.chikendev._2tm.entity.Image;
@@ -35,15 +42,26 @@ import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.OrderDetailsRepository;
 import store.chikendev._2tm.repository.OrderRepository;
+import store.chikendev._2tm.repository.ProductRepository;
 import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
+import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
 @Service
 public class StatisticalReportService {
 
     @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
     private RoleAccountRepository roleAccountRepository;
+
+    @Autowired
+    private AccountServiceUtill accountServiceUtill;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -56,7 +74,8 @@ public class StatisticalReportService {
 
     @Autowired
     private AccountStoreRepository accountStoreRepository;
-
+    @Autowired
+    private AccountServiceUtill accountServiceUtil;
     @Autowired
     private StoreRepository storeRepository;
 
@@ -442,7 +461,7 @@ public class StatisticalReportService {
         String completeAt = result[0].toString(); // Convert to String if necessary
         Double totalSale = (Double) result[1];
         Long totalOrder = (Long) result[2];
-        return new Report(completeAt, totalSale,totalOrder);
+        return new Report(completeAt, totalSale, totalOrder);
     }
 
     // convert string date DD/MM/YYYY to YYYY-MM-DD
@@ -492,4 +511,85 @@ public class StatisticalReportService {
     public List<Report> countMember() {
         return roleAccountRepository.countMember();
     }
+
+    public List<Report> getStoreRevenueByMinAndMaxDate(String minDate, String maxDate) {
+        Account account = accountServiceUtill.getAccount();
+        Store store = accountStoreRepository.findByAccount(account)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
+                .getStore();
+        return getRevenueByMinAndMaxDate(minDate, maxDate, store.getId());
+    }
+
+    public Report getStoreRevenueByDate(String date) {
+        Account account = accountServiceUtill.getAccount();
+        Store store = accountStoreRepository.findByAccount(account)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
+                .getStore();
+        return getRevenueByDate(date, store.getId());
+    }
+
+    public List<ProductReportResponse> getProductReportRevenue(
+            String minDate,
+            String maxDate,
+            Long storeId,
+            Boolean productType) {
+        LocalDate min = convertToDate(minDate);
+        LocalDate max = convertToDate(maxDate).plusDays(1);
+
+        List<ProductReportResponse> productReportResponses = new ArrayList<>();
+        List<Object[]> results = new ArrayList<>();
+        if (storeId == null) {
+            results = orderDetailsRepository.getProductReportQtyAndTotalPrice(
+                    min, max, productType, null);
+        } else {
+            Store store = storeRepository.findById(storeId)
+                    .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+            results = orderDetailsRepository.getProductReportQtyAndTotalPrice(
+                    min, max, productType, store.getId());
+        }
+
+        for (Object[] result : results) {
+            // Assuming result[0] is productId, result[1] is totalQuantity, result[2] is
+            // totalRevenue
+            Long productId = null;
+            if (result[0] instanceof BigInteger) {
+                productId = ((BigInteger) result[0]).longValue();
+            } else if (result[0] instanceof Long) {
+                productId = (Long) result[0];
+            }
+
+            Long totalQuantity = null;
+            if (result[1] instanceof BigDecimal) {
+                totalQuantity = ((BigDecimal) result[1]).longValue();
+            } else if (result[1] instanceof Long) {
+                totalQuantity = (Long) result[1];
+            }
+
+            // Determine the correct type of totalRevenue
+            Double totalRevenue = null;
+            if (result[2] instanceof BigDecimal) {
+                totalRevenue = ((BigDecimal) result[2]).doubleValue();
+            } else if (result[2] instanceof Double) {
+                totalRevenue = (Double) result[2];
+            }
+
+            ProductResponse productRes = null;
+            ;
+            Product product = productRepository.findById(productId).orElse(null); // Fetch the Product entity
+
+            if (product != null) {
+                productRes = productService.convertToResponse(product, false); // Convert the Product entity to
+                                                                               // ProductResponse
+            }
+
+            if (product != null) {
+                ProductReportResponse productReport = new ProductReportResponse(productRes, totalQuantity,
+                        totalRevenue);
+                productReportResponses.add(productReport);
+            }
+        }
+
+        return productReportResponses;
+    }
+
 }
