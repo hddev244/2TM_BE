@@ -111,7 +111,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // @Param("endOfDay") LocalDateTime endOfDay
     // );
 
-    @Query(value = "SELECT DATE(o.complete_at), SUM(o.total_price) " +
+    @Query(value = "SELECT DATE(o.complete_at), SUM(o.total_price),COUNT(o.id) " +
             "FROM orders o " +
             "WHERE o.complete_at >= :startOfDay AND o.complete_at < :endOfDay " +
             "GROUP BY DATE(o.complete_at)" +
@@ -119,7 +119,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> getNativeReportByRangeDate(@Param("startOfDay") LocalDate startOfDay,
             @Param("endOfDay") LocalDate endOfDay);
 
-    @Query(value = "SELECT DATE(o.complete_at), SUM(o.total_price) " +
+    @Query(value = "SELECT DATE(o.complete_at), SUM(o.total_price),COUNT(o.id) " +
             "FROM orders o " +
             "WHERE o.complete_at >= :startOfDay AND o.complete_at < :endOfDay AND o.store_id = :store_id " +
             "GROUP BY DATE(o.complete_at)" +

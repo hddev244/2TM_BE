@@ -162,4 +162,14 @@ public class StatisticalReportController {
         );
     }
 
+    @GetMapping("admin/user/group-by-role")
+    public ApiResponse<List<Report>> getCountUser(
+    ) {
+        return new ApiResponse<List<Report>>(
+            200,
+            null,
+            statisticalReportService.countMember()
+        );
+    }
+
 }

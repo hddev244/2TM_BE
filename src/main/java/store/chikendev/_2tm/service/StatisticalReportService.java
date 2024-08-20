@@ -3,10 +3,8 @@ package store.chikendev._2tm.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -37,11 +35,15 @@ import store.chikendev._2tm.repository.AccountRepository;
 import store.chikendev._2tm.repository.AccountStoreRepository;
 import store.chikendev._2tm.repository.OrderDetailsRepository;
 import store.chikendev._2tm.repository.OrderRepository;
+import store.chikendev._2tm.repository.RoleAccountRepository;
 import store.chikendev._2tm.repository.StoreRepository;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
 
 @Service
 public class StatisticalReportService {
+
+    @Autowired
+    private RoleAccountRepository roleAccountRepository;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -391,7 +393,7 @@ public class StatisticalReportService {
             Long storeId) {
         List<Report> reports = new ArrayList<>();
         LocalDate min = convertToDate(minDate);
-        LocalDate max = convertToDate(maxDate);
+        LocalDate max = convertToDate(maxDate).plusDays(1);
         List<Object[]> results = new ArrayList<>();
         if (storeId == null) {
             results = orderRepository.getNativeReportByRangeDate(min, max);
@@ -439,7 +441,8 @@ public class StatisticalReportService {
     private Report convertToReport(Object[] result) {
         String completeAt = result[0].toString(); // Convert to String if necessary
         Double totalSale = (Double) result[1];
-        return new Report(completeAt, totalSale);
+        Long totalOrder = (Long) result[2];
+        return new Report(completeAt, totalSale,totalOrder);
     }
 
     // convert string date DD/MM/YYYY to YYYY-MM-DD
@@ -484,5 +487,9 @@ public class StatisticalReportService {
         }
 
         return reports;
+    }
+
+    public List<Report> countMember() {
+        return roleAccountRepository.countMember();
     }
 }

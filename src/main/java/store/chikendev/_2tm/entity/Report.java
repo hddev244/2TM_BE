@@ -15,12 +15,26 @@ import lombok.Data;
 public class Report implements java.io.Serializable {
     @Id
     private Long id;
-    private String completeAt;
+    private String date;
     private Double totalSale;
+    private String role;
+    private Long totalMember;
+    private Long totalOrder;
+
+    public Report(String role, Long totalMember) {
+        this.role = role;
+        this.totalMember = totalMember;
+    }
 
     public Report(String completeAt, Double totalSale) {
-        this.completeAt = completeAt;
+        this.date = completeAt;
         this.totalSale = totalSale;
+    }
+
+    public Report(String completeAt, Double totalSale, Long totalOrder) {
+        this.date = completeAt;
+        this.totalSale = totalSale;
+        this.totalOrder = totalOrder;
     }
 
     public Report(Double totalSale) {

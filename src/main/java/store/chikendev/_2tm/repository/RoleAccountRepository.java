@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import store.chikendev._2tm.entity.Account;
+import store.chikendev._2tm.entity.Report;
 import store.chikendev._2tm.entity.Role;
 import store.chikendev._2tm.entity.RoleAccount;
 
@@ -26,4 +27,9 @@ public interface RoleAccountRepository
         @Param("email") String emailIgnore,
         Pageable pageable
     );
+
+    @Query(
+        "SELECT new store.chikendev._2tm.entity.Report(r.role.id, COUNT(r.account)) FROM RoleAccount r GROUP BY r.role"
+    )
+    List<Report> countMember();
 }
