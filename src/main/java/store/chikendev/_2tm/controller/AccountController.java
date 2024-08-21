@@ -50,8 +50,12 @@ public class AccountController {
 
     @PostMapping("register")
     public ApiResponse<AccountResponse> register(
-        @RequestBody @Valid AccountRequest request
+        @RequestBody 
+        // @Valid 
+        AccountRequest request
     ) {
+        System.out.println("response: " + request);
+        
         AccountResponse response = accountService.register(request);
         otpService.sendOtp(response.getEmail());
         return new ApiResponse<AccountResponse>(200, null, response);

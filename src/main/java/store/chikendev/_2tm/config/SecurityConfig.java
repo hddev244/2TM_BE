@@ -32,6 +32,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "http://localhost:3003",// Của hàng
                         "http://localhost:3004", // admin
                         "http://localhost:3001",
+                        "http://localhost:8080",
                         "https://192.168.1.197:3001",
                         "http://192.168.1.197:3001",
                         "https://admin.2tm.store",

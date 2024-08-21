@@ -113,6 +113,7 @@ public class AccountService {
                                 throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
                         }
                 }
+
                 Optional<Account> username = accountRepository.findByUsername(
                                 request.getUsername());
                 if (username.isPresent()) {
@@ -121,6 +122,7 @@ public class AccountService {
                 StateAccount state = stateAccountRepository
                                 .findById(StateAccount.VERIFICATION_REQUIRED)
                                 .get();
+                                System.out.println("check-------------------------");
                 Account account = mapper.map(request, Account.class);
                 account.setPassword(passwordEncoder.encode(request.getPassword()));
                 account.setViolationPoints(100);
@@ -134,46 +136,62 @@ public class AccountService {
                 roleAccountRepository.save(roleAccount);
                 AccountResponse response = mapper.map(account, AccountResponse.class);
                 response.setStateName(save.getState().getName());
+
+
                 return response;
         }
 
         public CreateStaffResponse createStaff(CreateStaffRequest request) {
                 Optional<Account> email = accountRepository.findByEmail(
                                 request.getEmail());
+
                 if (email.isPresent()) {
                         throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
                 }
+
                 Optional<Account> phone = accountRepository.findByPhoneNumber(
                                 request.getPhoneNumber());
                 if (phone.isPresent()) {
                         throw new AppException(ErrorCode.EMAIL_PHONE_EXISTED);
                 }
+
                 Optional<Account> username = accountRepository.findByUsername(
                                 request.getUsername());
                 if (username.isPresent()) {
                         throw new AppException(ErrorCode.USER_EXISTED);
                 }
+
                 Ward ward = wardRepository
                                 .findById(request.getWardId())
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.WARD_NOT_FOUND);
                                 });
+                        
 
                 StateAccount state = stateAccountRepository
                                 .findById(StateAccount.ACTIVE)
                                 .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
                 String password = generateRandomPassword();
-                Account account = mapper.map(request, Account.class);
-                account.setPassword(passwordEncoder.encode(password));
-                account.setViolationPoints(100);
-                account.setState(state);
-                Account savedAccount = accountRepository.save(account);
+                Account account = Account.builder().
+                                username(request.getUsername())
+                                .fullName(request.getFullName())
+                                .phoneNumber(request.getPhoneNumber())
+                                .password(passwordEncoder.encode(password))
+                                .violationPoints(100)
+                                .state(state)
+                                .email(request.getEmail())
+                                .build();
+
+                Account savedAccount = accountRepository.saveAndFlush(account);
+
                 Address address = Address.builder()
                                 .account(savedAccount)
                                 .ward(ward)
                                 .streetAddress(request.getStreetAddress())
                                 .build();
+
                 savedAccount.setAddress(addressRepository.save(address));
+
                 accountRepository.save(savedAccount);
 
                 Role role = roleRepository
