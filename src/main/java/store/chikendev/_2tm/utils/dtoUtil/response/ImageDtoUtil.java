@@ -1,8 +1,11 @@
 package store.chikendev._2tm.utils.dtoUtil.response;
 
+import org.springframework.stereotype.Service;
+
 import store.chikendev._2tm.dto.responce.ResponseDocumentDto;
 import store.chikendev._2tm.entity.Image;
 
+@Service
 public class ImageDtoUtil {
     public static ResponseDocumentDto convertToImageResponse(Image image) {
         if (image == null) {

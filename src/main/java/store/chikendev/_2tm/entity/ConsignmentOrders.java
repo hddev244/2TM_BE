@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -48,15 +49,18 @@ public class ConsignmentOrders {
     private Account ordererId;
 
     @OneToOne
-    @JoinTable(name = "consignment_orders_image", joinColumns = @JoinColumn(name = "consignmentOrderId"), inverseJoinColumns = @JoinColumn(name = "imageId"))
+    @JoinTable(name = "consignment_orders_image", 
+        joinColumns = @JoinColumn(name = "consignmentOrderId"), 
+        inverseJoinColumns = @JoinColumn(name = "imageId")
+        )
     private Image image;
 
     @ManyToOne
     @JoinColumn(name = "deliveryPerson")
     private Account deliveryPerson;
 
-    @ManyToOne
-    @JoinColumn(name = "productId")
+     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
     @ManyToOne

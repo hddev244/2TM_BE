@@ -21,7 +21,7 @@ public class ProductCommissionService {
     private ProductRepository productRepository;
     
     public ProductCommission addProductCommission(Double commissionRate) {
-        if (commissionRate >= 10) {
+        if (commissionRate < 10) {
             throw new AppException(ErrorCode.INVALID_COMMISSION_RATE);
         }
 

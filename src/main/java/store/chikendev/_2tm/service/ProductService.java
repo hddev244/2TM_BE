@@ -426,7 +426,7 @@ public class ProductService {
                 return response;
         }
 
-        private List<ProductImages> saveProductImages(
+        public List<ProductImages> saveProductImages(
                         Product product,
                         MultipartFile[] images) {
                 List<ProductImages> productImages = new ArrayList<>();
