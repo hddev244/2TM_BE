@@ -48,8 +48,10 @@ public class CartService {
         Product product = productRepository.findById(idProduct)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
+        // tìm cartItem theo accountId và productId
         CartItems cartItemFound = cartItemsRepository.findCartItemsByAccountIdAndProductId(account.getId(), idProduct);
 
+        // Nếu sản phẩm không tồn tại trong giỏ hàng thì tạo cartItem mới
         if (cartItemFound == null) {
             CartItems cartItem = new CartItems();
 
@@ -60,33 +62,41 @@ public class CartService {
             cartItem.setProduct(product);
             cartItem.setAccount(account);
 
+            // Kiểm tra số lượng sản phẩm
+            // Nếu số lượng sản phẩm trong kho lớn hơn hoặc bằng số lượng yêu cầu thì thêm
+            // vào
             if (product.getQuantity() >= quantityRequest) {
                 cartItem.setQuantity(quantityRequest);
                 cartItemsRepository.save(cartItem);
 
-            } else {
+            }
+            // Nếu số lượng sản phẩm trong kho nhỏ hơn số lượng yêu cầu
+            // thì thêm vào với số lượng bằng số lượng trong kho
+            else {
                 cartItem.setQuantity(product.getQuantity());
                 cartItemsRepository.save(cartItem);
-
-                throw new AppException(ErrorCode.CART_QTY_BIGGER_THAN_PRODUCT);
             }
             return convertToCartDto(cartItem);
-        } else {
+        }
+        // Nếu sản phẩm đã tồn tại trong giỏ hàng thì cập nhật số lượng
+        else {
+            // Số lượng mới = số lượng cũ + số lượng yêu cầu
             int quantity = cartItemFound.getQuantity() + quantityRequest;
 
+            // Nếu số lượng mới > số lượng trong kho thì số lượng mới = số lượng trong kho
+            if (product.getQuantity() < quantity) {
+                quantity = product.getQuantity();
+            }
+
+            // Nếu số lượng mới <= 0 thì xóa sản phẩm khỏi giỏ hàng
             if (quantity <= 0) {
                 cartItemsRepository.delete(cartItemFound);
                 throw new AppException(ErrorCode.CART_DELETED);
             }
 
-            if (product.getQuantity() >= quantity) {
-                cartItemFound.setQuantity(quantity);
-                cartItemsRepository.save(cartItemFound);
-                return convertToCartDto(cartItemFound);
-            } else {
-                cartItemFound.setQuantity(product.getQuantity());
-                throw new AppException(ErrorCode.CART_QTY_BIGGER_THAN_PRODUCT);
-            }
+            cartItemFound.setQuantity(quantity);
+            cartItemsRepository.save(cartItemFound);
+            return convertToCartDto(cartItemFound);
 
         }
     }

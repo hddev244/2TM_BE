@@ -17,7 +17,7 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    // @PreAuthorize("hasAnyRole('ROLE_KH')")
+    @PreAuthorize("hasAnyRole('ROLE_KH')")
     @PostMapping("/add")
     public ApiResponse<CartResponse> addProductToCart(
         @RequestParam(name="productId") Long productId, 
