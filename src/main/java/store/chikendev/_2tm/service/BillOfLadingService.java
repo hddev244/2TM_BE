@@ -106,89 +106,100 @@ public class BillOfLadingService {
 
     // NVCH - QLCH xác nhận order
     public String confirmOder(Long orderId) {
+
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
+
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
         Order order = orderRepository
-            .findById(orderId)
-            .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+                .findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
         AccountStore store = accountStoreRepository
-            .findByAccount(account)
-            .get();
+                .findByAccount(account).orElseThrow(
+                        () -> new AppException(ErrorCode.ACCOUNT_NOT_IN_STORE));
+
         if (order.getStore().getId() != store.getStore().getId()) {
             throw new AppException(ErrorCode.ROLE_ERROR);
         }
+
         if (order.getStateOrder().getId() != StateOrder.IN_CONFIRM) {
             throw new AppException(ErrorCode.STATE_ERROR);
         }
+
         order.setStateOrder(
-            stateOrderRepository.findById(StateOrder.CONFIRMED).get()
-        );
-        BillOfLading billOfLading = createBillOfLading(
-            orderRepository.saveAndFlush(order),
-            account
-        );
-        String emailContent =
-            "<html>" +
-            "<body>" +
-            "<h3>Xin chào,</h3>" +
-            "<p>Đơn hàng của bạn đã được xác nhận. </p>" +
-            "<h2 style='color:blue;'>Mã vận đơn của bạn là:" +
-            billOfLading.getId() +
-            "</h2>" +
-            "<br>" +
-            "<p>Trân trọng,</p>" +
-            "<p>Đội ngũ hỗ trợ của 2TM</p>" +
-            "</body>" +
-            "</html>";
-        sendEmail.sendMail(
-            order.getAccount().getEmail(),
-            "Xác nhận đơn hàng",
-            emailContent
-        );
+                stateOrderRepository.findById(StateOrder.CONFIRMED).get());
+        try {
+            BillOfLading billOfLading = createBillOfLading(
+                    orderRepository.saveAndFlush(order),
+                    account);
 
-        // Tạo thông báo realtime cho người dùng
-        List<NotificationPayload> payloads = new ArrayList<>();
-        String objectId = order.getId().toString();
+            String emailContent = "<html>" +
+                    "<body>" +
+                    "<h3>Xin chào,</h3>" +
+                    "<p>Đơn hàng của bạn đã được xác nhận. </p>" +
+                    "<h2 style='color:blue;'>Mã vận đơn của bạn là:" +
+                    billOfLading.getId() +
+                    "</h2>" +
+                    "<br>" +
+                    "<p>Trân trọng,</p>" +
+                    "<p>Đội ngũ hỗ trợ của 2TM</p>" +
+                    "</body>" +
+                    "</html>";
+            sendEmail.sendMail(
+                    order.getAccount().getEmail(),
+                    "Xác nhận đơn hàng",
+                    emailContent);
 
-        NotificationPayload payload = NotificationPayload.builder()
-            .objectId(objectId) // là id của order, thanh toán, ...
-            .accountId(order.getAccount().getId().toString()) // id của người dùng
-            .message("Đơn hàng của bạn đã được xác nhận bởi cửa hàng!") // nội dung thông báo
-            .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
-            // objectId (order, payment,
-            // // ...)
-            .build();
-        payloads.add(payload);
+            // Tạo thông báo realtime cho người dùng
+            List<NotificationPayload> payloads = new ArrayList<>();
+            String objectId = order.getId().toString();
 
-        // Tạo thông báo realtime cho giao hàng
-        NotificationPayload payloadStore = NotificationPayload.builder()
-            .objectId(objectId) // là id của order, thanh toán, ...
-            .accountId(billOfLading.getDeliveryPerson().getId().toString()) // id của người dùng
-            .message("Bạn có đơn vận chuyển mới cần xác nhận!") // nội dung thông báo
-            .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
-            // objectId (order, payment,
-            // // ...)
-            .build();
-        payloads.add(payloadStore);
+            NotificationPayload payload = NotificationPayload.builder()
+                    .objectId(objectId) // là id của order, thanh toán, ...
+                    .accountId(order.getAccount().getId().toString()) // id của người dùng
+                    .message("Đơn hàng của bạn đã được xác nhận bởi cửa hàng!") // nội dung thông báo
+                    .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                    // objectId (order, payment,
+                    // // ...)
+                    .build();
+            payloads.add(payload);
 
-        notificationService.callCreateManual(payloads);
+            // Tạo thông báo realtime cho giao hàng
+            NotificationPayload payloadStore = NotificationPayload.builder()
+                    .objectId(objectId) // là id của order, thanh toán, ...
+                    .accountId(billOfLading.getDeliveryPerson().getId().toString()) // id của người dùng
+                    .message("Bạn có đơn vận chuyển mới cần xác nhận!") // nội dung thông báo
+                    .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                    // objectId (order, payment,
+                    // // ...)
+                    .build();
+            payloads.add(payloadStore);
 
-        return "Xác nhận đơn hàng thành công";
+            notificationService.callCreateManual(payloads);
+
+            return "Xác nhận đơn hàng thành công";
+        } catch (Exception e) {
+            order.setStateOrder(
+                    stateOrderRepository.findById(StateOrder.IN_CONFIRM).get());
+            orderRepository.saveAndFlush(order);
+            throw e;
+        }
     }
 
     // KH - Hủy order
     public void cancelOrder(Long orderId, String email) {
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Order order = orderRepository
-            .findById(orderId)
-            .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+                .findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getAccount().getId().equals(account.getId())) {
             throw new AppException(ErrorCode.NO_MANAGEMENT_RIGHTS);
@@ -197,19 +208,17 @@ public class BillOfLadingService {
         if (!order.getStateOrder().getId().equals(StateOrder.IN_CONFIRM)) {
             throw new AppException(ErrorCode.STATE_ERROR);
         }
-        List<OrderDetails> orderDetailsList =
-            orderDetailsRepository.findByOrder(order);
+        List<OrderDetails> orderDetailsList = orderDetailsRepository.findByOrder(order);
 
         for (OrderDetails orderDetail : orderDetailsList) {
             Product product = orderDetail.getProduct();
-            int updatedQuantity =
-                product.getQuantity() + orderDetail.getQuantity();
+            int updatedQuantity = product.getQuantity() + orderDetail.getQuantity();
             product.setQuantity(updatedQuantity);
             productRepository.save(product);
         }
         StateOrder cancelledState = stateOrderRepository
-            .findById(StateOrder.CANCELLED_ORDER)
-            .get();
+                .findById(StateOrder.CANCELLED_ORDER)
+                .get();
         order.setStateOrder(cancelledState);
         orderRepository.save(order);
     }
@@ -217,37 +226,31 @@ public class BillOfLadingService {
     // từ chối đơn hàng - NVCH - QLCH
     public String refuseOrder(Long idOrders) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.USER_NOT_FOUND);
-            });
+                .findByEmail(email)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USER_NOT_FOUND);
+                });
         Order order = orderRepository
-            .findById(idOrders)
-            .orElseThrow(() -> {
-                throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
-            });
+                .findById(idOrders)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
+                });
         if (order.getStateOrder().getId() != StateOrder.IN_CONFIRM) {
             throw new AppException(ErrorCode.STATE_ERROR);
         }
-        if (
-            order
+        if (order
                 .getStore()
                 .getAccountStores()
                 .stream()
-                .anyMatch(acc ->
-                    acc.getAccount().getId().equals(account.getId())
-                )
-        ) {
+                .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
             order.setStateOrder(
-                stateOrderRepository.findById(StateOrder.REFUSE).get()
-            );
+                    stateOrderRepository.findById(StateOrder.REFUSE).get());
             for (OrderDetails orderDetail : order.getDetails()) {
                 Product product = orderDetail.getProduct();
-                int updatedQuantity =
-                    product.getQuantity() + orderDetail.getQuantity();
+                int updatedQuantity = product.getQuantity() + orderDetail.getQuantity();
                 product.setQuantity(updatedQuantity);
                 productRepository.save(product);
             }
@@ -264,20 +267,29 @@ public class BillOfLadingService {
         }
         bill.setOrder(order);
         Store store = accountStoreRepository
-            .findByAccount(account)
-            .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
-            .getStore();
+                .findByAccount(account)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
+                .getStore();
         List<AccountStore> accounts = accountStoreRepository.findByStore(store);
+        System.out.println(accounts.size());
+        if (accounts == null || accounts.isEmpty()) {
+            throw new AppException(ErrorCode.DELIVERY_PERSON_EMPTY);
+        }
+
         accounts.forEach(deliveryPerson -> {
+            if(deliveryPerson.getAccount() == null){
+                return;
+            }
             deliveryPerson
-                .getAccount()
-                .getRoles()
-                .forEach(roles -> {
-                    if (roles.getRole().getId().equals(Role.ROLE_SHIPPER)) {
-                        bill.setDeliveryPerson(roles.getAccount());
-                    }
-                });
+                    .getAccount()
+                    .getRoles()
+                    .forEach(roles -> {
+                        if (roles.getRole().getId().equals(Role.ROLE_SHIPPER)) {
+                            bill.setDeliveryPerson(roles.getAccount());
+                        }
+                    });
         });
+
         if (bill.getDeliveryPerson() == null) {
             throw new AppException(ErrorCode.DELIVERY_PERSON_EMPTY);
         }
@@ -292,75 +304,66 @@ public class BillOfLadingService {
     }
 
     public List<BillOfLadingResponse> getBillOfLadingByDeliveryPersonId(
-        String id
-    ) {
-        List<BillOfLading> billOfLadings =
-            billOfLRepository.getBillOfLadingByDeliveryPersonId(id);
+            String id) {
+        List<BillOfLading> billOfLadings = billOfLRepository.getBillOfLadingByDeliveryPersonId(id);
         return billOfLadings
-            .stream()
-            .map(this::getResponse)
-            .collect(Collectors.toList());
+                .stream()
+                .map(this::getResponse)
+                .collect(Collectors.toList());
     }
 
     public BillOfLadingResponse getResponse(BillOfLading billOfLading) {
         BillOfLadingResponse response = new BillOfLadingResponse();
         response.setId(billOfLading.getId());
         response.setDeliveryPerson(
-            billOfLading.getDeliveryPerson() != null
-                ? billOfLading.getDeliveryPerson().getFullName()
-                : null
-        );
+                billOfLading.getDeliveryPerson() != null
+                        ? billOfLading.getDeliveryPerson().getFullName()
+                        : null);
         response.setCreateBy(
-            billOfLading.getCreateBy() != null
-                ? billOfLading.getCreateBy().getFullName()
-                : null
-        );
+                billOfLading.getCreateBy() != null
+                        ? billOfLading.getCreateBy().getFullName()
+                        : null);
         response.setTotalAmount(getTotalAmount(billOfLading));
         response.setOrderer(
-            billOfLading.getOrder() != null
-                ? accountResponse(billOfLading.getOrder().getAccount())
-                : null
-        );
+                billOfLading.getOrder() != null
+                        ? accountResponse(billOfLading.getOrder().getAccount())
+                        : null);
         response.setOrder(convertToOrderResponse(billOfLading.getOrder()));
         response.setCreatedAt(billOfLading.getCreatedAt());
         if (billOfLading.getImage() != null) {
             response.setUrlImage(
-                billOfLading.getImage() != null
-                    ? billOfLading.getImage().getFileDownloadUri()
-                    : null
-            );
+                    billOfLading.getImage() != null
+                            ? billOfLading.getImage().getFileDownloadUri()
+                            : null);
         }
         return response;
     }
 
     public Page<BillOfLadingResponse> getByDeliveryPersonIdAndStateId(
-        int size,
-        int page,
-        Long stateId
-    ) {
+            int size,
+            int page,
+            Long stateId) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Pageable pageable = PageRequest.of(page, size);
         Page<BillOfLading> responses = null;
         if (stateId == null) {
             responses = billOfLRepository.findByDeliveryPerson(
-                account,
-                pageable
-            );
+                    account,
+                    pageable);
         } else {
             System.out.println(stateId + " TC");
             StateOrder stateOrder = stateOrderRep
-                .findById(stateId)
-                .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
+                    .findById(stateId)
+                    .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
             responses = billOfLRepository.getByDaliveryPersonIdAndStateId(
-                account,
-                stateOrder,
-                pageable
-            );
+                    account,
+                    stateOrder,
+                    pageable);
         }
         return responses.map(bullOfLading -> {
             return getResponse(bullOfLading);
@@ -369,63 +372,45 @@ public class BillOfLadingService {
 
     // NVGH - update các trạng thái đơn hàng
     public String updateStatus(
-        Long idBillOfLading,
-        Long idStateOrder,
-        MultipartFile file
-    ) {
+            Long idBillOfLading,
+            Long idStateOrder,
+            MultipartFile file) {
         String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+                .getAuthentication()
+                .getName();
         Account account = accountRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         BillOfLading billOfLading = billOfLRepository
-            .findById(idBillOfLading)
-            .orElseThrow(() ->
-                new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND)
-            );
+                .findById(idBillOfLading)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
         if (!billOfLading.getDeliveryPerson().getId().equals(account.getId())) {
             throw new AppException(ErrorCode.ROLE_ERROR);
         }
         StateOrder stateOrder = stateOrderRep
-            .findById(idStateOrder)
-            .orElseThrow(() -> {
-                return new AppException(ErrorCode.STATE_ORDER_NOT_FOUND);
-            });
+                .findById(idStateOrder)
+                .orElseThrow(() -> {
+                    return new AppException(ErrorCode.STATE_ORDER_NOT_FOUND);
+                });
         if (stateOrder.getId() == StateOrder.DELIVERING) {
-            if (
-                billOfLading.getOrder().getStateOrder().getId() !=
-                StateOrder.CONFIRMED
-            ) {
+            if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.CONFIRMED) {
                 throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
             }
             updateStatusOrder(billOfLading, stateOrder, file);
-        } else if (
-            stateOrder.getId() == StateOrder.DELIVERED_SUCCESS ||
-            stateOrder.getId() == StateOrder.DELIVERED_FAIL
-        ) {
-            if (
-                billOfLading.getOrder().getStateOrder().getId() !=
-                StateOrder.DELIVERING
-            ) {
+        } else if (stateOrder.getId() == StateOrder.DELIVERED_SUCCESS ||
+                stateOrder.getId() == StateOrder.DELIVERED_FAIL) {
+            if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.DELIVERING) {
                 throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
             }
             updateStatusOrder(billOfLading, stateOrder, file);
         } else if (stateOrder.getId() == StateOrder.RETURNED) {
-            if (
-                billOfLading.getOrder().getStateOrder().getId() ==
-                    StateOrder.ORDER_RETURN ||
-                billOfLading.getOrder().getStateOrder().getId() ==
-                StateOrder.DELIVERED_FAIL
-            ) {
+            if (billOfLading.getOrder().getStateOrder().getId() == StateOrder.ORDER_RETURN ||
+                    billOfLading.getOrder().getStateOrder().getId() == StateOrder.DELIVERED_FAIL) {
                 updateStatusOrder(billOfLading, stateOrder, file);
             }
             throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
         } else if (stateOrder.getId() == StateOrder.RETURNED_SUCCESS) {
-            if (
-                billOfLading.getOrder().getStateOrder().getId() !=
-                StateOrder.RETURNED
-            ) {
+            if (billOfLading.getOrder().getStateOrder().getId() != StateOrder.RETURNED) {
                 throw new AppException(ErrorCode.INVALID_STATUS_CHANGE);
             }
             updateStatusOrder(billOfLading, stateOrder, file);
@@ -437,31 +422,27 @@ public class BillOfLadingService {
     }
 
     private void updateStatusOrder(
-        BillOfLading billOfLading,
-        StateOrder stateOrder,
-        MultipartFile file
-    ) {
+            BillOfLading billOfLading,
+            StateOrder stateOrder,
+            MultipartFile file) {
         Order order = billOfLading.getOrder();
         Account account = billOfLading.getOrder().getAccount();
-        if (
-            stateOrder.getId() == StateOrder.DELIVERED_SUCCESS ||
-            stateOrder.getId() == StateOrder.RETURNED_SUCCESS
-        ) {
+        if (stateOrder.getId() == StateOrder.DELIVERED_SUCCESS ||
+                stateOrder.getId() == StateOrder.RETURNED_SUCCESS) {
             if (file == null) {
                 throw new AppException(ErrorCode.FILE_NOT_FOUND);
             }
             ResponseDocumentDto fileSaved = FilesHelp.saveFile(
-                file,
-                billOfLading.getId(),
-                EntityFileType.BILL_OF_LANDING
-            );
+                    file,
+                    billOfLading.getId(),
+                    EntityFileType.BILL_OF_LANDING);
             Image image = Image.builder()
-                .fileId(fileSaved.getFileId())
-                .fileName(fileSaved.getFileName())
-                .fileDownloadUri(fileSaved.getFileDownloadUri())
-                .fileType(fileSaved.getFileType())
-                .size(fileSaved.getSize())
-                .build();
+                    .fileId(fileSaved.getFileId())
+                    .fileName(fileSaved.getFileName())
+                    .fileDownloadUri(fileSaved.getFileDownloadUri())
+                    .fileType(fileSaved.getFileType())
+                    .size(fileSaved.getSize())
+                    .build();
             Image imageSaved = imageRepository.saveAndFlush(image);
             billOfLading.setImage(imageSaved);
         }
@@ -469,45 +450,44 @@ public class BillOfLadingService {
             order.setCompleteAt(new Date());
             order.setPaymentStatus(true);
             order
-                .getDetails()
-                .forEach(detail -> {
-                    if (detail.getProduct().getOwnerId() != null) {
-                        Double commissionRate =
-                            ((detail.getPrice() *
+                    .getDetails()
+                    .forEach(detail -> {
+                        if (detail.getProduct().getOwnerId() != null) {
+                            Double commissionRate = ((detail.getPrice() *
                                     detail
-                                        .getProduct()
-                                        .getProductCommission()
-                                        .getCommissionRate()) /
-                                100) *
-                            detail.getQuantity();
-                        Disbursements disbursements = Disbursements.builder()
-                            .commissionRate(commissionRate)
-                            .orderDetail(detail)
-                            .state(false)
-                            .build();
-                        disbursementsRepository.saveAndFlush(disbursements);
-                    }
-                });
+                                            .getProduct()
+                                            .getProductCommission()
+                                            .getCommissionRate())
+                                    /
+                                    100) *
+                                    detail.getQuantity();
+                            Disbursements disbursements = Disbursements.builder()
+                                    .commissionRate(commissionRate)
+                                    .orderDetail(detail)
+                                    .state(false)
+                                    .build();
+                            disbursementsRepository.saveAndFlush(disbursements);
+                        }
+                    });
         }
         if (stateOrder.getId() == StateOrder.RETURNED_SUCCESS) {
             if (order.getType() == true) {
                 order
-                    .getDetails()
-                    .forEach(detail -> {
-                        Product product = detail.getProduct();
-                        product.setQuantity(
-                            product.getQuantity() + detail.getQuantity()
-                        );
-                        productRepository.save(product);
-                    });
+                        .getDetails()
+                        .forEach(detail -> {
+                            Product product = detail.getProduct();
+                            product.setQuantity(
+                                    product.getQuantity() + detail.getQuantity());
+                            productRepository.save(product);
+                        });
             }
         }
         if (stateOrder.getId() == StateOrder.DELIVERED_FAIL) {
             account.setViolationPoints(account.getViolationPoints() - 10);
             ViolationRecord record = ViolationRecord.builder()
-                .account(account)
-                .order(order)
-                .build();
+                    .account(account)
+                    .order(order)
+                    .build();
             recordRepository.save(record);
         }
         order.setStateOrder(stateOrder);
@@ -524,61 +504,54 @@ public class BillOfLadingService {
             String addressWard = address.getWard().getName();
             String addressDistrict = address.getWard().getDistrict().getName();
             String addressProvince = address
-                .getWard()
-                .getDistrict()
-                .getProvinceCity()
-                .getName();
+                    .getWard()
+                    .getDistrict()
+                    .getProvinceCity()
+                    .getName();
             String addressAddress = address.getStreetAddress() == null
-                ? ""
-                : address.getStreetAddress() + ", ";
-            return (
-                addressAddress +
-                addressWard +
-                ", " +
-                addressDistrict +
-                ", " +
-                addressProvince
-            );
+                    ? ""
+                    : address.getStreetAddress() + ", ";
+            return (addressAddress +
+                    addressWard +
+                    ", " +
+                    addressDistrict +
+                    ", " +
+                    addressProvince);
         }
         return "";
     }
 
     public AccountResponse accountResponse(Account account) {
         ResponseDocumentDto image = FilesHelp.getOneDocument(
-            account.getId(),
-            EntityFileType.USER_AVATAR
-        );
+                account.getId(),
+                EntityFileType.USER_AVATAR);
         return AccountResponse.builder()
-            .id(account.getId())
-            .username(account.getUsername())
-            .fullName(account.getFullName())
-            .phoneNumber(account.getPhoneNumber())
-            .email(account.getEmail())
-            .roles(
-                roleAccountRepository
-                    .findByAccount(account)
-                    .stream()
-                    .map(roleAccount ->
-                        mapper.map(roleAccount.getRole(), RoleResponse.class)
-                    )
-                    .toList()
-            )
-            .address(getAddress(account.getAddress()))
-            .violationPoints(account.getViolationPoints())
-            .createdAt(account.getCreatedAt())
-            .updatedAt(account.getUpdatedAt())
-            .stateName(account.getState().getName())
-            .image(image)
-            .build();
+                .id(account.getId())
+                .username(account.getUsername())
+                .fullName(account.getFullName())
+                .phoneNumber(account.getPhoneNumber())
+                .email(account.getEmail())
+                .roles(
+                        roleAccountRepository
+                                .findByAccount(account)
+                                .stream()
+                                .map(roleAccount -> mapper.map(roleAccount.getRole(), RoleResponse.class))
+                                .toList())
+                .address(getAddress(account.getAddress()))
+                .violationPoints(account.getViolationPoints())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
+                .stateName(account.getState().getName())
+                .image(image)
+                .build();
     }
 
     public Double getTotalAmount(BillOfLading billOfLading) {
         if (billOfLading.getOrder().getPaymentMethod().getId() == 1) {
-            Double amount =
-                billOfLading.getOrder().getTotalPrice() +
-                (billOfLading.getOrder().getDeliveryCost() == null
-                        ? 0.0
-                        : billOfLading.getOrder().getDeliveryCost());
+            Double amount = billOfLading.getOrder().getTotalPrice() +
+                    (billOfLading.getOrder().getDeliveryCost() == null
+                            ? 0.0
+                            : billOfLading.getOrder().getDeliveryCost());
             return amount;
         } else {
             Double amount = 0.0;
@@ -594,34 +567,31 @@ public class BillOfLadingService {
             String addressWard = order.getWard().getName();
             String addressDistrict = order.getWard().getDistrict().getName();
             String addressProvince = order
-                .getWard()
-                .getDistrict()
-                .getProvinceCity()
-                .getName();
+                    .getWard()
+                    .getDistrict()
+                    .getProvinceCity()
+                    .getName();
             String addressAddress = order.getConsigneeDetailAddress() == null
-                ? ""
-                : order.getConsigneeDetailAddress() + ", ";
-            return (
-                addressAddress +
-                addressWard +
-                ", " +
-                addressDistrict +
-                ", " +
-                addressProvince
-            );
+                    ? ""
+                    : order.getConsigneeDetailAddress() + ", ";
+            return (addressAddress +
+                    addressWard +
+                    ", " +
+                    addressDistrict +
+                    ", " +
+                    addressProvince);
         }
         return "";
     }
 
     private OrderDetailResponse convertToOrderDetailResponse(
-        OrderDetails detail
-    ) {
+            OrderDetails detail) {
         return OrderDetailResponse.builder()
-            .id(detail.getId())
-            .price(detail.getPrice())
-            .quantity(detail.getQuantity())
-            .product(convertToProductResponse(detail.getProduct()))
-            .build();
+                .id(detail.getId())
+                .price(detail.getPrice())
+                .quantity(detail.getQuantity())
+                .product(convertToProductResponse(detail.getProduct()))
+                .build();
     }
 
     private StateOrderResponse convertToStateOrder(StateOrder order) {
@@ -644,13 +614,13 @@ public class BillOfLadingService {
         }
 
         List<ResponseDocumentDto> responseDocument = product
-            .getImages()
-            .stream()
-            .map(img -> {
-                Image image = img.getImage();
-                return ImageDtoUtil.convertToImageResponse(image);
-            })
-            .toList();
+                .getImages()
+                .stream()
+                .map(img -> {
+                    Image image = img.getImage();
+                    return ImageDtoUtil.convertToImageResponse(image);
+                })
+                .toList();
         response.setImages(responseDocument);
         return response;
     }
@@ -663,68 +633,61 @@ public class BillOfLadingService {
         List<OrderDetailResponse> orderDetailResponses = new ArrayList<>();
         if (details != null) {
             orderDetailResponses = details
-                .stream()
-                .map(detail -> {
-                    return convertToOrderDetailResponse(detail);
-                })
-                .collect(Collectors.toList());
+                    .stream()
+                    .map(detail -> {
+                        return convertToOrderDetailResponse(detail);
+                    })
+                    .collect(Collectors.toList());
         }
         StateOrder orderState = order.getStateOrder();
         StateOrderResponse orderResponse = convertToStateOrder(orderState);
 
         String storeName = (order.getStore() != null)
-            ? order.getStore().getName()
-            : "";
+                ? order.getStore().getName()
+                : "";
 
         return OrderResponse.builder()
-            .id(order.getId())
-            .deliveryCost(
-                order.getDeliveryCost() != null ? order.getDeliveryCost() : 0.0
-            )
-            .note(order.getNote())
-            .createdAt(order.getCreatedAt())
-            .completeAt(order.getCompleteAt())
-            .paymentStatus(order.getPaymentStatus())
-            .paymentId(order.getPaymentId())
-            .address(getAddress(order))
-            .consigneeName(order.getConsigneeName())
-            .consigneePhoneNumber(order.getConsigneePhoneNumber())
-            .totalPrice(order.getTotalPrice())
-            .accountName(
-                order.getAccount() != null
-                    ? order.getAccount().getFullName()
-                    : ""
-            )
-            .state(
-                order.getStateOrder() != null
-                    ? order.getStateOrder().getStatus()
-                    : ""
-            )
-            .paymentMethodName(
-                order.getPaymentMethod() != null
-                    ? order.getPaymentMethod().getName()
-                    : ""
-            )
-            .detail(orderDetailResponses)
-            .storeName(storeName)
-            .paymentRecordId(
-                order.getPaymentRecord() != null
-                    ? order.getPaymentRecord().getId()
-                    : ""
-            )
-            .orderState(orderResponse)
-            .orderType(order.getType())
-            .build();
+                .id(order.getId())
+                .deliveryCost(
+                        order.getDeliveryCost() != null ? order.getDeliveryCost() : 0.0)
+                .note(order.getNote())
+                .createdAt(order.getCreatedAt())
+                .completeAt(order.getCompleteAt())
+                .paymentStatus(order.getPaymentStatus())
+                .paymentId(order.getPaymentId())
+                .address(getAddress(order))
+                .consigneeName(order.getConsigneeName())
+                .consigneePhoneNumber(order.getConsigneePhoneNumber())
+                .totalPrice(order.getTotalPrice())
+                .accountName(
+                        order.getAccount() != null
+                                ? order.getAccount().getFullName()
+                                : "")
+                .state(
+                        order.getStateOrder() != null
+                                ? order.getStateOrder().getStatus()
+                                : "")
+                .paymentMethodName(
+                        order.getPaymentMethod() != null
+                                ? order.getPaymentMethod().getName()
+                                : "")
+                .detail(orderDetailResponses)
+                .storeName(storeName)
+                .paymentRecordId(
+                        order.getPaymentRecord() != null
+                                ? order.getPaymentRecord().getId()
+                                : "")
+                .orderState(orderResponse)
+                .orderType(order.getType())
+                .build();
     }
 
     public void acceptBillOfLading(Long billOfLadingId) {
         Account account = accountServiceUtill.getAccount();
 
         BillOfLading billOfLading = billOfLRepository
-            .findByDeliveryPersonAndId(account, billOfLadingId)
-            .orElseThrow(() ->
-                new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND)
-            );
+                .findByDeliveryPersonAndId(account, billOfLadingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
 
         Long stateId = -1L;
 
@@ -739,8 +702,8 @@ public class BillOfLadingService {
         }
 
         StateOrder stateOrder = stateOrderRepository
-            .findById(StateOrder.DELIVERING)
-            .get();
+                .findById(StateOrder.DELIVERING)
+                .get();
         billOfLading.getOrder().setStateOrder(stateOrder);
         billOfLRepository.saveAndFlush(billOfLading);
     }
@@ -749,10 +712,8 @@ public class BillOfLadingService {
         Account account = accountServiceUtill.getAccount();
 
         BillOfLading billOfLading = billOfLRepository
-            .findByDeliveryPersonAndId(account, id)
-            .orElseThrow(() ->
-                new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND)
-            );
+                .findByDeliveryPersonAndId(account, id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
 
         // Kiểm tra id có phjai là trạng thái DELIVERING
         Long stateId = -1L;
@@ -766,8 +727,8 @@ public class BillOfLadingService {
         }
 
         StateOrder stateOrder = stateOrderRepository
-            .findById(StateOrder.DELIVERED_SUCCESS)
-            .get();
+                .findById(StateOrder.DELIVERED_SUCCESS)
+                .get();
         billOfLading.getOrder().setStateOrder(stateOrder);
 
         if (file == null) {
@@ -775,17 +736,16 @@ public class BillOfLadingService {
         }
 
         ResponseDocumentDto fileSaved = FilesHelp.saveFile(
-            file,
-            billOfLading.getId(),
-            EntityFileType.BILL_OF_LANDING
-        );
+                file,
+                billOfLading.getId(),
+                EntityFileType.BILL_OF_LANDING);
         Image image = Image.builder()
-            .fileId(fileSaved.getFileId())
-            .fileName(fileSaved.getFileName())
-            .fileDownloadUri(fileSaved.getFileDownloadUri())
-            .fileType(fileSaved.getFileType())
-            .size(fileSaved.getSize())
-            .build();
+                .fileId(fileSaved.getFileId())
+                .fileName(fileSaved.getFileName())
+                .fileDownloadUri(fileSaved.getFileDownloadUri())
+                .fileType(fileSaved.getFileType())
+                .size(fileSaved.getSize())
+                .build();
         Image imageSaved = imageRepository.save(image);
 
         billOfLading.setImage(imageSaved);
@@ -801,23 +761,23 @@ public class BillOfLadingService {
         // Tạo thông báo realtime cho người dùng
         String objectId = billOfLading.getId().toString();
         NotificationPayload payload = NotificationPayload.builder()
-            .objectId(objectId) // là id của order, thanh toán, ...
-            .accountId(billOfLading.getOrder().getAccount().getId().toString()) // id của người dùng
-            .message("Đơn hàng của hạn đã được giao thành công!") // nội dung thông báo
-            .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
-            // objectId (order, payment,
-            // // ...)
-            .build();
+                .objectId(objectId) // là id của order, thanh toán, ...
+                .accountId(billOfLading.getOrder().getAccount().getId().toString()) // id của người dùng
+                .message("Đơn hàng của hạn đã được giao thành công!") // nội dung thông báo
+                .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                // objectId (order, payment,
+                // // ...)
+                .build();
         notificationService.callCreateNotification(payload);
 
         NotificationPayload payload2 = NotificationPayload.builder()
-            .objectId(objectId) // là id của order, thanh toán, ...
-            .accountId(billOfLading.getOrder().getStore().getId().toString()) // id của người dùng
-            .message("Đơn hàng #" + objectId + " đã được giao thành công!") // nội dung thông báo
-            .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
-            // objectId (order, payment,
-            // // ...)
-            .build();
+                .objectId(objectId) // là id của order, thanh toán, ...
+                .accountId(billOfLading.getOrder().getStore().getId().toString()) // id của người dùng
+                .message("Đơn hàng #" + objectId + " đã được giao thành công!") // nội dung thông báo
+                .type(NotificationPayload.TYPE_BILL_OF_LADING) // loại thông báo theo
+                // objectId (order, payment,
+                // // ...)
+                .build();
         notificationService.callCreateNotification(payload2);
 
         return "Giao hàng thành công";
@@ -827,10 +787,8 @@ public class BillOfLadingService {
         Account account = accountServiceUtill.getAccount();
 
         BillOfLading billOfLading = billOfLRepository
-            .findByDeliveryPersonAndId(account, id)
-            .orElseThrow(() ->
-                new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND)
-            );
+                .findByDeliveryPersonAndId(account, id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
 
         // Kiểm tra id có phjai là trạng thái DELIVERING
         Long stateId = -1L;
@@ -844,8 +802,8 @@ public class BillOfLadingService {
         }
 
         StateOrder stateOrder = stateOrderRepository
-            .findById(StateOrder.ON_REFECT)
-            .get();
+                .findById(StateOrder.ON_REFECT)
+                .get();
         billOfLading.getOrder().setStateOrder(stateOrder);
         try {
             billOfLRepository.saveAndFlush(billOfLading);
@@ -859,10 +817,8 @@ public class BillOfLadingService {
         Account account = accountServiceUtill.getAccount();
 
         BillOfLading billOfLading = billOfLRepository
-            .findByDeliveryPersonAndId(account, id)
-            .orElseThrow(() ->
-                new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND)
-            );
+                .findByDeliveryPersonAndId(account, id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_OF_LADING_NOT_FOUND));
 
         // Kiểm tra id có phjai là trạng thái DELIVERING
         Long stateId = -1L;
@@ -876,8 +832,8 @@ public class BillOfLadingService {
         }
 
         StateOrder stateOrder = stateOrderRepository
-            .findById(StateOrder.DELIVERING)
-            .get();
+                .findById(StateOrder.DELIVERING)
+                .get();
         billOfLading.getOrder().setStateOrder(stateOrder);
         try {
             billOfLRepository.saveAndFlush(billOfLading);

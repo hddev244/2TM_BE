@@ -68,8 +68,8 @@ public class PaymentService {
                         for (Order order : orders) {
                                 order.setPaymentStatus(true);
                                 order.setPaymentId(bankTranNo);
-                                order.setStateOrder(
-                                                stateOrderRepository.findById(StateOrder.CONFIRMED).get());
+                                // order.setStateOrder(
+                                //                 stateOrderRepository.findById(StateOrder.CONFIRMED).get());
                         }
                         record.setStatus(true);
                         record.setBankCode(bankCode);

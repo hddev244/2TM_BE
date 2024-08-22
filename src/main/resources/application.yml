@@ -7,9 +7,9 @@ spring:
   application:
     name: jpa-b1
   datasource:
-    url: jdbc:mysql://localhost:3306/2tm_dev
-    username: taiph
-    password: 123123123
+    url: jdbc:mysql://mysql.2tm.store/2tm_production
+    username: 2tm_dev
+    password: H9D%L5mdgtKEP@sN
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   servlet:
