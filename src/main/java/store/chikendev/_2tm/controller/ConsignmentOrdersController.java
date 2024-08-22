@@ -63,7 +63,7 @@ public class ConsignmentOrdersController {
             @RequestPart(required = false, name = "image") MultipartFile image) {
         return new ApiResponse<String>(200, null, consignmentOrdersService.updateStatus(stateId, id, image));
     }
-
+    // hoàn thành vận đơn kí gửi - được nhận bởi cửa hàng
     @PreAuthorize("hasAnyRole('ROLE_QLCH','ROLE_NVCH')")
     @GetMapping("success/{consignmentOrderId}")
     public ApiResponse<String> success(@PathVariable("consignmentOrderId") Long id) {

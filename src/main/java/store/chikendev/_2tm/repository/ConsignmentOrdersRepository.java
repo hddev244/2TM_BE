@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Repository;
 
 import store.chikendev._2tm.entity.Account;
@@ -37,7 +38,9 @@ public interface ConsignmentOrdersRepository extends JpaRepository<ConsignmentOr
         @Query("SELECT co FROM ConsignmentOrders co WHERE co.product.ownerId = :owner AND (co.product.state.id = 4 or co.product.state.id = 7 or co.product.state.id = 8 or co.product.state.id = 3)")
         Page<ConsignmentOrders> findByDeliveryPerson2(@Param("owner") Account deliveryPerson, Pageable pageable);
 
-        Page<ConsignmentOrders> findByStore(Store store, Pageable pageable);
+        @Query("SELECT co FROM ConsignmentOrders co WHERE co.product.state.id  != 2 AND co.store = :store ")
+        Page<ConsignmentOrders> findByStore(
+        @Param("store") Store store, Pageable pageable);        
 
         Page<ConsignmentOrders> findByOrdererId(Account ordererId, Pageable pageable);
 

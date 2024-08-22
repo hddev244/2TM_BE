@@ -250,7 +250,6 @@ public class ConsignmentOrdersService {
                                         account,
                                         state,
                                         pageable);
-                        System.out.println("hello " + stateId);
                         return convertToResponse(response);
                 } else if (account
                                 .getRoles()
@@ -275,10 +274,13 @@ public class ConsignmentOrdersService {
                 } else {
                         // NVCH - QLCH
                         if (accountStore.isPresent()) {
+
+                                // nếu không truyền trạng thái thì lấy tất cả
                                 if (stateId == null) {
                                         Page<ConsignmentOrders> response = consignmentOrdersRepository.findByStore(
                                                         accountStore.get().getStore(),
                                                         pageable);
+                                                        System.out.println(response.getTotalElements());
                                         return convertToResponse(response);
                                 }
                                 StateConsignmentOrder state = stateConsignmentOrderRepository
@@ -287,7 +289,10 @@ public class ConsignmentOrdersService {
                                                         throw new AppException(ErrorCode.STATE_NOT_FOUND);
                                                 });
                                 Page<ConsignmentOrders> response = null;
-
+                                
+                                // Nếu trạng thái vận đơn là hoàn thành
+                                // thì chỉ lấy đơn mà sản phẩm có trạng thái chờ nhận
+                                // để không hiển thị sản phẩm đang bán và chờ xác nhận
                                 if (stateId == StateConsignmentOrder.COMPLETED) {
                                         response = consignmentOrdersRepository.findByStoreAndStateIsWatingStaffReceive(
                                                         accountStore.get().getStore(),
@@ -563,6 +568,7 @@ public class ConsignmentOrdersService {
 
         // xác nhận hoàn thành đơn hàng ký gửi - NVCH - QLCH
         public String successConsignmentOrders(Long idConsignmentOrders) {
+                // Lấy thông tin tài khoản đăng nhập theo token hiện tại
                 String email = SecurityContextHolder.getContext()
                                 .getAuthentication()
                                 .getName();
@@ -571,24 +577,31 @@ public class ConsignmentOrdersService {
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.USER_NOT_FOUND);
                                 });
-
+                        
+                // Lấy thông tin đơn hàng ký gửi theo id đuọc truyền vào
                 ConsignmentOrders consignmentOrders = consignmentOrdersRepository
                                 .findById(idConsignmentOrders)
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.CONSIGNMENT_ORDER_NOT_FOUND);
                                 });
+                // kiểm tra trạng thái của đơn hàng ký gửi có phải là đang chờ nhận hàng từ nhân viên giao hàng không
                 if (consignmentOrders.getProduct().getState().getId() != StateProduct.WAITING_STAFF_RECEIVE) {
                         throw new AppException(ErrorCode.STATE_ERROR);
                 }
 
+                // kiểm tra xem tài khoản đăng nhập có quyền quản lý cửa hàng không
                 if (consignmentOrders
                                 .getStore()
                                 .getAccountStores()
                                 .stream()
                                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
-                        // xác nhận đơn ký gửi
+                        // xác nhận đơn ký 
+                        // Chiỉ được xác nhận khi trạng thái của đơn hàng ký gửi là đang chờ cửa hàng nhận hàng
                         if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.WAITING_STAFF_RECEIVE) {
+                                // chỉ nhận khi có ảnh nhận hàng
                                 if (consignmentOrders.getImage() != null) {
+
+                                        // cập nhật trạng thái của đơn hàng ký gửi _ thơi gian cập nhật _ nhân viên nhận()
                                         StateConsignmentOrder state = stateConsignmentOrderRepository
                                                         .findById(StateConsignmentOrder.COMPLETED)
                                                         .get();
