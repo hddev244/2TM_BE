@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import store.chikendev._2tm.dto.request.AccountRequest;
+import store.chikendev._2tm.dto.request.AccountUpdateRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
 import store.chikendev._2tm.dto.request.ForgotPasswordRequest;
 import store.chikendev._2tm.dto.request.LoginRequest;
@@ -174,11 +175,8 @@ public class AccountController {
     @PutMapping("/{id}")
     public ApiResponse<Account> updateAccount(
         @PathVariable("id") String id,
-        @RequestBody AccountRequest updateAccountRequest
+        @RequestBody AccountUpdateRequest updateAccountRequest
     ) {
-        System.out.println(
-            "updateAccountRequest: " + updateAccountRequest.toString()
-        );
         Account updatedAccount = accountService.updateAccountById(
             id,
             updateAccountRequest
