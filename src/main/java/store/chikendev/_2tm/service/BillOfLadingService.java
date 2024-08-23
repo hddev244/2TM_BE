@@ -277,7 +277,7 @@ public class BillOfLadingService {
         }
 
         accounts.forEach(deliveryPerson -> {
-            if(deliveryPerson.getAccount() == null){
+            if (deliveryPerson.getAccount() == null) {
                 return;
             }
             deliveryPerson
@@ -751,8 +751,26 @@ public class BillOfLadingService {
         billOfLading.setImage(imageSaved);
 
         billOfLading.getOrder().setCompleteAt(new Date());
+        Order order = billOfLading.getOrder();
+        List<Disbursements> disbursements = new ArrayList<>();
+        order.getDetails().forEach(detail -> {
+            if (detail.getProduct().getOwnerId() != null) {
+                Double commissionRate = ((detail.getPrice()
+                        * detail.getProduct().getProductCommission().getCommissionRate()) / 100) * detail.getQuantity();
+                Disbursements disbursement = Disbursements.builder()
+                        .commissionRate(commissionRate)
+                        .orderDetail(detail)
+                        .state(false)
+                        .build();
+                disbursements.add(disbursement);
+            }
+        });
 
         try {
+            orderRepository.save(order);
+            if (disbursements.size() > 0) {
+                disbursementsRepository.saveAll(disbursements);
+            }
             billOfLRepository.saveAndFlush(billOfLading);
         } catch (Exception e) {
             throw new AppException(ErrorCode.DATA_ERROR);
