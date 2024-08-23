@@ -163,7 +163,7 @@ public class ConsignmentOrdersService {
                 }
                 // lưu ảnh
                 List<ProductImages> images = saveProductImages(saveProduct, files);
-                saveProduct.setImages(images);
+                
 
                 // for (MultipartFile file : files) {
                 // FilesHelp.saveFile(
@@ -210,6 +210,7 @@ public class ConsignmentOrdersService {
 
                 save = consignmentOrdersRepository.save(save);
                 saveProduct.setConsignmentOrder(save);
+                productRepository.save(saveProduct);
                 return ("Thành công");
         }
 
@@ -289,7 +290,7 @@ public class ConsignmentOrdersService {
                                                         throw new AppException(ErrorCode.STATE_NOT_FOUND);
                                                 });
                                 Page<ConsignmentOrders> response = null;
-                                
+
                                 // Nếu trạng thái vận đơn là hoàn thành
                                 // thì chỉ lấy đơn mà sản phẩm có trạng thái chờ nhận
                                 // để không hiển thị sản phẩm đang bán và chờ xác nhận
@@ -313,6 +314,9 @@ public class ConsignmentOrdersService {
 
         private Page<ConsignmentOrdersResponse> convertToResponse(
                         Page<ConsignmentOrders> response) {
+                            if (response.isEmpty()) {
+                                return Page.empty();
+                            }
                 return response.map(consignmentOrders -> {
                         return convertToConsignmentOrdersResponse(consignmentOrders, false);
                 });
@@ -577,7 +581,7 @@ public class ConsignmentOrdersService {
                                 .orElseThrow(() -> {
                                         throw new AppException(ErrorCode.USER_NOT_FOUND);
                                 });
-                        
+
                 // Lấy thông tin đơn hàng ký gửi theo id đuọc truyền vào
                 ConsignmentOrders consignmentOrders = consignmentOrdersRepository
                                 .findById(idConsignmentOrders)
@@ -595,7 +599,7 @@ public class ConsignmentOrdersService {
                                 .getAccountStores()
                                 .stream()
                                 .anyMatch(acc -> acc.getAccount().getId().equals(account.getId()))) {
-                        // xác nhận đơn ký 
+                        // xác nhận đơn ký
                         // Chiỉ được xác nhận khi trạng thái của đơn hàng ký gửi là đang chờ cửa hàng nhận hàng
                         if (consignmentOrders.getStateId().getId() == StateConsignmentOrder.WAITING_STAFF_RECEIVE) {
                                 // chỉ nhận khi có ảnh nhận hàng
