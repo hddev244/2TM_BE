@@ -159,7 +159,7 @@ public class AuthenticationService {
                 .anyMatch(
                     role ->
                         role.getRole().getId().equals(Role.ROLE_STAFF) ||
-                        role.getRole().getId().equals(Role.ROLE_STAFF)
+                        role.getRole().getId().equals(Role.ROLE_STORE_MANAGER)
                 );
             if (!hasRole) {
                 throw new AppException(ErrorCode.LOGIN_ROLE_REQUIRED);
