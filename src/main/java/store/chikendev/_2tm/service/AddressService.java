@@ -65,13 +65,11 @@ public class AddressService {
     }
 
     public List<DistrictResponse> findDistrictByProvinceId(Long id) {
-        System.out.println(id);
         List<District> districts = districtRepository.getDistrictByProvinceId(id);
         return districts.stream().map(district -> mapper.map(district, DistrictResponse.class)).toList();
     }
 
     public List<WardResponse> findByDistrictId(Long id) {
-        System.out.println(id);
         List<Ward> wards = wardRepository.getByDistrictId(id);
         return wards.stream().map(ward -> mapper.map(ward, WardResponse.class)).toList();
     }

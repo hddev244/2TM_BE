@@ -149,7 +149,6 @@ public class CartService {
                 });
             }
             ResponseDocumentDto image = FilesHelp.getOneDocument(product.getId(), EntityFileType.PRODUCT);
-            System.out.println(product.getId());
             ResponseDocumentDto imageStore = FilesHelp.getOneDocument(product.getStore().getId(),
                     EntityFileType.STORE_LOGO);
             return ProductResponse.builder()

@@ -281,7 +281,6 @@ public class ConsignmentOrdersService {
                                         Page<ConsignmentOrders> response = consignmentOrdersRepository.findByStore(
                                                         accountStore.get().getStore(),
                                                         pageable);
-                                                        System.out.println(response.getTotalElements());
                                         return convertToResponse(response);
                                 }
                                 StateConsignmentOrder state = stateConsignmentOrderRepository
@@ -326,7 +325,6 @@ public class ConsignmentOrdersService {
                         ConsignmentOrders consignmentOrders,
                         boolean multiImage) {
                 ConsignmentOrdersResponse response = new ConsignmentOrdersResponse();
-                System.out.println();
                 if (consignmentOrders.getStateId() != null) {
                         response.setState(
                                         ConsignmentOrderStateResponse.builder()
@@ -901,8 +899,7 @@ public class ConsignmentOrdersService {
                                         .build();
                         productImages.add(productImage);
                 }
-                System.out.println(
-                                productImages.get(0).getImage().getFileDownloadUri());
+             
                 return productImagesRepository.saveAll(productImages);
         }
 

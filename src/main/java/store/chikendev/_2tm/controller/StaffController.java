@@ -57,7 +57,6 @@ public class StaffController {
         @PathVariable("id") String id,
         @RequestBody @Valid CreateStaffRequest request
     ) {
-        System.out.println("request: " + request.toString());
         return new ApiResponse<CreateStaffResponse>(
             200,
             null,

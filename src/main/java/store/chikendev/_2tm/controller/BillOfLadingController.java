@@ -45,7 +45,6 @@ public class BillOfLadingController {
     public ApiResponse<String> aceptBillOfLading(
         @PathVariable("billOfLadingId") Long billOfLadingId
     ) {
-        System.out.println("billOfLadingId: " + billOfLadingId);
         billOfLadingService.acceptBillOfLading(billOfLadingId);
         return new ApiResponse<String>(200, null, "Lấy hàng thành công");
     }
@@ -74,7 +73,6 @@ public class BillOfLadingController {
     public ApiResponse<String> confirmOrder(
         @RequestParam(name = "orderId") Long orderId
     ) {
-        System.out.println("orderId: " + orderId);
         return new ApiResponse<String>(
             200,
             null,

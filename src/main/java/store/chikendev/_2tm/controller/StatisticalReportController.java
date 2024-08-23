@@ -63,7 +63,6 @@ public class StatisticalReportController {
             @RequestParam(name = "type", required = false) Boolean type,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "8") int size) {
-        System.out.println(date + " TC");
         Page<OrderResponse> orders = statisticalReportService.getStatisticalReportByDateAndType(
                 date,
                 type,
@@ -119,7 +118,6 @@ public class StatisticalReportController {
             @RequestParam(name = "minDate") String minDate,
             @RequestParam(name = "maxDate") String maxDate,
             @RequestParam(name = "storeId", required = false) Long storeId) {
-        System.out.println(minDate + " " + maxDate);
 
         List<Report> statisticalReport = statisticalReportService.getRevenueByMinAndMaxDate(minDate, maxDate, storeId);
         return new ApiResponse<List<Report>>(

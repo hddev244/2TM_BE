@@ -266,7 +266,6 @@ public class OtpService {
                                                                                         // LocalDateTime
         Duration duration = Duration.between(dateToCheckLocal, now);
         long diffInMinutes = Math.abs(duration.toMinutes());
-        System.out.println(diffInMinutes);
         return diffInMinutes <= 5;
     }
 
@@ -290,7 +289,6 @@ public class OtpService {
                 .id(claimsSet.getJWTID())
                 .expiryTime(new Date())
                 .build());
-        System.out.println(claimsSet.getJWTID());
         Payload payload = new Payload(claimsSet.toJSONObject());
 
         JWSObject jwsObject = new JWSObject(header, payload);

@@ -85,5 +85,15 @@ public interface ProductRepository
         @Transactional
         @Modifying
         @Query("UPDATE Product p SET p.productCommission = :productCommission WHERE p.id = :productId")
-        void updateProductCommission(@Param("productCommission") ProductCommission productCommission, @Param("productId") Long productId);
+        void updateProductCommission(@Param("productCommission") ProductCommission productCommission,
+                        @Param("productId") Long productId);
+        
+        @Query("SELECT p FROM Product p WHERE p.quantity > 0 AND p.state.id = 2 AND (p.name LIKE %:searchValue% OR p.description LIKE %:searchValue%) AND (:categoryId IS NULL OR p.category.id = :categoryId) AND (:storeId IS NULL OR p.store.id = :storeId) AND (:minPrice IS NULL OR p.price >= :minPrice) AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
+        Page<Product> searchAndFilterProducts(
+                @Param("searchValue") String searchValue,
+                @Param("categoryId") Long categoryId,
+                @Param("storeId") Long storeId,
+                @Param("minPrice") Double minPrice,
+                @Param("maxPrice") Double maxPrice,
+                Pageable pageable);
 }

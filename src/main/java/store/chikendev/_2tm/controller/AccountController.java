@@ -55,7 +55,6 @@ public class AccountController {
         // @Valid 
         AccountRequest request
     ) {
-        System.out.println("response: " + request);
         
         AccountResponse response = accountService.register(request);
         otpService.sendOtp(response.getEmail());
@@ -81,7 +80,6 @@ public class AccountController {
     public ApiResponse<AuthenticationResponse> adminLogin(
         @RequestBody LoginRequest request
     ) {
-        System.out.println("admin login" + request);
         AuthenticationResponse responce = authenticationService.auth(
             request,
             AuthenticationService.LOGIN_ROLE_ADMIN

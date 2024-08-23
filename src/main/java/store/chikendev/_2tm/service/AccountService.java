@@ -123,7 +123,6 @@ public class AccountService {
                 StateAccount state = stateAccountRepository
                                 .findById(StateAccount.VERIFICATION_REQUIRED)
                                 .get();
-                                System.out.println("check-------------------------");
                 Account account = mapper.map(request, Account.class);
                 account.setPassword(passwordEncoder.encode(request.getPassword()));
                 account.setViolationPoints(100);
@@ -216,7 +215,6 @@ public class AccountService {
                 response.setAddress(getAddress(savedAccount.getAddress()));
 
                 if (request.getStoreId() != null) {
-                        System.out.println(request.getStoreId());
                         Store store = storeRepository
                                         .findById(request.getStoreId())
                                         .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
@@ -642,7 +640,6 @@ public class AccountService {
                 avatar.setFileDownloadUri(fileSaved.getFileDownloadUri());
 
                 var avatarUpdate = imageReponsitory.save(avatar);
-                System.out.println(avatarUpdate.getFileDownloadUri());
                 account.setImage(avatar);
                 accountRepository.save(account);
 
@@ -656,7 +653,6 @@ public class AccountService {
                 Account account = accountRepository
                                 .findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-                System.out.println(account.getFullName());
 
                 throw new UnsupportedOperationException(
                                 "Unimplemented method 'getAdminAccountById'");

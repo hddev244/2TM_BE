@@ -118,7 +118,26 @@ public class ProductController {
                                 value,
                                 pageIndex,
                                 size);
-                System.out.println(products.getSize());
+                return new ApiResponse<>(200, null, products);
+        }
+
+        @GetMapping("/search-filter")
+        public ApiResponse<Page<ProductResponse>> searchAndFilterProducts(
+                        @RequestParam(required = false, name = "searchValue") String searchValue,
+                        @RequestParam(required = false, name = "categoryId") Long categoryId,
+                        @RequestParam(required = false, name = "storeId") Long storeId,
+                        @RequestParam(required = false, name = "minPrice") Optional<Double> minPrice,
+                        @RequestParam(required = false, name = "maxPrice") Optional<Double> maxPrice,
+                        @RequestParam(required = false, name = "pageIndex", defaultValue = "0") Integer pageIndex,
+                        @RequestParam(required = false, name = "size", defaultValue = "8") Integer size) {
+                Page<ProductResponse> products = productService.searchAndFilterProducts(
+                                searchValue,
+                                categoryId,
+                                storeId,
+                                minPrice.orElse(0.0),
+                                maxPrice.orElse(Double.MAX_VALUE),
+                                pageIndex,
+                                size);
                 return new ApiResponse<>(200, null, products);
         }
 
@@ -128,7 +147,6 @@ public class ProductController {
                         @RequestParam(required = false, name = "pageIndex", defaultValue = "0") Integer pageIndex,
                         @RequestParam(required = false, name = "size", defaultValue = "8") Integer size) {
                 Page<ProductResponse> products = productService.getProductsByCategoryPath(path, pageIndex, size);
-                System.out.println(products.getSize());
                 return new ApiResponse<>(200, null, products);
         }
 
@@ -199,5 +217,5 @@ public class ProductController {
                 Page<ProductResponse> products = productService.findProductByOwnerId(size, page);
                 return new ApiResponse<Page<ProductResponse>>(200, null, products);
         }
-        
+
 }

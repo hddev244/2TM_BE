@@ -25,7 +25,6 @@ public class PaymentRecordController {
         @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
         @RequestParam(name = "sort", required = false, defaultValue = "ASC") String sort
     ) {
-        System.out.println("pageNo: " + pageNo + " size: " + size + " sort: " + sort);
         return new ApiResponse<Page<PaymentRecordResponse>>(
             200,
             null,

@@ -450,8 +450,7 @@ public class ProductService {
                                         .build();
                         productImages.add(productImage);
                 }
-                System.out.println(
-                                productImages.get(0).getImage().getFileDownloadUri());
+               
                 return productImagesRepository.saveAll(productImages);
         }
 
@@ -554,7 +553,6 @@ public class ProductService {
                 Category category = categoryRepository
                                 .findByPath(path)
                                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-                System.out.println(category.getPath());
                 Page<Product> products = productRepository.findByPathCategory(
                                 category,
                                 pageable);
@@ -641,6 +639,21 @@ public class ProductService {
                 Page<ProductResponse> productResponses = product.map(products -> {
                         return convertToResponse(products, false);
                 });
+                return productResponses;
+        }
+
+        public Page<ProductResponse> searchAndFilterProducts(String searchValue, Long categoryId, Long storeId,
+                        Double minPrice, Double maxPrice, Integer pageIndex, Integer size) {
+                Pageable pageable = PageRequest.of(pageIndex, size);
+
+                Page<Product> products = productRepository.searchAndFilterProducts(searchValue, categoryId, storeId,
+                                minPrice,
+                                maxPrice, pageable);
+
+                Page<ProductResponse> productResponses = products.map(product -> {
+                        return convertToResponse(product, false);
+                });
+
                 return productResponses;
         }
 

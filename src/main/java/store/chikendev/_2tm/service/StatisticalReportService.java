@@ -154,7 +154,6 @@ public class StatisticalReportService {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
         Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
-        System.out.println(startOfDay + " " + endOfDay + " TC");
         if (type == null) {
             Page<Order> orders = orderRepository.findByDate(
                     startOfDay,
@@ -232,7 +231,6 @@ public class StatisticalReportService {
                 .findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         LocalDate date = convertToDate(dateString);
-        System.out.println(date);
         if (date == null) {
             throw new AppException(ErrorCode.INVAL_DATETIME_INPUT);
         }
@@ -240,7 +238,6 @@ public class StatisticalReportService {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
         Optional<AccountStore> accountStore = accountStoreRepository.findByAccount(account);
-        System.out.println(accountStore.get().getStore().getId());
         List<Order> orders = orderRepository.findByDateAndTypeNoPage(
                 startOfDay,
                 endOfDay,

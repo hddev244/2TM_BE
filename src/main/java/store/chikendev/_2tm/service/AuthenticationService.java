@@ -302,7 +302,6 @@ public class AuthenticationService {
         Payload payload = new Payload(claimsSet.toJSONObject());
 
         JWSObject jwsObject = new JWSObject(header, payload);
-        System.out.println("SIGNER_KEY: " + signerKey);
         // Ký token
         try {
             jwsObject.sign(new MACSigner(signerKey.getBytes()));
@@ -370,7 +369,6 @@ public class AuthenticationService {
 
         try {
             signedJWT = SignedJWT.parse(token);
-            System.out.println("SIGNER_KEY2: " + SIGNER_KEY);
 
             if (isRefresh) {
                 verifier = new MACVerifier(SIGNER_KEY_REFRESH.getBytes());

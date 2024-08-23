@@ -271,7 +271,6 @@ public class BillOfLadingService {
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND))
                 .getStore();
         List<AccountStore> accounts = accountStoreRepository.findByStore(store);
-        System.out.println(accounts.size());
         if (accounts == null || accounts.isEmpty()) {
             throw new AppException(ErrorCode.DELIVERY_PERSON_EMPTY);
         }
@@ -356,7 +355,6 @@ public class BillOfLadingService {
                     account,
                     pageable);
         } else {
-            System.out.println(stateId + " TC");
             StateOrder stateOrder = stateOrderRep
                     .findById(stateId)
                     .orElseThrow(() -> new AppException(ErrorCode.STATE_NOT_FOUND));
