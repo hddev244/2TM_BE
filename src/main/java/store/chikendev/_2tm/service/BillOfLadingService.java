@@ -755,8 +755,12 @@ public class BillOfLadingService {
         List<Disbursements> disbursements = new ArrayList<>();
         order.getDetails().forEach(detail -> {
             if (detail.getProduct().getOwnerId() != null) {
-                Double commissionRate = ((detail.getPrice()
-                        * detail.getProduct().getProductCommission().getCommissionRate()) / 100) * detail.getQuantity();
+                Double commissionRate = 0.0;
+                if (detail.getProduct().getProductCommission() != null) {
+                    commissionRate = ((detail.getPrice()
+                            * detail.getProduct().getProductCommission().getCommissionRate()) / 100)
+                            * detail.getQuantity();
+                }
                 Disbursements disbursement = Disbursements.builder()
                         .commissionRate(commissionRate)
                         .orderDetail(detail)
