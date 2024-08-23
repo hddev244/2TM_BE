@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import store.chikendev._2tm.dto.request.AccountRequest;
+import store.chikendev._2tm.dto.request.AccountUpdateRequest;
 import store.chikendev._2tm.dto.request.ChangePasswordRequest;
 import store.chikendev._2tm.dto.request.CreateStaffRequest;
 import store.chikendev._2tm.dto.responce.AccountResponse;
@@ -480,17 +481,14 @@ public class AccountService {
                 return password.toString();
         }
 
-        public Account updateAccountById(String id, AccountRequest accountRequest) {
+        public Account updateAccountById(String id, AccountUpdateRequest accountRequest) {
                 Account account = accountRepository
                                 .findById(id)
                                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
                 // Cập nhật thông tin tài khoản
-                account.setUsername(accountRequest.getUsername());
-                account.setPassword(accountRequest.getPassword());
                 account.setFullName(accountRequest.getFullName());
                 account.setPhoneNumber(accountRequest.getPhoneNumber());
-                account.setEmail(accountRequest.getEmail());
                 // Cập nhật các trường khác nếu cần thiết
 
                 return accountRepository.save(account);
