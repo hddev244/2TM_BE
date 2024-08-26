@@ -114,7 +114,7 @@ public class OtpService {
         }
         otpRepository.saveAndFlush(Otp.builder()
                 .account(account)
-                .tokenCode(otp)
+                .tokenCode(otp) //OTP code
                 .build());
         String emailContent = "<html>"
                 + "<body>"

@@ -46,6 +46,7 @@ public class OwnerPermissionController {
     public ApiResponse<Page<OwnerPermissionResponse>> getAllOwnerPermission(
             @RequestParam(required = false, name = "size") Optional<Integer> size,
             @RequestParam(required = false, name = "page") Optional<Integer> page,
+            
             @RequestParam(required = false, name = "state") Long state) {
         Page<OwnerPermissionResponse> response = ownerPermissionService.getOwnerPer(size.orElse(10), page.orElse(0),
                 state);

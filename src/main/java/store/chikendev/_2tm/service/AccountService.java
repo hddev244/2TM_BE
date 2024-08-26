@@ -46,12 +46,16 @@ import store.chikendev._2tm.utils.EntityFileType;
 import store.chikendev._2tm.utils.FilesHelp;
 import store.chikendev._2tm.utils.SendEmail;
 import store.chikendev._2tm.utils.dtoUtil.response.ImageDtoUtil;
+import store.chikendev._2tm.utils.service.AccountServiceUtill;
 
 @Service
 public class AccountService {
 
         @Autowired
         private AddressService addressService;
+
+        @Autowired
+        private AccountServiceUtill accountServiceUtill;
 
         @Autowired
         private ImageRepository imageReponsitory;
@@ -479,17 +483,22 @@ public class AccountService {
                 return password.toString();
         }
 
-        public Account updateAccountById(String id, AccountUpdateRequest accountRequest) {
-                Account account = accountRepository
-                                .findById(id)
-                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        public AccountResponse updateAccountById(AccountUpdateRequest accountRequest) {
+                Account account = accountServiceUtill.getAccount();
 
                 // Cập nhật thông tin tài khoản
                 account.setFullName(accountRequest.getFullName());
                 account.setPhoneNumber(accountRequest.getPhoneNumber());
                 // Cập nhật các trường khác nếu cần thiết
+                account = accountRepository.save(account);
 
-                return accountRepository.save(account);
+                return AccountResponse.builder()
+                .id(account.getId())
+                .username(account.getUsername())
+                .fullName(account.getFullName())
+                .phoneNumber(account.getPhoneNumber())
+                .email(account.getEmail())
+                .build();
         }
 
         // Lấy thông tin Account

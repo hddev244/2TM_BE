@@ -51,12 +51,10 @@ public class AccountController {
 
     @PostMapping("register")
     public ApiResponse<AccountResponse> register(
-        @RequestBody 
-        // @Valid 
-        AccountRequest request
+        @RequestBody AccountRequest request // @Valid
     ) {
-        
         AccountResponse response = accountService.register(request);
+        
         otpService.sendOtp(response.getEmail());
         return new ApiResponse<AccountResponse>(200, null, response);
     }
@@ -170,16 +168,15 @@ public class AccountController {
         );
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<Account> updateAccount(
-        @PathVariable("id") String id,
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping
+    public ApiResponse<AccountResponse> updateAccount(
         @RequestBody AccountUpdateRequest updateAccountRequest
     ) {
-        Account updatedAccount = accountService.updateAccountById(
-            id,
+        AccountResponse updatedAccount = accountService.updateAccountById(
             updateAccountRequest
         );
-        return new ApiResponse<Account>(200, null, updatedAccount);
+        return new ApiResponse<AccountResponse>(200, null, updatedAccount);
     }
 
     @PreAuthorize("hasRole('ROLE_QTV')")
